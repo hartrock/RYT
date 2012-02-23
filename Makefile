@@ -347,7 +347,7 @@ webside: $(THIS_FILE) \
 
 $(SCRIPT_DIR)/%.lftp: $(SCRIPT_DIR)/%.lftp.in
 	$(SCRIPT_DIR)/fillIn_lftpInfo \
-          $< $(INSTALL_DIR) $(EXTERNAL_SERVER) \
+          $< $(INSTALL_DIR) $(RYT_DIRNAME) $(EXTERNAL_SERVER) \
           > $@
 lftp: $(TARGETS_LFTP)
 

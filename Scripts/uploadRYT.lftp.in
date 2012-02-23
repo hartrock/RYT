@@ -3,8 +3,8 @@ open _SERVER_TO_PUSH_TO_
 mirror -RL -vvv \
   --exclude app.html --exclude app_unminified.html \
   --exclude .git/ --exclude .gitignore --exclude _darcs/ --exclude .boring \
-  RYT
+  _RYT_DIRNAME_
 echo 'putting app.html app_unminified.html'
-put RYT/app.html -o RYT/app.html
-put RYT/app_unminified.html -o RYT/app_unminified.html
-ls RYT
+put _RYT_DIRNAME_/app.html -o _RYT_DIRNAME_/app.html
+put _RYT_DIRNAME_/app_unminified.html -o _RYT_DIRNAME_/app_unminified.html
+ls _RYT_DIRNAME_
