@@ -56,7 +56,7 @@ CONFIG_HAS_BEEN_SOURCED ?= $(error var CONFIG_HAS_BEEN_SOURCED missing)
 # ..[to be included from config.src]
 
 # repo (to be changed to master later)
-RELEASE_BRANCH  := devel
+RELEASE_BRANCH  := master
 CURRENT_VERSION := $(shell git tag | tail -n 1)
 
 # static paths
