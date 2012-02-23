@@ -1,0 +1,41 @@
+#!/bin/bash
+
+# Append/replace version string in referenced *.js.
+SCRIPT_DIR=Scripts; . $SCRIPT_DIR/util.src
+
+MAIN_JS=rytMain.js
+VERSION=$1
+DATE=`date "+%F"`
+VERSION_DATE="$VERSION ($DATE)"
+RELEASE_TAG_REGEX='^v[0-9][0-9]*.*\.[0-9]*[0-9]$$'
+
+if [[ $# -ne 1 || (! $VERSION =~ $RELEASE_TAG_REGEX ) ]]
+then
+    usage "VERSION (v0.0, v1.0, v0.1, v1.34.5, ...; note the 'v' at the beginning)"
+else
+    info "VERSION: $VERSION"
+fi
+SED_STR_VERSION_INFO='s/\(var version = "RYT\)[^"]*"/\1'$VERSION_DATE'"/'
+yesNo "Edit version info in $MAIN_JS?" && {
+    sed -e "$SED_STR_VERSION_INFO" -i $MAIN_JS || error "sed of $MAIN_JS";
+}
+yesNo "git rec?" && {
+#    darcs rec --patch-name "$0 $VERSION" --interactive || error "darcs rec";
+    git commit -a -m "$0 $VERSION" || error "git commit";
+}
+yesNo "Tag with $VERSION in git?" && {
+    git tag $VERSION || error "git tag $VERSION";
+}
+yesNo "make installRelease?" && {
+    make installRelease || error "make installRelease";
+}
+yesNo "Push to EvolGo server?" && {
+    ( make lftp && lftp -f $SCRIPT_DIR/uploadRYT.lftp ) || error "push to server";
+}
+yesNo "Leave old files at EvolGo server?" && {
+    echo "leave old files at server"
+} || {
+    ( make lftp && lftp -f $SCRIPT_DIR/uploadRYTDeleteOld.lftp ) || error "delete old files at server";
+}
+
+success

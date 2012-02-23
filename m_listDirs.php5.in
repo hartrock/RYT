@@ -1,0 +1,42 @@
+<?php
+/*
+ *  Roll Your Tasks (RYT)
+ *  - mobile task management in the browser for individuals and small groups.
+ *  Copyright (C) 2010-2012  Stephan Rudlof
+ *
+ *  This program is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU Affero General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU Affero General Public License for more details.
+ *
+ *  You should have received a copy of the GNU Affero General Public License
+ *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+header('Content-Type: text/plain'); // plain text file output
+
+$pwOK = $_REQUEST[pw] == "_RYT_ADMIN_PASSWORD_";
+!$pwOK && die("wrong password");
+
+$prefix = "../../_RYT_DATA_DIRNAME_";
+$depth = $_REQUEST[depth];
+$debug = $_REQUEST[debug] == "true";
+
+if ($debug) echo "prefix: ".$prefix.", depth: ".$depth."\n";
+$glob = $prefix;
+for($i = 0; $i < $depth; ++$i) {
+  $glob = $glob."/*";
+}
+if ($debug) echo "glob pattern: ".$glob."\n";
+$globArr = glob($glob);
+foreach ($globArr as $filename) {
+  $str = date('Y-m-d H:i:s', filemtime( $filename ) );
+  //echo str_pad($str, 100, ".")." "."$filename " . filesize($filename)."\n";
+  echo $str." "."$filename " . filesize($filename)."\n";
+}
+?>

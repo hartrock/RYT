@@ -1,0 +1,16 @@
+# .gitignore
+
+*~
+
+# darcs
+/_darcs/
+/.boring
+
+# Makefile targets
+/data.php5
+/m_listDirs.php5
+/Scripts/uploadRYT.lftp
+/Scripts/uploadRYTDeleteOld.lftp
+
+#
+/config.src

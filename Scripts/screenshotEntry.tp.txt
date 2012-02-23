@@ -1,0 +1,5 @@
+    <a href="Screenshots/_SCREENSHOT_FN_" rel="thumbnails" title="_TITLE_">
+      <img style="border:none"
+           src="Screenshots/_THUMBNAIL_FN_"
+           alt="_TITLE_">
+    </a>

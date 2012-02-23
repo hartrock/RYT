@@ -1,0 +1,4 @@
+- rollYourTasks_RYT logo (Gimp): DejavVu Serif Bold 100px
+  -> exported as PNG without background layer
+
+- Raphael toFront() interferes with chrome event handling: click event does not work, if toFront() is being used in mousedown ev handler.

@@ -1,0 +1,6 @@
+lcd _RYT_INSTALL_DIR_
+open _SERVER_TO_PUSH_TO_
+mirror -RL -vvv --delete \
+  --exclude .git/ --exclude .gitignore --exclude _darcs/ --exclude .boring \
+  RYT
+ls RYT

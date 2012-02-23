@@ -1,0 +1,188 @@
+<?php
+/*
+ *  Roll Your Tasks (RYT)
+ *  - mobile task management in the browser for individuals and small groups.
+ *  Copyright (C) 2010-2012  Stephan Rudlof
+ *
+ *  This program is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU Affero General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU Affero General Public License for more details.
+ *
+ *  You should have received a copy of the GNU Affero General Public License
+ *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/* This is the only server side script being called by the RYT frontend running
+ * in the browser.
+ * It serves as an interface for accessing - storing, getting, listing - project
+ * data stored at the server. At server-side a file system is being used for
+ * storing project data (Note: this could also be some database).
+ *
+ * Missing in this template is the admin password for saving publicely available
+ * projects with bracketed names ('[info]'), which has to be filled in by some
+ * script.
+ *
+ * To the semantics
+ * ================
+ * For the client there is no visible difference between an empty and a
+ * non-existing file.
+ * A GET of a non-existing file
+ * - leads to creation of an empty one, and
+ * - just returns an empty content string then.
+ * This seems to be KISS: treating empty/non-exisiting the same - as there is no
+ * available information related to this (file) name - simplifies client code.
+ */
+include 'util.php5';
+$is = NULL;
+$os = NULL;
+$locked = NULL;
+
+function cleanup() {
+  global $is, $os, $locked; /* get access to vars above */
+  if ($locked) {
+    flock($locked, LOCK_UN); /* unlock */
+  }
+  if ($is) {
+    fclose($is);
+  }
+  if ($os) {
+    fclose($os);
+  }
+}
+function httpError($msg, $httpCode) {
+  header('X-Error: '.$msg, true, $httpCode);
+  cleanup();
+  die();
+}
+function projectEntryJSON($fn, $dirPath) {
+  $filePath = $dirPath.'/'.$fn;
+  return '{"fn":"'.$fn.'", "mtime":"'.date('Y-m-d H:i:s', filemtime( $filePath ) ).'", "size":'.filesize($filePath).'}';
+}
+$ident = $_SERVER['HTTP_X_DATA_IDENT'];  /* mandatory, except for project listing */
+/* for saving without key pw is needed */
+$key = $_SERVER['HTTP_X_DATA_KEY']; /*  */
+$pw = $_SERVER['HTTP_X_DATA_PW']; /*  */
+$action = $_SERVER['HTTP_X_ACTION'];
+if (! $ident) {
+  if ($action != 'list') {
+    httpError('data identifier missing', 400);
+  }
+} else { // send ident back
+  header('X-data-ident: '.$ident);
+}
+if ($key) {
+  header('X-data-key: '.$key);
+  if (! preg_match("/[a-f0-9]{3}/", $key)) {
+    httpError('invalid key', 400);
+  }
+  /* depth 3 has to fit to regex above */
+  $dirPath = dirPathForKey($key, '../../_RYT_DATA_DIRNAME_', 3).'/'.$key;
+  if (! is_dir($dirPath)) {
+    @mkdir($dirPath) || httpError('mkdir failed "'.$dirPath.'"', 500);
+  }
+} else { /* public area */
+  $dirPath = '../../_RYT_DATA_DIRNAME_';
+}
+$filePath = $dirPath."/".$ident;
+
+if ($_SERVER['REQUEST_METHOD'] == 'GET') {
+  header('Content-Type: application/json; charset=UTF-8');
+  if ($action == 'list') {
+    $files = array();
+    if($dh=opendir($dirPath)){
+      while(($file = readdir($dh)) !== false){
+        if ($file != '..' && $file != '.') {
+          $files[]=$file; // push
+        }
+      }
+    } else {
+      httpError('opendir failed', 500);
+    }
+    $count = count($files);
+    echo '[';
+    if ($count) {
+      $fn = $files[0];
+      echo projectEntryJSON($fn, $dirPath);
+      for ($ix = 1; $ix < $count; ++$ix) {
+        $fn = $files[$ix];
+        echo ','.projectEntryJSON($fn, $dirPath);
+      }
+    }
+    echo ']';
+  } else {
+    /* without locking: $is = @fopen($filePath,'rb'); */
+    $is = openLockedForRead($filePath, $locked);
+    if (! $is) { /* file probably not there, so try to create an empty one: */
+      /* this simply lets stream logic below do its work. */
+      $is = openLockedForReadCreate($filePath, $locked); /* create empty file */
+      /* without locking: $is = @fopen($filePath,'a+b'); */
+    }
+    if (! $is) {
+      httpError('cannot open input stream', 500);
+    }
+    $os = @fopen('php://output','wb');
+    if (! $os) {
+      httpError('cannot open output stream', 500);
+    }
+    $writtenBytes = @stream_copy_to_stream($is, $os);
+  }
+  /* cannot change headers from here: switch to buffered output? */
+  cleanup();
+} else if ($_SERVER['REQUEST_METHOD'] == 'DELETE') {
+  if (! ($key || $pw == "_RYT_ADMIN_PASSWORD_")) {
+    httpError('no key and no/wrong password', 500);
+  }
+  if (! is_file($filePath)) {
+    httpError('no file', 500);
+  }
+  $OK = unlink($filePath);
+  if (! $OK) {
+    httpError('unlink failed', 500);
+  }
+  cleanup();
+} else if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+  if (! ($key || $pw == "_RYT_ADMIN_PASSWORD_")) {
+    httpError('no key and no/wrong password', 500);
+  }
+  $is = @fopen('php://input','rb');
+  if (! $is) {
+    httpError('cannot open input stream', 500);
+  }
+  /* $os = @fopen($filePath,'wb'); */
+  $os = openLockedForWrite($filePath, $locked);
+  if (! $os) {
+    httpError('cannot open output stream', 500);
+  }
+  $writtenBytes = @stream_copy_to_stream($is, $os);
+  header('X-stored-bytes: '.$writtenBytes);
+  cleanup();
+ } else {
+  httpError('request method not allowed', 400);
+ }
+
+/* old experimental code:
+if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
+  * Access control does not work as expected... *
+  if ($_SERVER['HTTP_ORIGIN'] == 'null'
+      || $_SERVER['HTTP_ORIGIN'] == 'http://klara') {
+    header('Access-Control-Allow-Origin: *');
+    header('Access-Control-Allow-Methods: POST, GET, OPTIONS');
+    header('Access-Control-Allow-Headers: X-data-ident, Content-Type');
+    header('Access-Control-Max-Age: 3600000');
+    header('Content-Length: 0');
+    header('Content-Type: text/plain');
+  } else {
+    * header('HTTP/1.1 403 Access Forbidden'); *
+    * header('Content-Type: text/plain'); *
+    httpError('You cannot repeat this request', 403);
+  }
+  return;
+}
+*/
+?>

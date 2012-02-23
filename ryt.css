@@ -1,0 +1,533 @@
+/*
+ *  Roll Your Tasks (RYT)
+ *  - mobile task management in the browser for individuals and small groups.
+ *  Copyright (C) 2010-2012  Stephan Rudlof
+ *
+ *  This program is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU Affero General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU Affero General Public License for more details.
+ *
+ *  You should have received a copy of the GNU Affero General Public License
+ *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/* diff view */
+span.diff.insert {
+    background-color:#0f0;
+}
+span.diff.delete {
+    background-color:#f00;
+}
+span.diff.replace {
+    background-color:#88f;
+}
+.diff.mainHeader tr th h2 {
+    margin-top:0px;
+    margin-bottom:5px;
+}
+.diff.subHeader tr th {
+    padding:5px 0px 0px 0px;
+}
+.diff.subHeader tr {
+    margin-top:20px;
+}
+.diff.text {
+    background-color:#333;
+    text-align:center;
+}
+.diff.insert.plus {
+    color:#000;
+    background-color:#0a0;
+}
+.diff.delete.minus {
+    color:#000;
+    background-color:#a00;
+}
+.diff.replace {
+    color:#000;
+    background-color:#aa0;
+}
+.diff.timestamp {
+    background-color:#eee;
+}
+.diff.equal {
+    color:#000;
+    background-color:#999;
+}
+
+.diff.line {
+    font-family:monospace;
+    font-size:0.75em;
+    padding-left:5px;
+}
+.diff.number.plus, .diff.number.minus {
+    color:#ddd;
+    font-family:monospace;
+    font-size:0.75em;
+    text-align:right;
+    padding-right:5px;
+}
+
+
+.str2html.raw {
+    background-color: #444;
+    padding:10px 10px 10px 10px;
+}
+textarea.key {
+    font-family: Courier, monospace;
+}
+
+/* web links */
+a.followLink {
+    color: #bbbbff; /* also overrides jquery .ui-widget-content a */
+}
+a.followLink:visited {
+    color: #5555ff;
+}
+a.followLink:active {
+    color: #bbffbb;
+}
+
+.elementLink {
+    color:blue; /* default to be overridden by computed style */
+    line-height: 1.5em;
+    cursor: pointer;
+    border-radius: 10px;
+}
+
+.prefs-dialog form table tr td {
+    padding:3px 6px 3px 6px;
+}
+.prefs-dialog form table tr td.switch {
+    padding:0px 0px 0px 0px;
+}
+
+/*
+*  jeegoocontext
+*/
+
+/* cm_default experiments */
+/*
+body ul.cm_default {
+    color:#000000;
+}
+body ul.cm_default li
+{
+    padding:5px 5px 5px 5px;
+}
+*/
+
+/* jeegoocontext menu entry without limited width (leading to LF) */
+body ul.cm_blue li {
+    width: auto;
+}
+body ul.cm_blue li ul li {
+    width: 170px; /* auto does not work here */
+}
+body ul.cm_blue li.separator {
+    padding: 2px 5px 2px 5px; /* make separator vertically smaller */
+}
+body ul.cm_blue li.hover.separator {
+    background-color:#d7e1eb; /* color same as without hovering */
+}
+
+
+div.yesNoCancelDialog {
+    line-height: 1.2em;
+}
+div.helpDialog {
+    line-height: 1.2em;
+}
+div.helpDialog pre {
+    line-height: 1.1em;
+}
+/*
+div.helpDialog ul li {
+    margin: 0.5em;
+}
+*/
+/* avoid div wrapper for canvas being larger than canvas */
+div:focus {
+    outline: none;
+}
+
+
+/* tables */
+
+table.browserCompatibility tr td, table.browserCompatibility tr th {
+    padding-left: 5px;
+    padding-right: 5px;
+}
+table.browserCompatibility tr td.OK {
+    color: green;
+}
+table.browserCompatibility tr td.limited {
+    color: yellow;
+}
+table.browserCompatibility tr td.notOK {
+    color: red;
+}
+table.browserCompatibility tr td.questionable {
+    color: orange;
+}
+
+/* * is to much */
+html, body {
+    margin: 0;
+    padding: 0;
+    outline: 0;
+    width: 100%;
+    line-height: 1;
+}
+
+/* does not seem to have an effect (at non IEs) */
+html, body {
+/*
+    min-width: 100%;
+    min-height: 100%;
+*/
+/*
+    width: 100%;
+    height: 100%;
+*/
+}
+html {
+    height: 100%;
+    /* background: none;*/ /* #a52a2a; */
+    /* background-attachment: fixed; */
+}
+body {
+    height: 99%;
+    line-height: 1;
+/*
+    color: black;
+    border: none;
+    background: none; #006700;
+*/ 
+}
+
+body {
+    background: #333; /* for area below svg canvas */
+    color: #fff;
+    /*font: 300 100.1% "Helvetica Neue", Helvetica, "Arial Unicode MS", Arial, sans-serif;*/
+    /*overflow-x: hidden;*/ /* hack: not needed after .ui-widget-overlay fix below. */
+}
+
+/* Raphael canvas */
+svg {
+    background: #333; /* element dialog */
+    color: #fff;
+}
+
+.ui-widget-overlay {
+    position:fixed; /* preliminary fix for avoiding horizontal scrollbar; see
+                         http://dev.jqueryui.com/ticket/3623
+                       -> probably fixed in version 1.9! */
+}
+/* overwrites jquery.notice.css */
+/** top right to bottom **/
+  /* .notice-wrap width: should be as much as notice-item-wrapper + margin */
+/*
+.notice-wrap {
+    width: 280px;
+}
+.notice-item-wrapper {
+    margin:10px 0px 10px 0px;
+}
+*/
+/** bottom left to right: together with computationally setting .notice-wrap top after knowing its height
+   (after adding first notice) **/
+/**/
+.notice-wrap {
+    left:0pt;
+    right:auto;
+    width:100%;
+    /* no highlighting of text for doubleclick on canvas */
+    -moz-user-select: none; /* mozilla browsers */
+    -khtml-user-select: none; /* webkit browsers */
+    user-select: none; /* future compat (Chrome already understands it) */
+}
+.notice-item-wrapper {
+    float:left;
+    margin:0px 5px 0px 5px;
+}
+/**/
+/* common */
+.notice-wrap {
+    position: absolute; /* needed for scrollbar if overfull */
+}
+.notice-item {
+    width:250px;
+    height:58px;
+    margin:0;
+    padding:0px 16px 0px 6px;
+    overflow:auto;
+}
+.notice-item p {
+    margin:2px 0px 0px 0px;
+}
+.notice-item-close {
+    right:5px;
+    top:2px;
+}
+.notice-item.success {
+    background-color: #0F0;
+    color: #000;
+}
+.notice-item.info {
+    background-color: #C0C;
+    color: #000;
+}
+.notice-item.warn {
+    background-color: #FF0;
+    color: #000;
+}
+.notice-item.problem {
+    background-color: #F80;
+    color: #000;
+}
+.notice-item.error {
+    background-color: #F00;
+    color: #000;
+}
+.notice-item.help {
+    background-color: #00F;
+    color: #FFF;
+}
+.notice-item.notice {
+    background-color: #333;
+}
+/* vertical version starting top right (code changes needed, too) */
+/*
+.notice-item {
+    padding:4px 12px 0px 6px;
+    overflow:auto;
+}
+.notice-item-close {
+    right:8px;
+    top:4px;
+}
+*/
+
+/* don't know its target, but stored for a while... */
+/*
+#copy {
+    bottom: 0;
+    font: 300 .7em "Helvetica Neue", Helvetica, "Arial Unicode MS", Arial, sans-serif;
+    position: absolute;
+    right: 1em;
+    text-align: right;
+}
+#copy a {
+    color: #fff;
+}
+*/
+
+
+/* info win */
+/* programmatically */
+/*
+    background-color: rgb(15, 15, 15);
+    opacity: 0.8;
+    color: rgb(255, 255, 255);
+*/
+.showHoverInfo {
+    padding: 5px;
+}
+.showHoverInfo ul {
+    line-height: 1.1em;
+    padding-left: 15px;
+}
+.showHoverInfo ol {
+    line-height: 1.1em;
+    padding-left: 25px;
+}
+.showInfo {
+    padding: 5px;
+}
+.showInfo ul {
+    line-height: 1.1em;
+    padding-left: 15px;
+}
+.showInfo ol {
+    line-height: 1.1em;
+    padding-left: 25px;
+}
+
+/* help, prefs dialog */
+.helpDialog ul {
+    padding-left: 22px;
+}
+.helpDialog ol {
+    padding-left: 28px;
+}
+.prefsDialog ul {
+    padding-left: 20px;
+}
+.prefsDialog ol {
+    padding-left: 28px;
+}
+
+/* button widgets */
+
+.widget.onOffButton.on.text {
+  stroke: #55c;
+  fill: #55c;
+}
+.widget.button.text {
+    stroke-width: 0.1; /* char 'border' */
+    stroke: #ccc;
+    fill: #ccc; /* char fill */
+}
+.widget.button.background {
+  fill: #000000;
+}
+
+.widget.button.background.mousedown {
+  fill: #777777;
+}
+
+.widget.button.background.emphasize {
+  /* fill: #ff0000; */ /* rect fill */
+  /* rect border */
+  stroke: #ffff00; /* yellow */
+  stroke-width: 1.5;
+}
+.widget.button.text.emphasize {
+    stroke: #fff;
+    fill: #fff;
+}
+
+/* connectors */
+
+.connector.from.shape {
+  fill: #000000;
+  stroke: #777777;
+}
+.connector.to.shape {
+  fill: #000000;
+  stroke: #777777;
+}
+.connector.to.shape.cold {
+  fill: #000000;
+  stroke: #ff0000;
+}
+.connector.to.shape.hot {
+  fill: #000000;
+  stroke: #00ff00;
+}
+.connector.line {
+  stroke: #777777;
+}
+.connector.bg {
+  stroke: #000000;
+}
+
+.connector.mouseover.shape {
+  fill: #ffff00;
+  stroke: #000000;
+  stroke-width: 2;
+}
+.connector.mouseover.line {
+  stroke: #ffff00;
+  stroke-width: 3;
+}
+.connector.mouseover.bg {
+  stroke: #000000;
+}
+
+.connector.connecting.shape {
+  fill: #ff0000;
+  stroke: #000000;
+  stroke-width: 2;
+}
+.connector.connecting.line {
+  stroke: #ff0000;
+  stroke-width: 3;
+}
+
+.connector.selected.shape {
+  fill: #0000ff;
+  stroke: #000000;
+}
+.connector.selected.line {
+  stroke: #0000ff;
+  /* stroke-width: 2; */
+}
+
+.connector.selected.mouseover.line {
+  stroke: #ff0000;
+}
+.connector.selected.mouseover.shape {
+  fill: #ff0000;
+}
+
+.crosslines.done {
+  stroke-width: 2;
+}
+.crosslines.subelems {
+  stroke-width: 1;
+}
+
+/*
+.connectable {
+  stroke-width: 1;
+}
+*/
+.connectable.connover {
+  stroke-width: 1.5;
+}
+.task.widget.connectArea {
+    stroke-width: 2;
+}
+.task.widget.textfield.background.connover {
+  stroke: #ff0000;
+  stroke-width: 3;
+}
+
+
+/* cursors */
+
+.movable {
+    cursor: move;
+}
+.connectArea {
+    cursor:crosshair;
+}
+
+
+/* programmatically */
+
+/*
+.task.widget.textfield.text {
+}
+.task.widget.textfield.background {
+}
+.FPP.finishedBg {
+    stroke-width: 0.0;
+}
+.FPP.finishedFg {
+    stroke-width: 0.0;
+}
+.FPP.finishedDot {
+    stroke-width: 0.0;
+}
+.FPP.finishedDot.disabled {
+    stroke-width: 1.5;
+}
+.comment.widget.textfield.text {
+  stroke-width: 0.1;
+  stroke: #111;
+  fill: #111;
+}
+.comment.widget.textfield.background {
+  fill: #bfac00;
+  stroke: #bfac00;
+}
+*/

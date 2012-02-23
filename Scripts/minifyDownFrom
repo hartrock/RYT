@@ -1,0 +1,22 @@
+#!/bin/bash
+
+. Scripts/util.src
+
+DIR=$1
+function minify {
+    files_js=`find $DIR -name '*.js'`
+    files_css=`find $DIR -name '*.css'`
+    for file in $files_js; do
+        echo "minifying $file .."
+        base=${file%%.js}
+        #echo "base: $base"
+        java -jar Tools/yuicompressor-2.4.6.jar -o $base-min.js $file || error "minify $file"
+    done
+    for file in $files_css; do
+        echo "minifying $file .."
+        base=${file%%.css}
+        java -jar Tools/yuicompressor-2.4.6.jar -o $base-min.css $file || error "minify $file"
+        echo ".. minifying $file."
+    done
+}
+minify

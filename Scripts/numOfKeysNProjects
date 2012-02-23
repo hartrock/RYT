@@ -1,0 +1,6 @@
+#!/bin/bash
+SCRIPT_DIR=Scripts #; . $SCRIPT_DIR/util.src
+numOfKeys=`$SCRIPT_DIR/numOfKeys`
+numOfProjects=`$SCRIPT_DIR/numOfProjects`
+echo "keys    : $numOfKeys"
+echo "projects: $numOfProjects"

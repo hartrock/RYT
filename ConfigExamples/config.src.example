@@ -1,0 +1,74 @@
+# This file controls RYT installation by Makefile (it will be included from
+# there).
+#
+# Important: variables in section 'Mandatory' *have* to be set by admin, the
+# other sections may/should stay as they are.
+
+# Needed programs amongst others are: curl, gmake.
+# For getting usage info, just call make in this dir.
+
+
+#
+# Mandatory: these variables *have* to be set by admin.
+#
+
+# where RYT_DIR and RYT_DATA_DIR will be created
+INSTALL_DIR=/tmp
+# user id for writing project data into RYT_DATA_DIR
+WWW_USER_ID=www-data
+# server reachable dir, where RYT_DIR will be referenced from by a symbolic link
+WWW_SERVER_DIR=~/WWW
+# how to reach your server
+WWW_SERVER_URL=http://localhost
+# with my (sr) user id here
+WWW_RYT_PATH=~sr/RYT
+# Notes:
+# - Installation of RYT into /tmp/ is a good place for testing purposes only;
+#   for a longer lasting installation you should choose another dir.
+# - WWW_SERVER_DIR may or may not be suited.
+# - WWW_USER_ID : at my (sr) system it is APACHE_RUN_USER taken from
+#   /etc/apache2/envvars .
+# - Examples for Apache PHP5 config are in ConfigExamples/.
+#
+# - RYT_DIR - with path INSTALL_DIR/RYT_DIRNAME - gets a symbolic link in
+#   WWW_SERVER_DIR - with path WWW_SERVER_DIR/RYT_DIRNAME.
+
+#
+# End of mandatory stuff.
+#
+
+
+#
+# Optional: these variables may be changed by admin (here are sensible
+# defaults), but must *not* be commented out.
+#
+
+# Subdirs of INSTALL_DIR: RYT_DIR and RYT_DATA_DIR given by:
+RYT_DIRNAME=RYT
+RYT_DATA_DIRNAME=RYT_Data
+# Nesting of data dirs for having more room in filesystem: project data resides
+# inside leave directories. For small to imtermediate sized installations a
+# nesting of 3 should be sufficient.
+RYT_DATA_DIR_NESTING=3
+
+# Notes:
+# RYT_DATA_DIR (for project data) has to be installed in the same directory
+# as RYT_DIR (for application software).
+# This clear separation between application and data is good for pushing
+# non-data stuff (RYT upgrades) to some server (less risk of accidentally
+# overwriting data).
+
+#
+# End of optional stuff.
+#
+
+
+#
+# Technical: just leave it as it is.
+#
+
+CONFIG_HAS_BEEN_SOURCED=true
+
+#
+# End of technical stuff.
+#

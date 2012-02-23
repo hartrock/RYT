@@ -1,0 +1,117 @@
+# controls deployment
+THIS_FILE := $(lastword $(MAKEFILE_LIST))
+SCRIPT_DIR := Scripts
+WWW_SRC_DIR := WWW
+WWW_DST_DIR := ..
+VERSION_TEMPLATE := $(WWW_SRC_DIR)/version.html.tp
+DEVEL_DIR := Devel
+DEVEL_VERSION_HTML := $(WWW_DST_DIR)/devel.html
+MAIN_VERSION_HTML := $(WWW_DST_DIR)/app.html
+MAIN_VERSION_UNMINIFIED_HTML := $(WWW_DST_DIR)/app_unminified.html
+DEVEL_URL_PARAM := ?avoidCaching=`date '+%s'`
+DARCS_RELEASE_TAG_REGEX := '^v[0-9][0-9]*.*\.[0-9]*[0-9]$$'# $$ -> $
+# also works: DEVEL_URL_PARAM_ALT=?avoidCaching=$(shell date '+%s')
+
+# WWW
+SCREENSHOT_SRC_DIR := $(WWW_SRC_DIR)/Screenshots
+SCREENSHOT_DST_DIR := $(WWW_DST_DIR)/Screenshots
+SS_TITLES_SRC := $(wildcard $(SCREENSHOT_SRC_DIR)/*.txt)
+SCREENSHOTS_SRC := $(wildcard $(SCREENSHOT_SRC_DIR)/*.png)
+SCREENSHOTS_DST := $(patsubst $(SCREENSHOT_SRC_DIR)/%,$(SCREENSHOT_DST_DIR)/%,$(SCREENSHOTS_SRC))
+SCREENSHOTTHUMBNAILS_SRC := $(addsuffix .thumbnail.png, $(basename $(SCREENSHOTS_SRC)))
+SCREENSHOTTHUMBNAILS_DST := $(patsubst $(SCREENSHOT_SRC_DIR)/%,$(SCREENSHOT_DST_DIR)/%,$(SCREENSHOTTHUMBNAILS_SRC))
+WWW_SRC := $(wildcard $(WWW_SRC_DIR)/*.js $(WWW_SRC_DIR)/*.png) $(WWW_SRC_DIR)/Colorbox/jquery.colorbox.js $(wildcard $(WWW_SRC_DIR)/Sounds/*.wav)
+WWW_DST := $(patsubst $(WWW_SRC_DIR)/%,$(WWW_DST_DIR)/%,$(WWW_SRC))
+
+# Config   Dir      -> Html Name             Extra Deps        Extra Params
+# Release: Rel_v*   -> v*.html -> app.html
+# Branch : Branch_* -> branch_*.html         VERSION_TEMPLATE  URL_PARAM against caching
+# Devel  : Devel    -> devel.html            VERSION_TEMPLATE  URL_PARAM against caching
+
+default: devel # regenerates devel.html: forced for breaking caching
+
+# _v1.1.1 (_tagOfVersion (see regex above))
+_%:
+	make -f $(THIS_FILE) $(WWW_DST_DIR)/$*.html
+# _branch_tagOfBranch : entry point for making branches; e.g.
+#   make _branch_br_modelWithObjectStore
+# for branch tagged
+#   br_modelWithObjectStore
+_branch_%:
+	make -f $(THIS_FILE) $(WWW_DST_DIR)/branch_$*.html
+devel: $(DEVEL_VERSION_HTML) $(WWW_DST_DIR)/indexDevel.html $(SCREENSHOTS_DST) $(SCREENSHOTTHUMBNAILS_DST) $(WWW_DST)
+# it's good to update devel.html, if making a release
+release: lastRelease $(WWW_DST_DIR)/index.html $(WWW_DST_DIR)/marble.ico devel
+
+FORCE:
+
+# RYT htmls
+$(DEVEL_VERSION_HTML): $(VERSION_TEMPLATE) FORCE
+	$(SCRIPT_DIR)/createVersionHtml $(DEVEL_DIR) $(DEVEL_URL_PARAM) --unminified < $(VERSION_TEMPLATE) > $@
+branch_%.html: Branch_% $(VERSION_TEMPLATE) FORCE
+	$(SCRIPT_DIR)/createVersionHtml $(<F) $(DEVEL_URL_PARAM) --unminified < $(VERSION_TEMPLATE) > $@
+%.html: Rel_%
+	# no URL_PARAM and set --minified flag (default)
+	$(SCRIPT_DIR)/createVersionHtml $(<F) < $(VERSION_TEMPLATE) > $@
+	chmod u-w $@ # for safety: do not overwrite version generated with older template
+%_unminified.html: Rel_%
+	# empty URL_PARAM (needed for effect of --unminified) and set --unminified flag
+	$(SCRIPT_DIR)/createVersionHtml $(<F) "" --unminified < $(VERSION_TEMPLATE) > $@
+	chmod u-w $@ # for safety: do not overwrite version generated with older template
+
+# WWW
+$(WWW_DST_DIR)/index.html: $(WWW_SRC_DIR)/index.html.tp $(SS_TITLES_SRC) $(SCREENSHOTS_SRC)
+	Scripts/fillInScreenshots $< $@
+$(WWW_DST_DIR)/indexDevel.html: $(WWW_SRC_DIR)/indexDevel.html.tp $(SS_TITLES_SRC) $(SCREENSHOTS_SRC)
+	Scripts/fillInScreenshots $< $@
+$(SCREENSHOT_DST_DIR)/%: $(SCREENSHOT_SRC_DIR)/%
+	[[ -d $(SCREENSHOT_DST_DIR) ]] || mkdir $(SCREENSHOT_DST_DIR)
+	cp $< $@
+%.thumbnail.png: %.png
+	convert -scale 12.5% $< $@
+$(WWW_DST_DIR)/%: $(WWW_SRC_DIR)/% ../Sounds
+	cp $< $@
+../Sounds: FORCE
+	[[ -d ../Sounds ]] || mkdir ../Sounds
+# target used as sentinel
+$(WWW_DST_DIR)/Colorbox/jquery.colorbox.js: $(WWW_SRC_DIR)/Colorbox/jquery.colorbox.js
+	cp -R $(WWW_SRC_DIR)/Colorbox $(WWW_DST_DIR)
+
+# to be called indirectly
+$(MAIN_VERSION_HTML): $(WWW_DST_DIR)/$(DARCS_LAST_RELEASE_TAG).html
+	cp $(WWW_DST_DIR)/$(DARCS_LAST_RELEASE_TAG).html $(MAIN_VERSION_HTML)
+	$(SCRIPT_DIR)/fillInCopyrightInfo $(DARCS_LAST_RELEASE_TAG) $@ # versionTag sourceNTargetFile
+	chmod u+w $(MAIN_VERSION_HTML) # revert ro from above
+# No deps here: we don't want to overwrite release htmls using newer template. Release V_* should stay the same after repeated co.
+$(MAIN_VERSION_UNMINIFIED_HTML): $(WWW_DST_DIR)/$(DARCS_LAST_RELEASE_TAG)_unminified.html
+	cp $(WWW_DST_DIR)/$(DARCS_LAST_RELEASE_TAG)_unminified.html $(MAIN_VERSION_UNMINIFIED_HTML)
+	$(SCRIPT_DIR)/fillInCopyrightInfo $(DARCS_LAST_RELEASE_TAG) $@ # versionTag sourceNTargetFile
+	chmod u+w $(MAIN_VERSION_UNMINIFIED_HTML) # revert ro from above
+# No deps here: we don't want to overwrite release htmls using newer template. Release V_* should stay the same after repeated co.
+
+# VERSION_DIRs
+.PRECIOUS: Rel_% Branch_%
+Branch_%:
+	$(SCRIPT_DIR)/createVersionInDir $(*F) $@ --unstripped --unminified --without-copyrightInfo
+Rel_%:
+	$(SCRIPT_DIR)/createVersionInDir $(*F) $@
+
+lastRelease:
+	$(eval DARCS_LAST_RELEASE_TAG := $(shell darcs show tags | grep $(DARCS_RELEASE_TAG_REGEX) | head -1))
+	export DARCS_LAST_RELEASE_TAG=$(DARCS_LAST_RELEASE_TAG); make -f $(THIS_FILE) $(MAIN_VERSION_HTML) $(MAIN_VERSION_UNMINIFIED_HTML)
+info:
+	@echo "VERSION_DIR: $(VERSION_DIR) RELEASE_VERSION_HTML: $(RELEASE_VERSION_HTML)"
+	@echo "VERSION_TEMPLATE: $(VERSION_TEMPLATE)"
+	@echo "DEVEL_DIR: $(DEVEL_DIR)"
+	@echo "DEVEL_VERSION_HTML: $(DEVEL_VERSION_HTML)"
+	@echo "MAIN_VERSION_HTML: $(MAIN_VERSION_HTML)"
+	@echo "DEVEL_URL_PARAM: $(DEVEL_URL_PARAM)"
+	@echo "DARCS_RELEASE_TAG_REGEX: $(DARCS_RELEASE_TAG_REGEX)"
+	@echo "SCREENSHOTS_SRC: $(SCREENSHOTS_SRC)"
+	@echo "SCREENSHOTS_DST: $(SCREENSHOTS_DST)"
+	@echo "SCREENSHOTTHUMBNAILS_SRC: $(SCREENSHOTTHUMBNAILS_SRC)"
+	@echo "SCREENSHOTTHUMBNAILS_DST: $(SCREENSHOTTHUMBNAILS_DST)"
+	@echo "WWW_SRC_DIR: $(WWW_SRC_DIR)"
+	@echo "WWW_DST_DIR: $(WWW_DST_DIR)"
+	@echo "WWW_SRC: $(WWW_SRC)"
+	@echo "WWW_DST: $(WWW_DST)"

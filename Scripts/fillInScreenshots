@@ -1,0 +1,31 @@
+#!/bin/bash
+SCREENSHOT_ENTRY_TP_FN=Scripts/screenshotEntry.tp.txt
+HTML_TEMPLATE_FN=$1
+HTML_RESULT_FN=$2
+TMP_FN=/tmp/fis_$$.txt
+SS_DIR=WWW/Screenshots
+echo -e $SCREENSHOT_ENTRY_TP_FN
+SS_FILES=`cd $SS_DIR; ls -v *.png`
+echo $SS_FILES
+for file in $SS_FILES; do
+    echo "handling screenshot $file .."
+    base=${file%%.png}
+    #echo $base
+    thumbnail=$base.thumbnail.png
+    #echo $thumbnail
+    title=`cat $SS_DIR/$base.txt 2>/dev/null || echo $base`
+    echo "title: $title"
+    SED_STR_FILL_SS_FN="s/_SCREENSHOT_FN_/$file/"
+    SED_STR_FILL_THUMBNAIL_FN="s/_THUMBNAIL_FN_/$thumbnail/"
+    SED_STR_FILL_TITLE="s/_TITLE_/$title/"
+    sed -e $SED_STR_FILL_SS_FN -e $SED_STR_FILL_THUMBNAIL_FN -e "$SED_STR_FILL_TITLE" < $SCREENSHOT_ENTRY_TP_FN >> $TMP_FN
+done
+INSERT_POS=`grep -n _SCREENSHOT_INSERTION_ $HTML_TEMPLATE_FN | sed 's/:.*//'`
+# echo "INSERT_POS: $INSERT_POS"
+head -$INSERT_POS $HTML_TEMPLATE_FN > $HTML_RESULT_FN
+cat $TMP_FN >> $HTML_RESULT_FN
+tail -n +$INSERT_POS $HTML_TEMPLATE_FN >> $HTML_RESULT_FN
+
+# cleanup
+cp $TMP_FN /tmp/t.txt
+rm $TMP_FN

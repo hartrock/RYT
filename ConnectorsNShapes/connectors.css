@@ -1,0 +1,116 @@
+body {
+    background: #333;
+    color: #fff;
+    /*font: 300 100.1% "Helvetica Neue", Helvetica, "Arial Unicode MS", Arial, sans-serif;*/
+}
+/*
+#holder {
+    height: 480px;
+    left: 5%;
+    margin: -10px 0 0 -10px;
+    margin: 0px 0 0 0px;
+    position: absolute;
+    top: 5%;
+    width: 640px;
+}
+*/
+#copy {
+    bottom: 0;
+    font: 300 .7em "Helvetica Neue", Helvetica, "Arial Unicode MS", Arial, sans-serif;
+    position: absolute;
+    right: 1em;
+    text-align: right;
+}
+#copy a {
+    color: #fff;
+}
+
+
+/* widgets */
+
+.widget.textfield.text {
+  /*text-anchor: middle;*/
+  /*stroke: #ff0000;*/
+}
+
+.widget.button.background {
+  fill: #000000;
+}
+
+.widget.button.background.mousedown {
+  fill: #777777;
+}
+
+
+/* connectors */
+
+.connector.from.shape {
+  fill: #000000;
+  stroke: #777777;
+}
+.connector.to.shape {
+  fill: #000000;
+  stroke: #777777;
+}
+.connector.line {
+  stroke: #777777;
+}
+.connector.bg {
+  stroke: #000000;
+}
+
+.connector.mouseover.shape {
+  fill: #ffff00;
+  stroke: #000000;
+  stroke-width: 2;
+}
+.connector.mouseover.line {
+  stroke: #ffff00;
+  stroke-width: 3;
+}
+.connector.mouseover.bg {
+  stroke: #000000;
+}
+
+.connector.connecting.shape {
+  fill: #ff0000;
+  stroke: #000000;
+  stroke-width: 2;
+}
+.connector.connecting.line {
+  stroke: #ff0000;
+  stroke-width: 3;
+}
+
+.connector.selected.shape {
+  fill: #0000ff;
+  stroke: #000000;
+}
+.connector.selected.line {
+  stroke: #0000ff;
+#  stroke-width: 2;
+}
+
+.connector.selected.mouseover.line {
+  stroke: #ff0000;
+}
+.connector.selected.mouseover.shape {
+  fill: #ff0000;
+}
+
+.connectable {
+  stroke-width: 2;
+}
+.connectable.connover {
+  stroke-width: 5;
+}
+.text.widget.textfield.connectable {
+  stroke-width: 1;
+}
+.background.widget.textfield.task.connover {
+  stroke: #ff0000;
+  stroke-width: 3;
+}
+.movable {
+    cursor: move;
+}

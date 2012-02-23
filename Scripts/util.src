@@ -1,0 +1,58 @@
+#!/bin/bash
+# source from bash scripts (first line for editor file recognition)
+
+SCRIPT_DIR=Scripts
+SCRIPT_NAME=$(basename $0)
+
+function usage {
+    echo "--> $SCRIPT_NAME [Usage] $SCRIPT_NAME $*" >&2
+    exit 1
+}
+function info {
+    echo "--> $SCRIPT_NAME [Info] $*" >&2
+}
+function warn {
+    echo "--> $SCRIPT_NAME [Warning] $*" >&2
+}
+function error {
+    echo "--> $SCRIPT_NAME [ERROR] $*" >&2
+    exit 1
+}
+function success {
+    echo "--> $SCRIPT_NAME [SUCCESS] $*" >&2
+    exit 0
+}
+function yesNo {
+    local question=$1 key val
+    echo -n -e "$question "
+    while read -n 1 key
+    do
+        case "$key"
+            in
+            '')
+                val=0; break
+                ;;
+            y)
+                val=0; break
+                ;;
+            Y)
+                val=0; break
+                ;;
+            n)
+                val=1; break
+                ;;
+            N)
+                val=1; break
+                ;;
+        esac
+    done
+    echo
+    return $val
+}
+
+function input {
+    local varname=$1
+    shift
+    echo -e "--> $SCRIPT_NAME [INPUT] $*" >&2
+    read $varname
+}

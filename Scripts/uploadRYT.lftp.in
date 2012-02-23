@@ -1,0 +1,10 @@
+lcd _RYT_INSTALL_DIR_
+open _SERVER_TO_PUSH_TO_
+mirror -RL -vvv \
+  --exclude app.html --exclude app_unminified.html \
+  --exclude .git/ --exclude .gitignore --exclude _darcs/ --exclude .boring \
+  RYT
+echo 'putting app.html app_unminified.html'
+put RYT/app.html -o RYT/app.html
+put RYT/app_unminified.html -o RYT/app_unminified.html
+ls RYT

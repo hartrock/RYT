@@ -1,0 +1,104 @@
+<!--
+/*
+ *  Roll Your Tasks (RYT)
+ *  - mobile task management in the browser for individuals and small groups.
+ *  Copyright (C) 2010-2012  Stephan Rudlof
+ *
+ *  This program is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU Affero General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU Affero General Public License for more details.
+ *
+ *  You should have received a copy of the GNU Affero General Public License
+ *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+-->
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
+          "http://www.w3.org/TR/html4/strict.dtd">
+
+<html lang="en">
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <meta http-equiv="Content-Style-Type" content="text/css">
+
+    <meta name="Author" content="Stephan Rudlof">
+
+    <link rel="shortcut icon" href="marble.ico" type="image/x-icon">
+    <link rel="icon" href="marble.ico" type="image/x-icon">
+
+    <title>Roll Your Tasks (RYT)</title>
+
+    <!-- -->
+    <!-- External.. -->
+
+    <!-- heavily used -->
+    <script src="_VERSION_DIR_/External/raphael.js_URL_PARAMS_" type="text/javascript" charset="utf-8"></script>
+
+    <script src="_VERSION_DIR_/External/jquery-1.6.2.js_URL_PARAMS_" type="text/javascript"></script>
+
+    <script src="_VERSION_DIR_/External/jquery-ui-1.8.15.custom/jquery-ui-1.8.15.custom.js_URL_PARAMS_" type="text/javascript"></script>
+    <link rel="stylesheet" type="text/css" href="_VERSION_DIR_/External/jquery-ui-1.8.15.custom/css/vader/jquery-ui-1.8.15.custom.css_URL_PARAMS_">
+
+    <link rel="stylesheet" href="_VERSION_DIR_/External/jquery.notice.css_URL_PARAMS_" type="text/css" media="screen">
+    <script src="_VERSION_DIR_/External/jquery.notice.js_URL_PARAMS_" type="text/javascript" charset="utf-8"></script>
+
+    <link rel="stylesheet" type="text/css" href="_VERSION_DIR_/External/jeegoocontext/skins/cm_blue/style.css_URL_PARAMS_">
+    <script src="_VERSION_DIR_/External/jeegoocontext/jquery.jeegoocontext.js_URL_PARAMS_" type="text/javascript" charset="utf-8"></script>
+
+    <!-- needed by jstorage for older FF -->
+    <script src="_VERSION_DIR_/External/jquery.json-2.2.js_URL_PARAMS_" type="text/javascript"></script>
+    <script src="_VERSION_DIR_/External/jstorage.js_URL_PARAMS_" type="text/javascript"></script>
+
+    <script src="_VERSION_DIR_/External/uuid.js_URL_PARAMS_" type="text/javascript"></script>
+    <script src="_VERSION_DIR_/External/seedrandom.js_URL_PARAMS_" type="text/javascript"></script>
+
+    <!-- encryption -->
+    <script src="_VERSION_DIR_/External/sjcl_core.js_URL_PARAMS_" type="text/javascript"></script>
+
+    <!-- ..External -->
+    <!-- -->
+
+    <!-- -->
+    <!-- EvolGo, RYT.. -->
+
+    <audio id="mm_sound">
+<!--  <source src="Sounds/mm.wav" type="audio/wav" preload="auto"/>
+-->
+      <source src="Sounds/beep-10.wav" type="audio/wav" preload="auto" />
+    </audio>
+
+    <!-- replaced more and more by programmatically set styles -->
+    <link rel="stylesheet" href="_VERSION_DIR_/ryt.css_URL_PARAMS_" type="text/css" media="screen">
+
+    <script src="_VERSION_DIR_/egBase.js_URL_PARAMS_" type="text/javascript" charset="utf-8"></script>
+    <script src="_VERSION_DIR_/egGeometrics.js_URL_PARAMS_" type="text/javascript" charset="utf-8"></script>
+    <script src="_VERSION_DIR_/egJSON.js_URL_PARAMS_" type="text/javascript" charset="utf-8"></script>
+    <script src="_VERSION_DIR_/egDiff.js_URL_PARAMS_" type="text/javascript" charset="utf-8"></script>
+    <script src="_VERSION_DIR_/raphaelExtensions.js_URL_PARAMS_" type="text/javascript" charset="utf-8"></script>
+    <script src="_VERSION_DIR_/rytFlowEditor.js_URL_PARAMS_" type="text/javascript" charset="utf-8"></script>
+    <script src="_VERSION_DIR_/egObjectStore.js_URL_PARAMS_" type="text/javascript" charset="utf-8"></script>
+    <script src="_VERSION_DIR_/rytModel_1.1.js_URL_PARAMS_" type="text/javascript" charset="utf-8"></script>
+    <script src="_VERSION_DIR_/rytModel.js_URL_PARAMS_" type="text/javascript" charset="utf-8"></script>
+    <script src="_VERSION_DIR_/rytDialog.js_URL_PARAMS_" type="text/javascript" charset="utf-8"></script>
+    <script src="_VERSION_DIR_/rytStorage.js_URL_PARAMS_" type="text/javascript" charset="utf-8"></script>
+    <script src="_VERSION_DIR_/rytLogging.js_URL_PARAMS_" type="text/javascript" charset="utf-8"></script>
+    <script src="_VERSION_DIR_/rytInfo.js_URL_PARAMS_" type="text/javascript" charset="utf-8"></script>
+    <script src="_VERSION_DIR_/rytApp.js_URL_PARAMS_" type="text/javascript" charset="utf-8"></script>
+    <script src="_VERSION_DIR_/rytMain.js_URL_PARAMS_" type="text/javascript" charset="utf-8"></script>
+    <!-- ..EvolGo, RYT -->
+    <!-- -->
+  </head>
+
+<body>
+  <h1>Roll Your Tasks (RYT)</h1>
+  <!-- Following paragraphs are replaced by JavaScript, if all is OK. -->
+  <p id="JavaScript_hint">You need JavaScript enabled!</p>
+  <p id="FF_hint">If JavaScript is not the problem, you could try some incarnation of Firefox: it is used for RYT development...</p>
+</body>
+
+</html>

@@ -1,0 +1,37 @@
+#!/bin/bash
+# $1: VERSION_TAG; $2: file to fill it into
+
+. Scripts/util.src
+
+# Mac/Linux compat: search for explicitly named GNU sed: if not there, assume that
+debug=
+# default is one (or has its caps).
+SED=`which gsed || which sed`
+
+VERSION_TAG=$1
+FILE=$2
+
+RYT_VERSION=RYT$VERSION_TAG
+FILENAME=`basename "$FILE"`
+COPYRIGHT="Copyright 2010-2012 by Stephan Rudlof"
+
+SED_STR_RYT_VERSION="s/RYT_VERSION/$RYT_VERSION/"
+SED_STR_COPYRIGHT="s/COPYRIGHT/$COPYRIGHT/"
+SED_STR_FILENAME="s/FILENAME/$FILENAME/"
+
+if [ $debug ]; then
+    info "VERSION_TAG: $VERSION_TAG"
+    info "FILE: $FILE"
+    info "RYT_VERSION: $RYT_VERSION"
+    info "FILENAME: $FILENAME"
+    info "COPYRIGHT: $COPYRIGHT"
+fi
+
+# debugging
+#info "SED_STR_RYT_VERSION: $SED_STR_RYT_VERSION"
+#info "SED_STR_FILENAME: $SED_STR_FILENAME"
+#info "SED_STR_COPYRIGHT: $SED_STR_COPYRIGHT"
+
+$SED -e $SED_STR_RYT_VERSION -e $SED_STR_FILENAME -e "$SED_STR_COPYRIGHT" -i $FILE || error "sed"
+
+success

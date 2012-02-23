@@ -1,0 +1,95 @@
+#!/bin/bash
+
+. Scripts/util.src
+
+VERSION_TAG=$1
+VERSION_DIR=$2
+STRIP_OPTION=${3:-"--stripped"}
+MINIFY_OPTION=${4:-"--minified"}
+COPYRIGHT_OPTION=${5:-"--with-copyrightInfo"}
+
+TMP_DIR="/tmp/$SCRIPT_NAME""_tmp$$"
+TO_BE_STRIPPED=" \
+_darcs \
+Scripts ConnectorsNShapes Playground Test Tools WWW \
+Old \
+\
+Readme.txt readme_sounds.txt Info readme_screenshots.txt \
+Credits.txt copyright.txt.tp ToDo.txt userSuggestions.txt \
+.boring \
+Makefile \
+m_createDirPaths.php5 m_util.php5 m_listDirs.php5 \
+External/qunit.js External/qunit.css External/Readme.txt \
+extension_eg_ryt.js.tp \
+External/raphael_2.0.1.js \
+External/qunit-git.js External/qunit-git.css \
+"
+
+# cli arg parsing could be improved...
+if [[ ( $# -ne 2 && $# -ne 3 && $# -ne 4 && $# -ne 5) || ( $# -eq 3 && ( $3 != "--stripped" && $3 != "--unstripped" ) ) || ( $# -eq 4 && ( $4 != "--minified" && $4 != "--unminified" ) ) || ( $# -eq 5 && ( $5 != "--with-copyrightInfo" && $5 != "--without-copyrightInfo" ) ) ]]
+then
+    usage 'TAG DIR [--stripped|--unstripped] [--minified --unminified] [--with-opyrightInfo --without-copyrightInfo] (default: --stripped --minified --with-copyrightInfo)'
+else
+    info "TAG: $VERSION_TAG, DIR: $VERSION_DIR, STRIP_OPTION: $STRIP_OPTION"
+fi
+
+function strip {
+    for fileOrDir in $TO_BE_STRIPPED; do
+        rm -R $TMP_DIR/$fileOrDir || warn "failed: rm"
+    done
+}
+function fillInCopyrightInfo {
+    files=`ls $TMP_DIR/*.js`
+    for file in $files; do
+        Scripts/fillInCopyrightInfo $VERSION_TAG $file || error "fillInVersionInfo"
+    done
+}
+function minify {
+    files_js=`find $TMP_DIR -name '*.js'`
+    files_css=`find $TMP_DIR -name '*.css'`
+    for file in $files_js; do
+        echo "minifying $file .."
+        base=${file%%.js}
+        echo "base: $base"
+        java -jar Tools/yuicompressor-2.4.6.jar -o $base-min.js $file || error "minify $file"
+    done
+    for file in $files_css; do
+        echo "minifying $file .."
+        base=${file%%.css}
+        java -jar Tools/yuicompressor-2.4.6.jar -o $base-min.css $file || error "minify $file"
+        echo ".. minifying $file."
+    done
+    # rm $files_js $files_css
+}
+
+[ -e $VERSION_DIR ] && error "$VERSION_DIR already exists"
+
+darcs get --tag $VERSION_TAG . $TMP_DIR || error "darcs get"
+
+if [[ $STRIP_OPTION == "--stripped" ]]
+then
+    info "stripping"
+    strip
+else
+    info "leaving unstripped"
+fi
+
+if [[ $MINIFY_OPTION == "--minified" ]]
+then
+    info "minifiying (but also leaving unminified versions)"
+    minify
+else
+    info "leaving unminified"
+fi
+
+if [[ $COPYRIGHT_OPTION == "--with-copyrightInfo" ]]
+then
+    info "fillInCopyrightInfo"
+    fillInCopyrightInfo
+else
+    info "leaving without copyright info"
+fi
+
+mv -i $TMP_DIR $VERSION_DIR || error "mv"
+
+success

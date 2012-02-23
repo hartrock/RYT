@@ -1,0 +1,24 @@
+FIX
+===
+
+
+ENH
+===
+- only move comments, if not being moved away from 'first' column
+- task hover info: show subtask names
+
+Check
+=====
+- prove future proofness of void 0 for undefined
+
+Notes
+=====
+- all of this may be replaced by a ToDo project later
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Done
+====
+- task dialog - description field:
+  - make it smaller
+  - allow empty description field
