@@ -1,0 +1,39 @@
+#!/bin/bash
+# fills in admin password into input file
+
+# source utils
+. Scripts/util.src
+
+# string to be replaced in input file
+toBeReplacedStr=_ADMIN_PW_
+toBeReplacedStr=_ADMIN_URL_
+
+if [[ $# -ne 4 ]]
+then
+    usage 'FILE ADMIN_URL ADMIN_PASSWORD'
+fi
+FILE=$1
+adminUrl=$2
+adminPassword=$3
+dirDepth=$4
+
+if [[ -z "$adminUrl" ]]
+then
+    error "empty admin URL."
+fi
+if [[ -z "$adminPassword" ]]
+then
+    error "empty admin password."
+fi
+if [[ -z "$dirDepth" ]]
+then
+    error "empty dir depth."
+fi
+
+SED_STR_ADMIN_URL="s%_ADMIN_URL_%$adminUrl%"
+SED_STR_ADMIN_PASSWORD="s/_ADMIN_PW_/$adminPassword/"
+SED_STR_DIR_DEPTH="s/_DIR_DEPTH_/$dirDepth/"
+
+sed -e $SED_STR_ADMIN_URL -e $SED_STR_ADMIN_PASSWORD -e $SED_STR_DIR_DEPTH \
+  $FILE \
+|| error 'fail'

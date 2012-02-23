@@ -1,2 +1,0 @@
-#!/bin/bash
-wget -O - http://www.evolgo.de/RYT/Devel/m_listDirs.php5?pw=4711\&depth=4 | wc -l

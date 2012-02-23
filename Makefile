@@ -111,9 +111,13 @@ TO_BE_COPIED_ADMIN  := $(SOURCES_ADMIN) $(TARGETS_ADMIN)
 ADMIN_ALLOWED_FLAG_FILE := $(ADMIN_DIR)/maintenanceAllowed.flag
 
 # lftp
-TARGETS_LFTP := Scripts/uploadRYT.lftp Scripts/uploadRYTDeleteOld.lftp
+TARGETS_LFTP := $(SCRIPT_DIR)/uploadRYT.lftp $(SCRIPT_DIR)/uploadRYTDeleteOld.lftp
 
-TARGETS_ALL := $(TARGETS_PUBLIC) $(TARGETS_ADMIN) $(TARGETS_LFTP)
+# devel
+TARGETS_QUERY := $(SCRIPT_DIR)/numOfProjects $(SCRIPT_DIR)/numOfKeys
+TARGETS_QUERY_EXTERNAL := $(SCRIPT_DIR)/external_numOfProjects $(SCRIPT_DIR)/external_numOfKeys
+
+TARGETS_ALL := $(TARGETS_PUBLIC) $(TARGETS_ADMIN) $(TARGETS_QUERY) $(TARGETS_QUERY_EXTERNAL) $(TARGETS_LFTP)
 
 
 #
@@ -246,12 +250,12 @@ upgrade: installWithoutInit
 	@echo "--> $@ succeeded."
 
 cleanInstall: cleanDevel
-	@Scripts/yesNoQuestion "This cleans RYT installation $(RYT_DIR): are you sure to continue?"
+	@$(SCRIPT_DIR)/yesNoQuestion "This cleans RYT installation $(RYT_DIR): are you sure to continue?"
 	rm -fR $(RYT_DIR)
 	@echo "--> $@ succeeded."
 cleanData:
-	@Scripts/yesNoQuestion "About to clean RYT data $(RYT_DATA_DIR): are you sure to continue?"
-	! Scripts/yesNoQuestion "OK, but this really would clean RYT data $(RYT_DATA_DIR); asking the opposite (to avoid mistakes):\n  Do you want to keep RYT data?"
+	@$(SCRIPT_DIR)/yesNoQuestion "About to clean RYT data $(RYT_DATA_DIR): are you sure to continue?"
+	! $(SCRIPT_DIR)/yesNoQuestion "OK, but this really would clean RYT data $(RYT_DATA_DIR); asking the opposite (to avoid mistakes):\n  Do you want to keep RYT data?"
 	sudo rm -fR $(RYT_DATA_DIR)
 	@echo "--> $@ succeeded."
 cleanDevel:
@@ -315,9 +319,9 @@ $(SCREENSHOT_DST_DIR) $(COLORBOX_DIR):
 	mkdir -p $@
 $(WWW_DST_DIR)/index.html: $(WWW_SRC_DIR)/index.html.tp $(SS_TITLES_SRC) $(SCREENSHOTS_SRC)
 	echo $< $@
-	Scripts/fillInScreenshots $< $@
+	$(SCRIPT_DIR)/fillInScreenshots $< $@
 $(WWW_DST_DIR)/indexDevel.html: $(WWW_SRC_DIR)/indexDevel.html.tp $(SS_TITLES_SRC) $(SCREENSHOTS_SRC) $(SCREENSHOT_DST_DIR)
-	Scripts/fillInScreenshots $< $@
+	$(SCRIPT_DIR)/fillInScreenshots $< $@
 $(SCREENSHOT_DST_DIR)/%: $(SCREENSHOT_SRC_DIR)/%
 #	echo "hier 2: $< $@"
 	cp $< $@
@@ -341,12 +345,32 @@ webside: $(THIS_FILE) \
 #
 # lftp targets
 
-%.lftp: %.lftp.in
+$(SCRIPT_DIR)/%.lftp: $(SCRIPT_DIR)/%.lftp.in
 	$(SCRIPT_DIR)/fillIn_lftpInfo \
-          $< $(INSTALL_DIR) $(SERVER_TO_PUSH_TO) \
+          $< $(INSTALL_DIR) $(EXTERNAL_SERVER) \
           > $@
-
 lftp: $(TARGETS_LFTP)
+
+#
+# admin scripts
+
+# more specific %.lftp rule above (seq counts)
+$(SCRIPT_DIR)/%: $(SCRIPT_DIR)/%.in
+	$(call getPWOnce)
+	$(SCRIPT_DIR)/fillIn_adminURL_adminPW_dirDepth \
+          $< $(RYT_ADMIN_URL) $(PASSWORD) $(RYT_DATA_DIR_NESTING) > $@
+	@chmod u+x $@
+
+EXTERNAL_SERVER_URL    := http://$(EXTERNAL_SERVER)
+EXTERNAL_RYT_PATH      := $(RYT_DIRNAME)
+RYT_EXTERNAL_URL       := $(EXTERNAL_SERVER_URL)/$(EXTERNAL_RYT_PATH)
+RYT_EXTERNAL_ADMIN_URL := $(RYT_EXTERNAL_URL)/Admin
+$(SCRIPT_DIR)/external_%: $(SCRIPT_DIR)/%.in
+	$(call getPWOnce)
+	$(SCRIPT_DIR)/fillIn_adminURL_adminPW_dirDepth \
+          $< $(RYT_EXTERNAL_ADMIN_URL) $(PASSWORD) $(RYT_DATA_DIR_NESTING) > $@
+	@chmod u+x $@
+
 
 # helpers
 #

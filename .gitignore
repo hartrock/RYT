@@ -7,6 +7,10 @@
 /.boring
 
 # Makefile targets
+/external_numOfKeys
+/external_numOfProjects
+/numOfKeys
+/numOfProjects
 /data.php5
 /m_listDirs.php5
 /Scripts/uploadRYT.lftp
