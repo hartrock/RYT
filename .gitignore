@@ -6,15 +6,17 @@
 /_darcs/
 /.boring
 
+# config
+/config.src
+
 # Makefile targets
-/external_numOfKeys
-/external_numOfProjects
-/numOfKeys
-/numOfProjects
-/data.php5
-/m_listDirs.php5
+#
+/Scripts/external_numOfKeys
+/Scripts/external_numOfProjects
+/Scripts/numOfKeys
+/Scripts/numOfProjects
 /Scripts/uploadRYT.lftp
 /Scripts/uploadRYTDeleteOld.lftp
-
 #
-/config.src
+/data.php5
+/m_listDirs.php5
