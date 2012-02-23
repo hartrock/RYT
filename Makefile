@@ -281,6 +281,7 @@ initDataDirsIfMissing: $(RYT_ADMIN_DIR)/dataDirs_inited.flag
 	@echo "--> $@ succeeded."
 
 init: $(THIS_FILE) checkServer initDataDirsIfMissing
+	$(MAKE) disableAdmin # only needed for init
 	@echo "--> $@ succeeded."
 
 
