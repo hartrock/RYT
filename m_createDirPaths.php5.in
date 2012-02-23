@@ -22,7 +22,7 @@
 
 include 'm_util.php5';
 isMaintainanceForbidden() && die("maintenance forbidden!");
-$prefix = "../../RYT_Data";
+$prefix = "../../_RYT_DATA_DIRNAME_";
 $chars = "0123456789abcdef"; // sufficient for depth <= 8
 $depth = $_REQUEST[depth];
 $makeMissingDirs = $_REQUEST[makeMissingDirs];

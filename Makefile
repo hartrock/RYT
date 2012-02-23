@@ -100,7 +100,7 @@ SOURCE_DIRS_PUBLIC  := External
 TARGETS_PUBLIC      := data.php5
 
 # admin specific sources (PHP5)
-TARGETS_ADMIN := m_listDirs.php5
+TARGETS_ADMIN := m_listDirs.php5 m_createDirPaths.php5
 SOURCES_ADMIN := $(filter-out $(TARGETS_ADMIN),$(wildcard m_*.php5)) util.php5
 
 TO_BE_COPIED_PUBLIC := $(SOURCES_JS) $(SOURCES_CSS) \
@@ -108,7 +108,7 @@ TO_BE_COPIED_PUBLIC := $(SOURCES_JS) $(SOURCES_CSS) \
                        $(TARGETS_PUBLIC)
 TO_BE_COPIED_ADMIN  := $(SOURCES_ADMIN) $(TARGETS_ADMIN)
 
-ADMIN_ALLOWED_FLAG_FILE := $(ADMIN_DIR)/maintenanceAllowed.flag
+MAINTENANCE_ALLOWED_FLAG_FILE := $(ADMIN_DIR)/maintenanceAllowed.flag
 
 # lftp
 TARGETS_LFTP := $(SCRIPT_DIR)/uploadRYT.lftp $(SCRIPT_DIR)/uploadRYTDeleteOld.lftp
@@ -145,14 +145,20 @@ $(THIS_FILE): config.src
 
 $(TARGETS_ALL): $(THIS_FILE)
 targets: $(TARGETS_ALL)
+	@echo "==> $@ succeeded."
 
+# only data dir
+m_createDirPaths.php5: m_createDirPaths.php5.in
+	$(SCRIPT_DIR)/fillIn_dataDir $< $(RYT_DATA_DIRNAME) > $@
+
+# data dir and admin password
 .INTERMEDIATE: %.php5.in.withDataDir
 %.php5.in.withDataDir: %.php5.in
 	$(SCRIPT_DIR)/fillIn_dataDir $< $(RYT_DATA_DIRNAME) > $@
-# needed target; alt: dep to FORCE
 %.php5: %.php5.in.withDataDir
 	$(call getPWOnce)
 	$(SCRIPT_DIR)/fillIn_adminPassword $< $(PASSWORD) > $@
+
 
 %.html: Rel_%
 # $(<F) -> file-within-directory part of $<
@@ -177,7 +183,7 @@ $(DEVEL_DIR):
 $(DEVEL_HTML): $(DEVEL_DIR) FORCE # forced for getting new URL param
 	$(SCRIPT_DIR)/createVersionHtml $(<F) $(DEVEL_URL_PARAM) --unminified < $(VERSION_TEMPLATE) > $@
 devel: $(THIS_FILE) $(DEVEL_HTML) targets
-	@echo "--> [$@] succeeded"
+	@echo "==> $@ succeeded."
 	@echo ">> RYT can be started by:"
 	@echo ">>   $(DEVEL_HTML_URL)"
 	@echo ">> ."
@@ -201,14 +207,13 @@ $(WWW_SERVER_DIR)/$(RYT_DIRNAME): $(RYT_DIR)
 checkForReleaseBranch:
 	# check that we are at the release branch
 	git branch | grep '* $(RELEASE_BRANCH)'
-# think about setting at beginning
 getCurrentVersion:
-	@echo "--> getCurrentVersion"
-	@echo "-->   $(CURRENT_VERSION)"
+	@echo ">> $(CURRENT_VERSION)"
+	@echo "==> $@ succeeded."
 # get current release from repo
 
 $(RELEASE_DIR):
-	mkdir -p $@ # RELEASE_DIR first set after getCurrentVersion!
+	mkdir -p $@ # RELEASE_DIR first set after knowing CURRENT_VERSION!
 	rm -fR $@/* # start clean (e.g. avoid creating minified minified...)
 	touch $@/
 copiedRelease: $(RELEASE_DIR) $(TO_BE_COPIED_PUBLIC)
@@ -223,7 +228,7 @@ installRelease: release $(WWW_FOR_APP)
 	cp $(VERSION_HTML) $(MAIN_HTML)
 	cp $(VERSION_UNMINIFIED_HTML) $(MAIN_UNMINIFIED_HTML)
 	@echo -e ">>\n>> [$(THIS_FILE)] Installation of current release $(CURRENT_VERSION) succeeded!\n>>"
-	@echo "--> $@ succeeded."
+	@echo "==> $@ succeeded."
 
 # admin install
 installAdminStuff: $(THIS_FILE) \
@@ -231,13 +236,12 @@ installAdminStuff: $(THIS_FILE) \
                    $(ADMIN_DIR) $(TO_BE_COPIED_ADMIN)
 	rm -fR  $(ADMIN_DIR)/* # start clean
 	cp -fR $(TO_BE_COPIED_ADMIN) $(ADMIN_DIR)
-	touch $(ADMIN_ALLOWED_FLAG_FILE)
 	echo "Hello World!" > $(ADMIN_DIR)/index.html
 
-installWithoutInit: installAdminStuff installRelease
-	@echo "--> $@ succeeded."
+installWithoutInit: installAdminStuff installRelease targets
+	@echo "==> $@ succeeded."
 install: installWithoutInit init
-	@echo "--> $@ succeeded."
+	@echo "==> $@ succeeded."
 	@echo ">> RYT can be started by:"
 	@echo ">>   $(MAIN_HTML_URL)"
 	@echo ">> or"
@@ -247,21 +251,21 @@ install: installWithoutInit init
 	@echo ">> ."
 
 upgrade: installWithoutInit
-	@echo "--> $@ succeeded."
+	@echo "==> $@ succeeded."
 
+cleanDevel:
+	rm -f ../../$(RYT_DATA_DIRNAME) $(DEVEL_DIR) # remove *symbolic* links
+	rm -f $(DEVEL_HTML) # remove devel.html
+	@echo "==> $@ succeeded."
 cleanInstall: cleanDevel
 	@$(SCRIPT_DIR)/yesNoQuestion "This cleans RYT installation $(RYT_DIR): are you sure to continue?"
 	rm -fR $(RYT_DIR)
-	@echo "--> $@ succeeded."
+	@echo "==> $@ succeeded."
 cleanData:
 	@$(SCRIPT_DIR)/yesNoQuestion "About to clean RYT data $(RYT_DATA_DIR): are you sure to continue?"
 	! $(SCRIPT_DIR)/yesNoQuestion "OK, but this really would clean RYT data $(RYT_DATA_DIR); asking the opposite (to avoid mistakes):\n  Do you want to keep RYT data?"
 	sudo rm -fR $(RYT_DATA_DIR)
-	@echo "--> $@ succeeded."
-cleanDevel:
-	rm -f ../../$(RYT_DATA_DIRNAME) $(DEVEL_DIR) # remove *symbolic* links
-	rm -f $(DEVEL_HTML) # remove devel.html
-	@echo "--> $@ succeeded."
+	@echo "==> $@ succeeded."
 
 
 # server init
@@ -278,24 +282,26 @@ checkPHP5: checkRYTAtServer
 
 $(RYT_ADMIN_DIR)/dataDirs_inited.flag: $(RYT_ADMIN_DIR) $(RYT_DATA_DIR)
 	$(MAKE) -f $(THIS_FILE) checkPHP5
-	curl "$(RYT_ADMIN_URL)/m_createDirPaths.php5?depth=$(RYT_DATA_DIR_NESTING)&makeMissingDirs=true" | grep "Success!" || ( echo "Initing data dirs failed: correct WWW_USER_DIR ($(WWW_USER_DIR)) set? WWW server needs write access in RYT_DATA_DIR ($(RYT_DATA_DIR)) for PHP5 scripts)." && false )
+	curl "$(RYT_ADMIN_URL)/m_createDirPaths.php5?depth=$(RYT_DATA_DIR_NESTING)&makeMissingDirs=true" | grep "Success!" || ( echo -e "Initing data dirs failed: correct RYT_ADMIN_URL '$(RYT_ADMIN_URL)'?\nMoreover WWW server needs write access in RYT_DATA_DIR '$(RYT_DATA_DIR)' for PHP5 scripts." && false )
 	touch $@
-	@echo "--> data dirs inited."
+	@echo "==> data dirs inited."
 initDataDirsIfMissing: $(RYT_ADMIN_DIR)/dataDirs_inited.flag
-	@echo "--> $@ succeeded."
+	@echo "==> $@ succeeded."
 
-init: $(THIS_FILE) checkServer initDataDirsIfMissing
-	$(MAKE) disableAdmin # only needed for init
-	@echo "--> $@ succeeded."
+init: $(THIS_FILE) checkServer enableMaintenance initDataDirsIfMissing
+	$(MAKE) disableMaintenance # only needed for init
+	@echo "==> $@ succeeded."
 
 
 # server control
 #
 
-enableAdmin:
-	touch $(ADMIN_ALLOWED_FLAG_FILE)
-disableAdmin:
-	rm -f $(ADMIN_ALLOWED_FLAG_FILE)
+enableMaintenance:
+	touch $(MAINTENANCE_ALLOWED_FLAG_FILE)
+	@echo "==> $@ succeeded."
+disableMaintenance:
+	rm -f $(MAINTENANCE_ALLOWED_FLAG_FILE)
+	@echo "==> $@ succeeded."
 
 
 #
@@ -446,12 +452,14 @@ usage: info
 	@echo ">>"
 	@echo ">> Normal:"
 	@echo ">>   make install -> first time install followed by init of data dirs."
-	@echo ">>   make upgrade -> upgrade of existing install."
+	@echo ">>   make upgrade -> upgrade of existing install; should be called after repository update."
+	@echo ">>"
+	@echo ">> Changing admin password wherever being used:"
+	@echo ">>   make clean upgrade -> globally changes admin password."
 	@echo ">>"
 	@echo ">> Clean:"
 	@echo ">>   make clean        -> cleans targets:"
 	@echo ">>     $(TARGETS_ALL)"
-	@echo ">>                     -> good for changing admin password."
 	@echo ">>   make cleanDevel   -> cleans devel links and $(DEVEL_HTML)."
 	@echo ">>   make cleanInstall -> cleans RYT installation."
 	@echo ">>   make cleanData    -> cleans RYT data: dangerous!"
