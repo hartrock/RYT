@@ -13,8 +13,9 @@
 #
 
 # where RYT_DIR and RYT_DATA_DIR will be created
-INSTALL_DIR=/tmp
-# user id for writing project data into RYT_DATA_DIR
+INSTALL_DIR=~/RYT_Install
+#INSTALL_DIR=/tmp
+# user id for writing project data into RYT_DATA_DIR (may be _www (OS X))
 WWW_USER_ID=www-data
 # server reachable dir, where RYT_DIR will be referenced from by a symbolic link
 WWW_SERVER_DIR=~/WWW
@@ -60,6 +61,16 @@ RYT_DATA_DIR_NESTING=3
 
 #
 # End of optional stuff.
+#
+
+#
+# external server 
+#
+
+EXTERNAL_SERVER=www.evolgo.de
+
+#
+# End of external server stuff.
 #
 
 
