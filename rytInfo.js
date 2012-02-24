@@ -252,6 +252,10 @@ var EvolGo = EvolGo || {}, RYT = RYT || {};
 */
     return this.greeting;
   };
+  protoI.isPublicId = function(projectId) {
+    var publicIdRE = /[\[][a-zA-Z-_0-9]+[\]]/;
+    return projectId.match(publicIdRE);
+  };
   protoI.setCurrentProject = function(newId) {
     this.currentProjectId = newId;
     ryt.setDocumentTitle();

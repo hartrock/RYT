@@ -113,11 +113,18 @@ function window_onload () {
       var key = UUID.uuid4();
       alert("... generated key is\n\t" + key + "\n: it is needed for separating your data from other's."
             + "\nAfter restart you will see a generated URL (containing above key) in the browser line."
-            +"\n\n[Important] Please bookmark this URL then: it is your personal link to your data!");
+            +"\n\n[Important] Please bookmark "
+            + (ryt.info.defaultProjectId ? "an" : "this")
+            +" URL then: it is your personal link to your data!");
       ryt.storeLocally("justKeyGenerated", true);
       // redirect, because we don't want to give user a new key by back button
-      //eg.redirect_URL(window.location.pathname + "?key=" + key);
-      eg.redirect_URL(ryt.info.rytURL(ryt.info.encrypted, key));
+      eg.redirect_URL(
+        ryt.info.rytURL(
+          ryt.info.encrypted, key,
+          ryt.info.defaultProjectId,
+          eg.arrVals2ObjKeysNVals(ryt.info.defaultElementIds)
+        )
+      );
       return true;
     }
     return false;
@@ -256,13 +263,20 @@ function window_onload () {
 
   if (ryt.info.justKeyGenerated) {
     ryt.storeLocally("justKeyGenerated", false);
-    alert("Please bookmark the URL now!"
-          + (! ryt.info.infoProjectSeen
-             ? ("\n\nNote:\nBecause you seem to be a first time user, [info] project will be started automatically after pressing OK."
-                + " This changes current URL; so it's a good idea to bookmark it before doing that.\nAlternatively you can get back this URL later by pressing the 'new' button.")
-             : ""
-            )
-         );
+    alert(
+      ( ryt.info.defaultProjectId
+        ? ( (ryt.info.isPublicId(ryt.info.defaultProjectId)
+             ?"Public"
+             :"Default")
+            +" project load with new personal key: please bookmark\n"
+            +"- current URL -> pointing to this project, or\n"
+            +"- the one you'll see after pressing 'new' button (now or later) -> empty project in your project area." )
+        : "Please bookmark the URL now!")
+        + ( ! ryt.info.infoProjectSeen && ! ryt.info.defaultProjectId
+            ? ("\n\nNote:\nBecause you seem to be a first time user, [info] project will be started automatically after pressing OK."
+               + " This changes current URL; so it's a good idea to bookmark it before doing that.\nAlternatively you can get back this URL later by pressing the 'new' button.")
+            : "" )
+    );
   }
   if (ryt.info.firstTimeStart) {
     ryt.storeLocally('notTheFirstTime', true); // first time only once
