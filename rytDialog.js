@@ -810,10 +810,13 @@ Wenn Sie XHTML-Standard-konform arbeiten wollen, müssen Sie das Attribut in der
     form.keyup(function(e) {
       e = e || window.event;
       if (e.target === idArea[0]) {
-        var val = idArea.val();
+        var val = idArea.val(), originalLen = val.length;
+        if (e.keyCode === 13) {
+          val = val.replace(/\n/,''); // rm NL from RET key press
+        }
         var match = val.match(inputIdRE);
         var str = match ? match[0] : "";
-        if (val.length !== str.length) {
+        if (originalLen !== str.length) {
           idArea.val(str); // only allow correctly formed ids
         }
       }
