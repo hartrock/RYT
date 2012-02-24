@@ -17,7 +17,7 @@ else
 fi
 SED_STR_VERSION_INFO='s/\(var version = "RYT\)[^"]*"/\1'$VERSION_DATE'"/'
 yesNo "Edit version info in $MAIN_JS?" && {
-    sed -e "$SED_STR_VERSION_INFO" -i '.old' $MAIN_JS || error "sed of $MAIN_JS";
+    sed -e "$SED_STR_VERSION_INFO" -i'.old' $MAIN_JS || error "sed of $MAIN_JS";
 }
 yesNo "git rec?" && {
 #    darcs rec --patch-name "$0 $VERSION" --interactive || error "darcs rec";
