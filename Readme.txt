@@ -6,12 +6,13 @@ License
 Licensed AGPL: see agpl_short.txt (copyright and reference to license)
 and agpl.txt (referenced full license).
 
+
 Install
 -------
 
 Needed: a local web server.
 
-1. Config web server to work with PHP5 scripts: an example is in
+1. Config web server to work with PHP5 scripts: examples are in
   ConfigExamples/
 .
 
@@ -33,4 +34,4 @@ RYT developer may be contacted via starting RYT
 and opening menu
   '?'->'About', or
   '?'->'Feedback'
-.
+(Note: I'm not an expert for webserver configurations).
