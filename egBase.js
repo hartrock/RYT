@@ -218,6 +218,13 @@ Function.prototype.bindThis = function (obj) {
   function arrContains(arr, elem) {
     return arr.indexOf(elem) >= 0;
   }
+  function arrVals2ObjKeysNVals(arr) {
+    var res = {};
+    arr.forEach(function(val) {
+      res[val] = val;
+    });
+    return res;
+  }
 
   function numOfProps_slow(obj) {
     var num = 0;
@@ -1931,6 +1938,7 @@ Function.prototype.bindThis = function (obj) {
   // Array functions
   eg.arrDetect = arrDetect;
   eg.arrContains = arrContains;
+  eg.arrVals2ObjKeysNVals = arrVals2ObjKeysNVals;
 
   // Array-like object functions
   //
