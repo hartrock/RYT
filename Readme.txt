@@ -3,7 +3,8 @@ Roll Your Tasks (RYT)
 
 License
 -------
-Licensed AGPL: see agpl_short.txt (copyright and reference to license) and agpl.txt (full license).
+Licensed AGPL: see agpl_short.txt (copyright and reference to license)
+and agpl.txt (referenced full license).
 
 Install
 -------
