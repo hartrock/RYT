@@ -380,7 +380,7 @@ Wenn Sie XHTML-Standard-konform arbeiten wollen, müssen Sie das Attribut in der
       }
     });
     $dia.dialog({
-      autoOpen: true, modal: (ryt.app.inModalDialog = true),
+      autoOpen: false, modal: (ryt.app.inModalDialog = true),
       /*show: 'scale',*/ // does not work well with focus()
       hide: 'scale', width: 400,
       open: function() {
@@ -413,6 +413,10 @@ Wenn Sie XHTML-Standard-konform arbeiten wollen, müssen Sie das Attribut in der
         }
       }
     });
+    // open after all other (elem) dialogs: modal moveToTop does not work
+    setTimeout(function() {
+      $dia.dialog('open');
+    }, 0);
   } // openUserInfoDialog()
   openUserInfoDialog.diaCount = 0;
 
