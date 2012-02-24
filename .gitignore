@@ -21,3 +21,6 @@
 /data.php5
 /m_listDirs.php5
 /m_createDirPaths.php5
+
+# temp files
+/rytMain.js.old
