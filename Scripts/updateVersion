@@ -29,13 +29,7 @@ yesNo "Tag with $VERSION in git?" && {
 yesNo "make installRelease?" && {
     make installRelease || error "make installRelease";
 }
-yesNo "Push to EvolGo server?" && {
-    ( make lftp && lftp -f $SCRIPT_DIR/uploadRYT.lftp ) || error "push to server";
-}
-yesNo "Leave old files at EvolGo server?" && {
-    echo "leave old files at server"
-} || {
-    ( make lftp && lftp -f $SCRIPT_DIR/uploadRYTDeleteOld.lftp ) || error "delete old files at server";
-}
+
+$SCRIPT_DIR/external_pushToServer
 
 success

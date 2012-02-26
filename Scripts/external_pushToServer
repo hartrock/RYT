@@ -1,0 +1,21 @@
+#!/bin/bash
+
+# Append/replace version string in referenced *.js.
+SCRIPT_DIR=Scripts; . $SCRIPT_DIR/util.src
+
+if [[ $# -ne 0 ]]
+then
+    usage ""
+else
+    info ""
+fi
+yesNo "Push to EvolGo server?" && {
+    ( make lftp && lftp -f $SCRIPT_DIR/uploadRYT.lftp ) || error "push to server";
+}
+yesNo "Leave old files at EvolGo server?" && {
+    echo "leave old files at server"
+} || {
+    ( make lftp && lftp -f $SCRIPT_DIR/uploadRYTDeleteOld.lftp ) || error "delete old files at server";
+}
+
+success
