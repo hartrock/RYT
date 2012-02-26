@@ -14,15 +14,23 @@
 
 # where RYT_DIR and RYT_DATA_DIR will be created
 INSTALL_DIR=~/RYT_Install
-#INSTALL_DIR=/tmp
-# user id for writing project data into RYT_DATA_DIR (may be _www (OS X))
+# for testing purposes: INSTALL_DIR=/tmp
+
+# user id for writing project data into RYT_DATA_DIR
 WWW_USER_ID=www-data
+# may be _www
+
 # server reachable dir, where RYT_DIR will be referenced from by a symbolic link
 WWW_SERVER_DIR=~/WWW
+
 # how to reach your server
 WWW_SERVER_URL=http://localhost
-# with my (sr) user id here
+# probably OK
+
+# how to reach RYT from your server: with my (sr) user id here
 WWW_RYT_PATH=~sr/RYT
+# you *have* to change this, if you have another user id!
+
 # Notes:
 # - Installation of RYT into /tmp/ is a good place for testing purposes only;
 #   for a longer lasting installation you should choose another dir.
@@ -50,6 +58,9 @@ RYT_DATA_DIRNAME=RYT_Data
 # Nesting of data dirs for having more room in filesystem: project data resides
 # inside leave directories. For small to imtermediate sized installations a
 # nesting of 3 should be sufficient.
+# If you change this param later *after* first install, you have to manually
+#   make upgrade cleanData init
+# for being effective.
 RYT_DATA_DIR_NESTING=3
 
 # Notes:
@@ -60,17 +71,14 @@ RYT_DATA_DIR_NESTING=3
 # overwriting data).
 
 #
-# End of optional stuff.
-#
-
-#
 # external server 
-#
 
-EXTERNAL_SERVER=www.evolgo.de
+# for using lftp
+EXTERNAL_SERVER=foo.bar.org
+# If you want to use an external server, you *have* to change this!
 
 #
-# End of external server stuff.
+# End of optional stuff.
 #
 
 
