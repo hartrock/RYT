@@ -39,10 +39,10 @@
     <!-- heavily used -->
     <script src="_VERSION_DIR_/External/raphael.js_URL_PARAMS_" type="text/javascript" charset="utf-8"></script>
 
-    <script src="_VERSION_DIR_/External/jquery-1.6.2.js_URL_PARAMS_" type="text/javascript"></script>
+    <script src="_VERSION_DIR_/External/jquery-1.7.1.js_URL_PARAMS_" type="text/javascript"></script>
 
-    <script src="_VERSION_DIR_/External/jquery-ui-1.8.15.custom/jquery-ui-1.8.15.custom.js_URL_PARAMS_" type="text/javascript"></script>
-    <link rel="stylesheet" type="text/css" href="_VERSION_DIR_/External/jquery-ui-1.8.15.custom/css/vader/jquery-ui-1.8.15.custom.css_URL_PARAMS_">
+    <script src="_VERSION_DIR_/External/jquery-ui-1.8.18.custom/jquery-ui-1.8.18.custom.js_URL_PARAMS_" type="text/javascript"></script>
+    <link rel="stylesheet" type="text/css" href="_VERSION_DIR_/External/jquery-ui-1.8.18.custom/css/vader/jquery-ui-1.8.18.custom.css_URL_PARAMS_">
 
     <link rel="stylesheet" href="_VERSION_DIR_/External/jquery.notice.css_URL_PARAMS_" type="text/css" media="screen">
     <script src="_VERSION_DIR_/External/jquery.notice.js_URL_PARAMS_" type="text/javascript" charset="utf-8"></script>
