@@ -267,7 +267,7 @@ cleanInstall: cleanDevel
 cleanData:
 	@$(SCRIPT_DIR)/yesNoQuestion "About to clean RYT data $(RYT_DATA_DIR): are you sure to continue?"
 	! $(SCRIPT_DIR)/yesNoQuestion "OK, but this really would clean RYT data $(RYT_DATA_DIR); asking the opposite (to avoid mistakes):\n  Do you want to keep RYT data?"
-	sudo rm -fR $(RYT_DATA_DIR)
+	sudo rm -fR $(RYT_DATA_DIR) $(RYT_DIR)/dataDirs_inited.flag
 	@echo "==> $@ succeeded."
 
 
@@ -283,12 +283,12 @@ checkRYTAtServer: checkServer
 checkPHP5: checkRYTAtServer
 	curl --fail "$(RYT_ADMIN_URL)/m_pong.php5" | grep pong
 
-$(RYT_ADMIN_DIR)/dataDirs_inited.flag: $(RYT_ADMIN_DIR) $(RYT_DATA_DIR)
+$(RYT_DIR)/dataDirs_inited.flag: | $(RYT_ADMIN_DIR) $(RYT_DATA_DIR)
 	$(MAKE) -f $(THIS_FILE) checkPHP5
 	curl "$(RYT_ADMIN_URL)/m_createDirPaths.php5?depth=$(RYT_DATA_DIR_NESTING)&makeMissingDirs=true" | grep "Success!" || ( echo -e "Initing data dirs failed: correct RYT_ADMIN_URL '$(RYT_ADMIN_URL)'?\nMoreover WWW server needs write access in RYT_DATA_DIR '$(RYT_DATA_DIR)' for PHP5 scripts." && false )
 	touch $@
 	@echo "==> data dirs inited."
-initDataDirsIfMissing: $(RYT_ADMIN_DIR)/dataDirs_inited.flag
+initDataDirsIfMissing: $(RYT_DIR)/dataDirs_inited.flag
 	@echo "==> $@ succeeded."
 
 init: $(THIS_FILE) checkServer enableMaintenance initDataDirsIfMissing initPublicProjects
