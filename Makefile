@@ -10,7 +10,7 @@
 #     config.src <- needed variables;
 #   Scripts/:
 #     yesNoQuestion,
-#     getPassword,
+#     setPassword,
 #     fillIn_dataDir, fillIn_adminPassword, createVersionHTML,
 #     minifyDownFrom -> (Tools/yuicompressor-2.4.6.jar -> java).
 #
@@ -138,7 +138,7 @@ clean:
 #
 
 define getPWOnce
-  $(eval $(if $(PASSWORD),,PASSWORD:=$(shell $(SCRIPT_DIR)/getPassword)))
+  $(eval $(if $(PASSWORD),,PASSWORD:=$(shell $(SCRIPT_DIR)/setPassword)))
 endef
 
 # for deps from Makefile
