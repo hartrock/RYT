@@ -15,16 +15,23 @@ then
 else
     info "VERSION: $VERSION"
 fi
+
 GREP_STR_VERSION_INFO='\(var version = "RYT\)[^"]*"'
 SED_STR_VERSION_INFO='s/'$GREP_STR_VERSION_INFO'/\1'$VERSION_DATE'"/'
+SED_STR_VERSION_SHORT='s/ *var version = "RYT\([^"]*\)".*/\1/'
+OLD_VERSION=`grep "$GREP_STR_VERSION_INFO" $MAIN_JS \
+             | sed -e "$SED_STR_VERSION_SHORT"`
+
+info "old version: $OLD_VERSION <- $MAIN_JS"
+info "new version: $VERSION_DATE -> $MAIN_JS"
 yesNo "Edit version info in $MAIN_JS?" && {
-    info "old:"
+    info "old line:"
     grep "$GREP_STR_VERSION_INFO" $MAIN_JS
     sed -e "$SED_STR_VERSION_INFO" -i'.old' $MAIN_JS || error "sed of $MAIN_JS";
-    info "new:"
+    info "new line:"
     grep "$GREP_STR_VERSION_INFO" $MAIN_JS
 }
-yesNo "git rec?" && {
+yesNo "git commit?" && {
 #    darcs rec --patch-name "$0 $VERSION" --interactive || error "darcs rec";
     git commit -a -m "$0 $VERSION" || error "git commit";
 }
