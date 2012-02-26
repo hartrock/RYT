@@ -17,10 +17,12 @@
 /Scripts/numOfProjects
 /Scripts/uploadRYT.lftp
 /Scripts/uploadRYTDeleteOld.lftp
+/Scripts/pullPublicProjects.lftp
 #
 /data.php5
 /m_listDirs.php5
 /m_createDirPaths.php5
 
-# temp files
+# temp dir/files
+/tmp/
 /rytMain.js.old

@@ -1,0 +1,6 @@
+#!/bin/bash
+# asks for updating project files in PublicProjects/
+# - assumes pulled projects in tmp/
+# - files are diff'ed and timestamp compared
+
+Scripts/updateProjects_from_to tmp PublicProjects

@@ -1,0 +1,7 @@
+lcd _TMP_DIR_
+open _SERVER_TO_PUSH_TO_
+cd _RYT_DATA_DIRNAME_
+
+ls *.json
+ls
+mget *.json

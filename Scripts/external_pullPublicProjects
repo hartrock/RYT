@@ -1,0 +1,5 @@
+#!/bin/bash
+rm tmp/*
+lftp -f Scripts/pullPublicProjects.lftp
+echo "pulled projects:"
+ls tmp

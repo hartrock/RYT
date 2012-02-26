@@ -1,0 +1,89 @@
+#!/bin/bash
+# updates dst projects in dstDir by src projects in srcDir
+# Normal mode: project files are diff'ed. Ask what to do, if there are diff'erences.
+# DoNotAsk mode: just sync src/dst.
+
+. Scripts/util.src
+
+srcDir=$1
+dstDir=$2
+doNotAsk=$3
+
+dstProjects=`ls $dstDir/*.json | xargs`
+info "destination projects:"
+info "  $dstProjects"
+srcProjects=`ls $srcDir/*.json | xargs`
+info "source projects:"
+info "  $srcProjects"
+info
+[ "$doNotAsk" ] && info "Just sync src/dst." || info "Ask if there are conflicts."
+
+# treat src and dst projects after knowing which exists
+# both exist
+function go_dst_src() {
+    local dstFile srcFile fn
+    dstFile=$1; srcFile=$2; fn=$3
+    info; info "go_dst_src() fn: $fn"
+# if files are identical diff rets 'true'
+    if diff -q $dstFile $srcFile ; then
+        info "$srcFile and $dstFile are equal -> nothing to do."
+    elif [[ $srcFile -nt $dstFile ]] ; then
+        if [ "$doNotAsk" ] || yesNo "\n$srcFile is different from and newer than $dstFile:\n  overwrite $dstFile?"
+        then
+            cp $srcFile $dstFile && echo "  => $dstFile overwritten."
+        else
+            echo "  => Ignored."
+        fi
+    else
+        if [ "$doNotAsk" ] || yesNo "\n$srcFile is different from *** but older! *** than $dstFile:\n  do you really want to overwrite $dstFile?"
+        then
+            cp $srcFile $dstFile && echo "  => $dstFile overwritten."
+        else
+            echo "  => Ignored."
+        fi
+    fi
+}
+# only src exists
+function go_no_dst_src() {
+    local dstFile srcFile fn
+    dstFile=$1; srcFile=$2; fn=$3
+    info; info "go_no_dst_src() fn: $fn"
+    if [ "$doNotAsk" ] || yesNo "\nThere is no $dstFile, but a $srcFile:\n  create $dstFile?"
+    then
+        cp $srcFile $dstFile && echo "  => $dstFile created."
+    else
+        echo "  => Ignored."
+    fi
+}
+# only dst exists
+function go_dst_no_src() {
+    local dstFile srcFile fn
+    dstFile=$1; srcFile=$2; fn=$3
+    info; info "go_dst_no_src() fn: $fn"
+    if [ "$doNotAsk" ] || yesNo "\nThere is a $dstFile, but no $srcFile:\n  remove $dstFile?"
+    then
+        rm -v $dstFile && echo "  => $dstFile removed."
+    else
+        echo "  => Ignored."
+    fi
+}
+
+# loop over src and dst projects
+# all in dst projects with corresponding src (or not)
+for dstFile in $dstProjects; do
+    fn=$(basename $dstFile)
+    srcFile=$srcDir/$fn
+    if [[ -f $srcFile ]] ; then
+        go_dst_src $dstFile $srcFile $fn
+    else
+        go_dst_no_src $dstFile $srcFile $fn
+    fi
+done
+# all in src projects, but *not* in dst (already treated above)
+for srcFile in $srcProjects; do
+    fn=$(basename $srcFile)
+    dstFile=$dstDir/$fn
+    if [[ ! -f $dstFile ]] ; then
+        go_no_dst_src $dstFile $srcFile $fn
+    fi
+done

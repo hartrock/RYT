@@ -111,7 +111,9 @@ TO_BE_COPIED_ADMIN  := $(SOURCES_ADMIN) $(TARGETS_ADMIN)
 MAINTENANCE_ALLOWED_FLAG_FILE := $(ADMIN_DIR)/maintenanceAllowed.flag
 
 # lftp
-TARGETS_LFTP := $(SCRIPT_DIR)/uploadRYT.lftp $(SCRIPT_DIR)/uploadRYTDeleteOld.lftp
+TMP_DIR := tmp
+TARGETS_LFTP := $(SCRIPT_DIR)/uploadRYT.lftp $(SCRIPT_DIR)/uploadRYTDeleteOld.lftp $(SCRIPT_DIR)/pullPublicProjects.lftp
+$(SCRIPT_DIR)/pullPublicProjects.lftp: $(TMP_DIR)
 
 # devel
 TARGETS_QUERY := $(SCRIPT_DIR)/numOfProjects $(SCRIPT_DIR)/numOfKeys
@@ -129,7 +131,7 @@ all: usage
 $(WWW_FOR_APP): $(SOUNDS_DIR)
 
 clean:
-	rm -f $(TARGETS_ALL)
+	rm -f $(TARGETS_ALL) $(TMP_DIR)/*
 
 # make
 #
@@ -193,9 +195,9 @@ devel: $(THIS_FILE) $(DEVEL_HTML) targets
 #
 
 # standard dir creation
-$(RYT_DIR) $(ADMIN_DIR) $(SOUNDS_DIR):
+$(RYT_DIR) $(ADMIN_DIR) $(SOUNDS_DIR) $(TMP_DIR):
 	mkdir -p $@
-	#touch $@/ # make it current even if it has been existed
+#touch $@/ # make it current even if it has been existed
 $(RYT_DATA_DIR):
 	mkdir -p $@
 	#sudo touch $@/ # make it current even if it has been existed
@@ -250,7 +252,7 @@ install: installWithoutInit init
 	@echo ">>   $(TARGETS_PUBLIC) $(TARGETS_ADMIN)"
 	@echo ">> ."
 
-upgrade: installWithoutInit
+upgrade: installWithoutInit updatePublicProjects
 	@echo "==> $@ succeeded."
 
 cleanDevel:
@@ -288,10 +290,15 @@ $(RYT_ADMIN_DIR)/dataDirs_inited.flag: $(RYT_ADMIN_DIR) $(RYT_DATA_DIR)
 initDataDirsIfMissing: $(RYT_ADMIN_DIR)/dataDirs_inited.flag
 	@echo "==> $@ succeeded."
 
-init: $(THIS_FILE) checkServer enableMaintenance initDataDirsIfMissing
+init: $(THIS_FILE) checkServer enableMaintenance initDataDirsIfMissing initPublicProjects
 	$(MAKE) disableMaintenance # only needed for init
 	@echo "==> $@ succeeded."
 
+# -u $(WWW_USER_ID)
+initPublicProjects:
+	sudo $(SCRIPT_DIR)/updateProjects_from_to PublicProjects $(RYT_DATA_DIR) forceFlag
+upgradePublicProjects:
+	sudo $(SCRIPT_DIR)/updateProjects_from_to PublicProjects $(RYT_DATA_DIR)
 
 # server control
 #
@@ -353,9 +360,9 @@ webside: $(THIS_FILE) \
 
 $(SCRIPT_DIR)/%.lftp: $(SCRIPT_DIR)/%.lftp.in
 	$(SCRIPT_DIR)/fillIn_lftpInfo \
-          $< $(INSTALL_DIR) $(RYT_DIRNAME) $(EXTERNAL_SERVER) \
+          $< $(INSTALL_DIR) $(RYT_DIRNAME) $(EXTERNAL_SERVER) $(RYT_DATA_DIRNAME) $(TMP_DIR) \
           > $@
-lftp: $(TARGETS_LFTP)
+lftp: $(TARGETS_LFTP) $(TMP_DIR)
 
 #
 # admin scripts

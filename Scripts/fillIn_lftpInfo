@@ -7,14 +7,16 @@
 # string to be replaced in input file
 toBeReplacedStr=_RYT_DATA_DIRNAME_
 
-if [[ $# -ne 4 ]]
+if [[ $# -ne 6 ]]
 then
-    usage 'FILE RYT_INSTALL_DIR RYT_DIRNAME SERVER_TO_PUSH_TO'
+    usage 'FILE RYT_INSTALL_DIR RYT_DIRNAME SERVER_TO_PUSH_TO RYT_DATA_DIRNAME TMP_DIR'
 fi
 FILE=$1
 RYT_INSTALL_DIR=$2
 RYT_DIRNAME=$3
 SERVER_TO_PUSH_TO=$4
+RYT_DATA_DIRNAME=$5
+TMP_DIR=$6
 
 if [[ -n "$RYT_INSTALL_DIR" ]]
 then
@@ -34,12 +36,28 @@ then
 else
     error "empty SERVER_TO_PUSH_TO."
 fi
+if [[ -n "$RYT_DATA_DIRNAME" ]]
+then
+    info "Given RYT_DATA_DIRNAME: '$RYT_DATA_DIRNAME'."
+else
+    error "empty RYT_DATA_DIRNAME."
+fi
+if [[ -n "$TMP_DIR" ]]
+then
+    info "Given TMP_DIR: '$TMP_DIR'."
+else
+    error "empty TMP_DIR."
+fi
 
 SED_STR_RYT_INSTALL_DIR="s%_RYT_INSTALL_DIR_%$RYT_INSTALL_DIR%g"
 SED_STR_RYT_DIRNAME="s/_RYT_DIRNAME_/$RYT_DIRNAME/g"
 SED_STR_SERVER_TO_PUSH_TO="s/_SERVER_TO_PUSH_TO_/$SERVER_TO_PUSH_TO/g"
+SED_STR_RYT_DATA_DIRNAME="s/_RYT_DATA_DIRNAME_/$RYT_DATA_DIRNAME/g"
+SED_STR_TMP_DIR="s/_TMP_DIR_/$TMP_DIR/g"
 
 sed -e $SED_STR_RYT_INSTALL_DIR \
     -e $SED_STR_RYT_DIRNAME \
     -e $SED_STR_SERVER_TO_PUSH_TO \
+    -e $SED_STR_RYT_DATA_DIRNAME \
+    -e $SED_STR_TMP_DIR \
     $FILE || error 'fail'
