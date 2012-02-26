@@ -101,7 +101,8 @@ TARGETS_PUBLIC      := data.php5
 
 # admin specific sources (PHP5)
 TARGETS_ADMIN := m_listDirs.php5 m_createDirPaths.php5
-SOURCES_ADMIN := $(filter-out $(TARGETS_ADMIN),$(wildcard m_*.php5)) util.php5
+SOURCES_ADMIN := $(filter-out $(TARGETS_ADMIN),$(wildcard m_*.php5)) util.php5 \
+   phpInfo.php5 phpInfo.php
 
 TO_BE_COPIED_PUBLIC := $(SOURCES_JS) $(SOURCES_CSS) \
                        $(SOURCES_PHP5_PUBLIC) $(SOURCE_DIRS_PUBLIC) \
