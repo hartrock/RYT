@@ -26,8 +26,8 @@ yesNo "git rec?" && {
 yesNo "Tag with $VERSION in git?" && {
     git tag $VERSION || error "git tag $VERSION";
 }
-yesNo "make installRelease?" && {
-    make installRelease || error "make installRelease";
+yesNo "make upgrade?" && {
+    make upgrade || error "make upgrade";
 }
 
 $SCRIPT_DIR/external_pushToServer
