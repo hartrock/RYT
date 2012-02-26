@@ -26,7 +26,7 @@ var EvolGo = EvolGo || {}, RYT = RYT || {};
 (function (eg, ryt) {
 function window_onload () {
 
-  var version = "RYTv2.1.4 (2012-02-24)"; // programmatically updated from updateVersion
+  var version = "RYTv2.1.5 (2012-02-26)"; // programmatically updated from updateVersion
 
   var eg = EvolGo, ryt = RYT; // shortcuts
 
