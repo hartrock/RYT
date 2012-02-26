@@ -26,6 +26,9 @@ and edit it (explanations therein).
 
 4. Have fun!
 
+More info is available via
+  http://www.evolgo.de/RYT/devel.html?key=1395a3b3-c006-4f9e-9359-b073e2eb455b&project=[installation]&element=sr_1330290330348_1_3
+.
 
 Problems
 --------
