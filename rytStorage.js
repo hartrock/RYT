@@ -193,13 +193,15 @@ var EvolGo = EvolGo || {}, RYT = RYT || {};
   function pathComponents(pathIdent) {
     return pathIdent.split("/");
   }
-  function createHeaders(identOrNull, credentials, actionOrNil) {
+  function createHeaders(identOrNull, credentials, actionOrNil, timezoneOffsetOrNil) {
     var headers = [ ];
     headers.push(["Accept", "application/json"]);
     identOrNull && headers.push(["X-data-ident", identOrNull]);
     credentials.key && headers.push(["X-data-key", credentials.key]);
     credentials.pw && headers.push(["X-data-pw", credentials.pw]);
     actionOrNil && headers.push(["X-action", actionOrNil]);
+    ! eg.isNil(timezoneOffsetOrNil)
+      && headers.push(["X-timezone-offset", timezoneOffsetOrNil]);
     return headers;
   }
   function jsonHttpGET(headers, success, failure, asynchronous) {
@@ -310,6 +312,14 @@ var EvolGo = EvolGo || {}, RYT = RYT || {};
                 true);
   }
 
+  function getTimezoneOffset() {
+    /* code taken from:
+       http://de.php.net/manual/de/function.date-default-timezone-set.php#107297
+    */
+    var d = new Date()
+    var offset= -d.getTimezoneOffset()/60;
+    return offset;
+  }
   function importProjectList(credentials, successCBOrNil, failCBOrNil) {
     function callbackFN(xhr) {
       var dataString = xhr.responseText;
@@ -326,7 +336,8 @@ var EvolGo = EvolGo || {}, RYT = RYT || {};
       successCBOrNil ? successCBOrNil(dataObj) : alert("GET successful!");
     }
     jsonHttpGET(
-      createHeaders(null, credentials, 'list'), // no ident, specific action
+      // no ident, specific action, timezoneOff (for file mtime)
+      createHeaders(null, credentials, 'list', getTimezoneOffset()),
       callbackFN,
       failCBOrNil
         || function(xhr){ eg.error(xhr);

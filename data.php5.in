@@ -69,12 +69,22 @@ $ident = $_SERVER['HTTP_X_DATA_IDENT'];  /* mandatory, except for project listin
 $key = $_SERVER['HTTP_X_DATA_KEY']; /*  */
 $pw = $_SERVER['HTTP_X_DATA_PW']; /*  */
 $action = $_SERVER['HTTP_X_ACTION'];
+$timezoneOffset = $_SERVER['HTTP_X_TIMEZONE_OFFSET'];
+
 if (! $ident) {
   if ($action != 'list') {
     httpError('data identifier missing', 400);
   }
 } else { // send ident back
   header('X-data-ident: '.$ident);
+}
+if ($action == 'list') {
+  if (! isset($timezoneOffset)) { // isset works with val '0'
+    httpError('timezone offset missing', 500);
+  } else {
+    setDefaultTimezone($timezoneOffset);
+    header('X-timezone: '.date_default_timezone_get());
+  }
 }
 if ($key) {
   header('X-data-key: '.$key);
