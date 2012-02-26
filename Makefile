@@ -297,7 +297,7 @@ init: $(THIS_FILE) checkServer enableMaintenance initDataDirsIfMissing initPubli
 # -u $(WWW_USER_ID)
 initPublicProjects:
 	sudo $(SCRIPT_DIR)/updateProjects_from_to PublicProjects $(RYT_DATA_DIR) forceFlag
-upgradePublicProjects:
+updatePublicProjects:
 	sudo $(SCRIPT_DIR)/updateProjects_from_to PublicProjects $(RYT_DATA_DIR)
 
 # server control
