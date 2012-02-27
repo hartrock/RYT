@@ -201,7 +201,7 @@ $(RYT_DIR) $(ADMIN_DIR) $(SOUNDS_DIR) $(TMP_DIR):
 #touch $@/ # make it current even if it has been existed
 $(RYT_DATA_DIR):
 	mkdir -p $@
-	#sudo touch $@/ # make it current even if it has been existed
+#sudo touch $@/ # make it current even if it has been existed
 	sudo chown $(WWW_USER_ID) $@ # make it writable for WWW user (webserver)
 $(WWW_SERVER_DIR)/$(RYT_DIRNAME): $(RYT_DIR)
 	ln -f -s $(RYT_DIR) $(WWW_SERVER_DIR)
@@ -217,9 +217,9 @@ getCurrentVersion:
 
 $(RELEASE_DIR):
 	mkdir -p $@ # RELEASE_DIR first set after knowing CURRENT_VERSION!
-	rm -fR $@/* # start clean (e.g. avoid creating minified minified...)
 	touch $@/
 copiedRelease: $(RELEASE_DIR) $(TO_BE_COPIED_PUBLIC)
+	rm -fR $(RELEASE_DIR)/* # start clean (e.g. avoid creating minified minified...)
 	cp -fR $(TO_BE_COPIED_PUBLIC) $(RELEASE_DIR)
 minifiedRelease: copiedRelease
 	$(SCRIPT_DIR)/minifyDownFrom $(RELEASE_DIR)
@@ -300,7 +300,7 @@ initPublicProjects:
 	sudo $(SCRIPT_DIR)/updateProjects_from_to PublicProjects $(RYT_DATA_DIR) forceFlag
 updatePublicProjects:
 	sudo $(SCRIPT_DIR)/updateProjects_from_to PublicProjects $(RYT_DATA_DIR)
-
+	sudo chown $(WWW_USER_ID) $(RYT_DATA_DIR)/*.json
 # server control
 #
 
