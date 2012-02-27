@@ -188,23 +188,15 @@ function window_onload () {
 
   // default: show only if not seen before
   ryt.showNews = function(forceFlag) {
-    var ident = 'RYTv2.0';
+    var ident = 'RYTv2.2';
     // content
     var topic = ""
-      + "[new] condense between snapshots, better undo/redo animation";
+      + "RYT open-sourced under AGPL license at Github now";
     var text = ""
       + ident +": " + topic + "\n"
       +"========\n"
-      +"- Menu item 'condense between snapshots':\n"
-      +"  - condenses activities between snapshot markers, but\n"
-      +"  - keeps snapshot markers.\n"
-      +"  ('condense all' removes all of history).\n"
-      +"- Undo/redo animates creation/deletion of widgets:\n"
-      +"  -> so it should be easier to follow changes.\n"
-      +"\n"
-      +"- There is a new data model Model_v1.2 under the hood:\n"
-      +"  - less storage needed for saving of history;\n"
-      +"  - older data model will be automatically converted to new one.\n"
+      +"- https://github.com/hartrock/RYT'RYT at Github'\n"
+      +"- https://github.com/hartrock/RYT/blob/master/agpl_short.txt'RYT license (AGPL)'\n"
 /*
       +"\n"
       +"Older News\n"
@@ -228,7 +220,7 @@ function window_onload () {
     }
     ryt.newsDialog(
       { topic: topic,
-        text: text,
+        text: text, text2HTMLFlag: true,
         yesButtonText: "OK"
       }
     );
