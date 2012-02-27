@@ -2920,12 +2920,12 @@ protoApp.redoPossibleCheck = function () {
     var credentials = { };
     if (ident && isPublicDataIdent(ident)) { // don't use (data) key
       if (forSaveFlag || forDeleteFlag) { // need pw, only to be changed by admins
-        if (ryt.info.user.name !== 'Stephan Rudlof') {
+        if (! ryt.info.prefs.adminModeFlag) {
           this.logger.problem(
             "Project '" + ident + "' only to be "
               + (forSaveFlag ? "saved" : "deleted")
               + " by admin"
-              + (forSaveFlag ? ": please saveAs under another name." : ".")
+              + (forSaveFlag ? ": please saveAs under another name (without '[]')." : ".")
           );
           return null;
         }

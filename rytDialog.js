@@ -597,6 +597,8 @@ Wenn Sie XHTML-Standard-konform arbeiten wollen, müssen Sie das Attribut in der
     sg.addSelectionData('taskFontColor',    ['black max', 'black', 'white', 'white max']);
     sg.addSelectionData('commentFontColor', ['black max', 'black', 'white', 'white max']);
 
+    sg.addSelectionData('adminModeFlag',    [false, true], ["off", "on"]);
+
     var diaTitle = "Set Preferences";
     var diaStr =
       '<div class="prefsDialog" title="'+diaTitle+'" style="text-align:center;">'
@@ -688,6 +690,16 @@ Wenn Sie XHTML-Standard-konform arbeiten wollen, müssen Sie das Attribut in der
       +    '<td>comment</td>'
       +    '<td class="switch" align="left">'
       + sg.createSelectHTMLIdent("commentFontColor")
+      +    '</td>'
+      +  '</tr>'
+
+      +  '<tr>'
+      +    '<td colspan=2>set admin mode</td>'
+      +    '<td class="switch" align="left">'
+      + sg.createSelectHTMLIdent("adminModeFlag")
+      +    '</td>'
+      +    '<td align="left">'
+      +      'If you are a RYT admin - knowing RYT admin password - admin mode allows to save public projects.'
       +    '</td>'
       +  '</tr>'
 
