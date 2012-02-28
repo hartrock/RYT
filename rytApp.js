@@ -4029,12 +4029,13 @@ protoApp.createActionButtons = function () {
   };
   var aboutFunc = function () {
     var text = ''
-      +'Project  : Roll Your Tasks (RYT)\n'
-      +'Version  : ' + ryt.info.version + '\n'
-      +'Purpose  : Support of task management for individuals and small groups.\n'
-      +'License  : AGPL (it is planned to publish RYT at Github soon).\n'
-      +'Credits  : See \'Credits\' in ' + ryt.info.rytURL_project("[info]" + '"[info] project"') + ' .\n'
-      +'Developer: @@@' + eg.createMailtoHTMLString('Stephan Rudlof','sr','evolgo.de') + '@@@'
+      +'Project    : Roll Your Tasks (RYT)\n'
+      +'Version    : ' + ryt.info.version + '\n'
+      +'Purpose    : Support of task management for individuals and small groups.\n'
+      +'License    : https://github.com/hartrock/RYT/blob/master/agpl_short.txt"AGPL" .\n'
+      +'Published  : https://www.github.com/hartrock/RYT"Github" .\n'
+      +'Credits    : See \'Credits\' in ' + ryt.info.rytURL_project("[info]" + '"[info] project"') + ' .\n'
+      +'Developer  : @@@' + eg.createMailtoHTMLString('Stephan Rudlof','sr','evolgo.de') + '@@@'
     ;
     ryt.helpDialog("About", text, 'auto');
   };
