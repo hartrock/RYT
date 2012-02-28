@@ -1,7 +1,10 @@
 #!/bin/bash
 . Scripts/util.src
 
-oldReleases=`git tag | head -n -1`
+# GNU/BSD compat: GNU `git tag | head -n -1` does not work with BSD head version, so go another way
+# no tac at BSD, no tail -r at GNU
+which tac && reverseCommand=tac || reverseCommand="tail -r"
+oldReleases=`git tag | $reverseCommand | tail -n +2`
 info $oldReleases
 for rel in $oldReleases; do
     relDirname=Rel_$rel
