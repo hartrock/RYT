@@ -15,7 +15,8 @@ for rel in $oldReleases; do
         relUnminifiedHTML=_RYT_DIR_/$rel'_unminified.html'
         rm -R $relDir $relHTML $relUnminifiedHTML && info "$relDir $relHTML $relUnminifiedHTML removed" || error "rm -R $relDir $relHTML $relUnminifiedHTML"
     else
-        info "$rel does not exist"
+        info "$rel does not exist -> stop looking for more older ones"
+        break
     fi
 done
 
