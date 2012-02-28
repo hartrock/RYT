@@ -295,12 +295,14 @@ init: $(THIS_FILE) checkServer enableMaintenance initDataDirsIfMissing initPubli
 	$(MAKE) disableMaintenance # only needed for init
 	@echo "==> $@ succeeded."
 
-# -u $(WWW_USER_ID)
 initPublicProjects:
 	sudo $(SCRIPT_DIR)/updateProjects_from_to PublicProjects $(RYT_DATA_DIR) forceFlag
+	sudo chown $(WWW_USER_ID) $(RYT_DATA_DIR)/*.json
 updatePublicProjects:
 	sudo $(SCRIPT_DIR)/updateProjects_from_to PublicProjects $(RYT_DATA_DIR)
 	sudo chown $(WWW_USER_ID) $(RYT_DATA_DIR)/*.json
+
+
 # server control
 #
 
