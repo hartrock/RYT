@@ -1,0 +1,19 @@
+#!/bin/bash
+. Scripts/util.src
+
+oldReleases=`git tag | head -n -1`
+info $oldReleases
+for rel in $oldReleases; do
+    relDirname=Rel_$rel
+    relDir=_RYT_DIR_/$relDirname
+    if [[ -d $relDir ]]
+    then
+        relHTML=_RYT_DIR_/$rel.html
+        relUnminifiedHTML=_RYT_DIR_/$rel'_unminified.html'
+        rm -R $relDir $relHTML $relUnminifiedHTML && info "$relDir $relHTML $relUnminifiedHTML removed" || error "rm -R $relDir $relHTML $relUnminifiedHTML"
+    else
+        info "$rel does not exist"
+    fi
+done
+
+success

@@ -117,10 +117,11 @@ TARGETS_LFTP := $(SCRIPT_DIR)/uploadRYT.lftp $(SCRIPT_DIR)/uploadRYTDeleteOld.lf
 $(SCRIPT_DIR)/pullPublicProjects.lftp: $(TMP_DIR)
 
 # devel
-TARGETS_QUERY := $(SCRIPT_DIR)/numOfProjects $(SCRIPT_DIR)/numOfKeys
+TARGETS_QUERY          := $(SCRIPT_DIR)/numOfProjects $(SCRIPT_DIR)/numOfKeys
 TARGETS_QUERY_EXTERNAL := $(SCRIPT_DIR)/external_numOfProjects $(SCRIPT_DIR)/external_numOfKeys
+TARGETS_DEVEL          := $(SCRIPT_DIR)/cleanOldReleases
 
-TARGETS_ALL := $(TARGETS_PUBLIC) $(TARGETS_ADMIN) $(TARGETS_QUERY) $(TARGETS_QUERY_EXTERNAL) $(TARGETS_LFTP)
+TARGETS_ALL            := $(TARGETS_PUBLIC) $(TARGETS_ADMIN) $(TARGETS_QUERY) $(TARGETS_QUERY_EXTERNAL) $(TARGETS_LFTP) $(TARGETS_DEVEL)
 
 
 #
@@ -149,6 +150,11 @@ $(THIS_FILE): config.src
 $(TARGETS_ALL): $(THIS_FILE)
 targets: $(TARGETS_ALL)
 	@echo "==> $@ succeeded."
+
+#
+$(SCRIPT_DIR)/cleanOldReleases: $(SCRIPT_DIR)/cleanOldReleases.in
+	sed -e "s%_RYT_DIR_%$(RYT_DIR)%" $< > $@
+	chmod u+x $@
 
 # only data dir
 m_createDirPaths.php5: m_createDirPaths.php5.in
