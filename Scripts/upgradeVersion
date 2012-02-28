@@ -44,4 +44,8 @@ yesNo "make upgrade?" && {
 
 $SCRIPT_DIR/external_pushToServer
 
+yesNo "git push?" && {
+    git push --tags -u origin master || error "git push";
+}
+
 success
