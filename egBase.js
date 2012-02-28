@@ -1596,7 +1596,7 @@ Function.prototype.bindThis = function (obj) {
     });
   }
   // @1305670230335_1_1@
-  var elementLinkRE = /(\s|^)@([\d_]{17,})@(\s|$)/gm;
+  var elementLinkRE = /(\s|^)@(\w*[\d_]{17,})@(\s|$)/gm;
   function elementLinks2HTML(str) {
     return str.replace(elementLinkRE, function(a1, pre, link, post, a5) {
       return pre
