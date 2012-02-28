@@ -128,7 +128,8 @@ var EvolGo = EvolGo || {}, RYT = RYT || {};
                           fastInputFlag:false,
                           userExperience:'beginner',
                           rectCornerRadius: 10,
-                          adminModeFlag:false
+                          adminModeFlag:false,
+                          showElementIDsFlag:false
                         };
   protoI.color2HTMLColorMap = {
     'green':"rgb(0, 127, 0)",

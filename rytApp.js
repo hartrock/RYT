@@ -2480,7 +2480,7 @@ protoApp.creationNModificationInfoString = function (flowElem, withoutBorderOrNi
   }
   text += ("created: " + eg.localDateTimeString(flowElem.creationTime)
            + " by: " + this.infoFromUID(flowElem.createdBy));
-  if (ryt.info.develMode) {
+  if (ryt.info.develMode || ryt.info.prefs.showElementIDsFlag) {
     text += "; id: " + flowElem.id;
   }
   if (withoutBorderOrNil) {

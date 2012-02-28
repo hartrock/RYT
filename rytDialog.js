@@ -592,12 +592,13 @@ Wenn Sie XHTML-Standard-konform arbeiten wollen, müssen Sie das Attribut in der
                         [null, 2, 5, 10, 20, 50],
                         ["none", "very low", "low", "medium", "high", "very high"]);
 
-    sg.addSelectionData('taskColor',        ['green',  'blue', 'red', 'yellow']);
-    sg.addSelectionData('commentColor',     ['yellow', 'blue', 'red', 'green']);
-    sg.addSelectionData('taskFontColor',    ['black max', 'black', 'white', 'white max']);
-    sg.addSelectionData('commentFontColor', ['black max', 'black', 'white', 'white max']);
+    sg.addSelectionData('taskColor',       ['green',  'blue', 'red', 'yellow']);
+    sg.addSelectionData('commentColor',    ['yellow', 'blue', 'red', 'green']);
+    sg.addSelectionData('taskFontColor',   ['black max', 'black', 'white', 'white max']);
+    sg.addSelectionData('commentFontColor',['black max', 'black', 'white', 'white max']);
 
-    sg.addSelectionData('adminModeFlag',    [false, true], ["off", "on"]);
+    sg.addSelectionData('showElementIDsFlag', [false, true], ["no", "yes"]);
+    sg.addSelectionData('adminModeFlag',      [false, true], ["off", "on"]);
 
     var diaTitle = "Set Preferences";
     var diaStr =
@@ -690,6 +691,16 @@ Wenn Sie XHTML-Standard-konform arbeiten wollen, müssen Sie das Attribut in der
       +    '<td>comment</td>'
       +    '<td class="switch" align="left">'
       + sg.createSelectHTMLIdent("commentFontColor")
+      +    '</td>'
+      +  '</tr>'
+
+      +  '<tr>'
+      +    '<td colspan=2>show element IDs</td>'
+      +    '<td class="switch" align="left">'
+      + sg.createSelectHTMLIdent("showElementIDsFlag")
+      +    '</td>'
+      +    '<td align="left">'
+      +      'Element IDs to be shown in element infos?'
       +    '</td>'
       +  '</tr>'
 
@@ -939,7 +950,9 @@ Wenn Sie XHTML-Standard-konform arbeiten wollen, müssen Sie das Attribut in der
     return computeDivNode(text, argObj);
   }
   function computeInfoNode(infoStrCB, hoverFlag) {
-    var maxWidth = ryt.info.develMode ? 800 : 600;
+    var maxWidth = ryt.info.develMode || ryt.info.prefs.showElementIDsFlag
+      ? 800
+      : 600;
     var infoNode = computeDivNodeFor(infoStrCB, hoverFlag);
     infoNode.css('display', 'none');
     infoNode.appendTo($("body"));
@@ -967,7 +980,9 @@ Wenn Sie XHTML-Standard-konform arbeiten wollen, müssen Sie das Attribut in der
   }
   function showInfo(infoStrCB, argObj) {
     argObj = argObj || { };
-    var maxWidth = ryt.info.develMode ? 800 : 600;
+    var maxWidth = ryt.info.develMode || ryt.info.prefs.showElementIDsFlag
+      ? 800
+      : 600;
     var dialogBorderMargin = 26; // extra width for dialog decoration
     var dia = computeInfoNode(infoStrCB, false);
     // dialog() sets width of dia infoNode to auto
