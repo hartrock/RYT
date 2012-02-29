@@ -45,7 +45,7 @@ INSTALL_DIR             ?= $(error var INSTALL_DIR missing)
 WWW_USER_ID             ?= $(error var WWW_USER_ID missing)
 WWW_SERVER_DIR          ?= $(error var WWW_SERVER_DIR missing)
 WWW_SERVER_URL          ?= $(error var WWW_SERVER_URL missing)
-WWW_RYT_PATH            ?= $(error var WWW_RYT_PATH missing)
+WWW_PATH                ?= $(error var WWW_PATH missing)
 # optional
 RYT_DIRNAME             ?= $(error var RYT_DIRNAME missing)
 RYT_DATA_DIRNAME        ?= $(error var RYT_DATA_DIRNAME missing)
@@ -60,6 +60,7 @@ RELEASE_BRANCH  := master
 CURRENT_VERSION := $(shell git tag | tail -n 1)
 
 # static paths
+WWW_RYT_PATH  := $(WWW_PATH)/$(RYT_DIRNAME)
 RYT_DIR       := $(INSTALL_DIR)/$(RYT_DIRNAME)
 RYT_DATA_DIR  := $(INSTALL_DIR)/$(RYT_DATA_DIRNAME)
 # static sub of RYT_DIR
@@ -250,6 +251,7 @@ installAdminStuff: $(THIS_FILE) \
 installWithoutInit: installAdminStuff installRelease targets
 	@echo "==> $@ succeeded."
 install: installWithoutInit init
+	@echo 'Hello World!' > $(RYT_DIR)/helloWorld.html
 	@echo "==> $@ succeeded."
 	@echo ">> RYT can be started by:"
 	@echo ">>   $(MAIN_HTML_URL)"
@@ -260,6 +262,7 @@ install: installWithoutInit init
 	@echo ">> ."
 
 upgrade: installWithoutInit updatePublicProjects
+	@echo 'Hello World!' > $(RYT_DIR)/helloWorld.html
 	@echo "==> $@ succeeded."
 
 cleanDevel:
@@ -416,7 +419,7 @@ info:
 	@echo ">>     WWW_USER_ID   : $(WWW_USER_ID)"
 	@echo ">>     WWW_SERVER_DIR: $(WWW_SERVER_DIR)"
 	@echo ">>     WWW_SERVER_URL: $(WWW_SERVER_URL)"
-	@echo ">>     WWW_RYT_PATH  : $(WWW_RYT_PATH)"
+	@echo ">>     WWW_PATH      : $(WWW_PATH)"
 	@echo ">>"
 	@echo ">>   ..[config.src]"
 	@echo ">>"

@@ -1,44 +1,77 @@
 # This file controls RYT installation by Makefile (it will be included from
-# there).
+# there). If you take it from ConfigExamples/config.src.examples, you have to
+# rename it to config.src:
+#   cp ConfigExamples/config.src.examples ./config.src
+# in REPO_DIR (where Makefile is located).
 #
-# Important: variables in section 'Mandatory' *have* to be set by admin, the
-# other sections may/should stay as they are.
+# Important: variables in section 'Mandatory' *have* to be proved/set by RYT
+# admin, the other sections may/should stay as they are.
 
-# Needed programs amongst others are: curl, gmake.
-# For getting usage info, just call make in this dir.
+# Preconditions
+# -------------
+# Before all of this stuff here can work, your webserver has to be configured to
+# interpret *.php5 files by a - no surprise - PHP5 interpreter (it may be
+# configured to only understand *.php files):
+# - examples for Apache PHP5 config are in ConfigExamples/.
+#
+# Needed programs amongst others are: curl, (GNU) make.
+#
+
+# How to use make
+# ---------------
+# For getting usage info, just call make in its dir (REPO_DIR).
+# If all is set correctly here
+#   make install
+# should give you a working RYT installation.
+# After updating the repository
+#   make upgrade
+# is the way to go.
 
 
 #
-# Mandatory: these variables *have* to be set by admin.
-#
+# Mandatory: these variables *have* to be proved/set by admin.
+# ============================================================
 
-# where RYT_DIR and RYT_DATA_DIR will be created
-INSTALL_DIR=~/RYT_Install
-# for testing purposes: INSTALL_DIR=/tmp
-
-# user id for writing project data into RYT_DATA_DIR
+# User id for changing RYT_DATA_DIR (e.g. writing project data into it by PHP5
+# scripts).
 WWW_USER_ID=www-data
-# may be _www
+# May be _www (OS X): you have to check this! Does this uid exist at all
+# (/etc/passwd)?
 
-# server reachable dir, where RYT_DIR will be referenced from by a symbolic link
+# Where RYT_DIR and RYT_DATA_DIR will be created in.
+INSTALL_DIR=~/RYT_Install
+# May be OK. For testing purposes: INSTALL_DIR=/tmp .
+
+# Server reachable dir, where RYT_DIR will be referenced from by a symbolic link
 WWW_SERVER_DIR=~/WWW
+# May be OK (Linux).
+# For a configuration not using some user HOME dir this has to be changed.
 
-# how to reach your server
+# How to locally reach your server per HTTP (should work in a local browser):
 WWW_SERVER_URL=http://localhost
-# probably OK
+# Probably OK: if this URL does not work, you probably are in trouble.
 
-# how to reach RYT from your server: with my (sr) user id here
-WWW_RYT_PATH=~sr/RYT
-# you *have* to change this, if you have another user id!
+# How to reach WWW_SERVER_DIR via a server URL: ~sr is *my* HOME dir, because
+# the server is configured to look into HOME/WWW/ for each user (known to RYT by
+# setting WWW_SERVER_DIR above):
+WWW_PATH=~sr
+# You *have* to change this!
+# It's very likely, that you have another user id than me or a totally
+# different config not using user local WWW access.
+# Testing: ater install
+#   WWW_SERVER_URL/WWW_PATH/RYT_DIRNAME/helloWorld.html
+# or - after this example config -
+#   http://localhost/~sr/RYT/helloWorld.html
+# should give - the expected - result.
 
-# Notes:
-# - Installation of RYT into /tmp/ is a good place for testing purposes only;
-#   for a longer lasting installation you should choose another dir.
-# - WWW_SERVER_DIR may or may not be suited.
-# - WWW_USER_ID : at my (sr) system it is APACHE_RUN_USER taken from
+# Further notes:
+# - WWW_USER_ID: at my (sr) system it is APACHE_RUN_USER taken from
 #   /etc/apache2/envvars .
-# - Examples for Apache PHP5 config are in ConfigExamples/.
-#
+# - Installation of RYT into /tmp/ is a good place for testing purposes only;
+#   for a longer lasting installation you should choose another dir (at Debian
+#   this will be cleaned during boot time).
+# - WWW_SERVER_DIR may or may not be suited: it is how your webserver accesses
+#   user related websides.
 # - RYT_DIR - with path INSTALL_DIR/RYT_DIRNAME - gets a symbolic link in
 #   WWW_SERVER_DIR - with path WWW_SERVER_DIR/RYT_DIRNAME.
 
@@ -49,12 +82,16 @@ WWW_RYT_PATH=~sr/RYT
 
 #
 # Optional: these variables may be changed by admin (here are sensible
-# defaults), but must *not* be commented out.
+# defaults), but *** must not *** be commented out.
 #
 
-# Subdirs of INSTALL_DIR: RYT_DIR and RYT_DATA_DIR given by:
+# Subdir of INSTALL_DIR containing RYT releases, admin and devel stuff (all not
+# being project data).
 RYT_DIRNAME=RYT
+
+# Subdir of INSTALL_DIR containing project data
 RYT_DATA_DIRNAME=RYT_Data
+
 # Nesting of data dirs for having more room in filesystem: project data resides
 # inside leave directories. For small to imtermediate sized installations a
 # nesting of 3 should be sufficient.
@@ -64,8 +101,8 @@ RYT_DATA_DIRNAME=RYT_Data
 RYT_DATA_DIR_NESTING=3
 
 # Notes:
-# RYT_DATA_DIR (for project data) has to be installed in the same directory
-# as RYT_DIR (for application software).
+# RYT_DATA_DIR (for project data) has to be installed in the *same* directory
+# as RYT_DIR.
 # This clear separation between application and data is good for pushing
 # non-data stuff (RYT upgrades) to some server (less risk of accidentally
 # overwriting data).
