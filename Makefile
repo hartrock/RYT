@@ -115,7 +115,6 @@ MAINTENANCE_ALLOWED_FLAG_FILE := $(ADMIN_DIR)/maintenanceAllowed.flag
 # lftp
 TMP_DIR := tmp
 TARGETS_LFTP := $(SCRIPT_DIR)/uploadRYT.lftp $(SCRIPT_DIR)/uploadRYTDeleteOld.lftp $(SCRIPT_DIR)/pullPublicProjects.lftp
-$(SCRIPT_DIR)/pullPublicProjects.lftp: $(TMP_DIR)
 
 # devel
 TARGETS_QUERY          := $(SCRIPT_DIR)/numOfProjects $(SCRIPT_DIR)/numOfKeys
@@ -370,11 +369,15 @@ webside: $(THIS_FILE) \
 #
 # lftp targets
 
+$(SCRIPT_DIR)/pullPublicProjects.lftp: $(TMP_DIR)
+
 $(SCRIPT_DIR)/%.lftp: $(SCRIPT_DIR)/%.lftp.in
 	$(SCRIPT_DIR)/fillIn_lftpInfo \
           $< $(INSTALL_DIR) $(RYT_DIRNAME) $(EXTERNAL_SERVER) $(RYT_DATA_DIRNAME) $(TMP_DIR) \
           > $@
+
 lftp: $(TARGETS_LFTP) $(TMP_DIR)
+
 
 #
 # admin scripts
