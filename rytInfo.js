@@ -96,9 +96,9 @@ var EvolGo = EvolGo || {}, RYT = RYT || {};
     this.undoRedo.openDiffWinPosition = this.undoRedo.default_openDiffWinPosition = null;
     // sounds
     this.sounds = {};
-    this.sounds.mm = $("#mm_sound")[0];
-    if (! this.sounds.mm.play) {
-      this.sounds = {};
+    var sound = $("#mm_sound")[0];
+    if (sound && sound.play) { // exists and can be played
+      this.sounds.mm = sound;
     }
   }
   var protoI = Info.prototype;
