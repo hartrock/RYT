@@ -38,7 +38,7 @@
  * This seems to be KISS: treating empty/non-exisiting the same - as there is no
  * available information related to this (file) name - simplifies client code.
  */
-include 'util.php5';
+include 'util.php';
 $is = NULL;
 $os = NULL;
 $locked = NULL;

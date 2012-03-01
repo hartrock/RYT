@@ -207,7 +207,7 @@ var EvolGo = EvolGo || {}, RYT = RYT || {};
   function jsonHttpGET(headers, success, failure, asynchronous) {
     performHttpRequest({
       method: "GET",
-      url: ryt.info.versionDirName+"/data.php5?avoidCaching=" + (new Date()).getTime(), // URL changes for each request
+      url: ryt.info.versionDirName+"/data.php?avoidCaching=" + (new Date()).getTime(), // URL changes for each request
       success: success, failure: failure,
       asynchronous: asynchronous,
       headers: headers
@@ -216,7 +216,7 @@ var EvolGo = EvolGo || {}, RYT = RYT || {};
   function jsonHttpPOST(ident, data, credentials, success, failure, asynchronous) {
     performHttpRequest({
       method: "POST",
-      url: ryt.info.versionDirName+"/data.php5", // http://www.evolgo.de/RYT/data.php5
+      url: ryt.info.versionDirName+"/data.php", // http://www.evolgo.de/RYT/data.php
       data: data,
       success: success, failure: failure,
       asynchronous: asynchronous,
@@ -226,7 +226,7 @@ var EvolGo = EvolGo || {}, RYT = RYT || {};
   function jsonHttpDELETE(ident, credentials, success, failure, asynchronous) {
     performHttpRequest({
       method: "DELETE",
-      url: ryt.info.versionDirName+"/data.php5", // http://www.evolgo.de/RYT/data.php5
+      url: ryt.info.versionDirName+"/data.php", // http://www.evolgo.de/RYT/data.php
       //data: data,
       success: success, failure: failure,
       asynchronous: asynchronous,

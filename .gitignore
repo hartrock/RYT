@@ -20,9 +20,9 @@
 /Scripts/uploadRYTDeleteOld.lftp
 /Scripts/pullPublicProjects.lftp
 #
-/data.php5
-/m_listDirs.php5
-/m_createDirPaths.php5
+/data.php
+/m_listDirs.php
+/m_createDirPaths.php
 
 # temp dir/files
 /tmp/

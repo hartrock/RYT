@@ -1,4 +1,4 @@
 #!/bin/bash
 dirDepth=_DIR_DEPTH_
 projectDataDepth=$((dirDepth+2))
-wget -O - _ADMIN_URL_/m_listDirs.php5?pw=_ADMIN_PW_\&depth=$projectDataDepth | wc -l
+wget -O - _ADMIN_URL_/m_listDirs.php?pw=_ADMIN_PW_\&depth=$projectDataDepth | wc -l

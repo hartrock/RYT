@@ -96,14 +96,14 @@ VERSION_TEMPLATE := $(WWW_SRC_DIR)/version.html.tp
 # public sources
 SOURCES_JS          := $(wildcard *.js)
 SOURCES_CSS         := $(wildcard *.css)
-SOURCES_PHP5_PUBLIC := util.php5
+SOURCES_PHP5_PUBLIC := util.php
 SOURCE_DIRS_PUBLIC  := External
-TARGETS_PUBLIC      := data.php5
+TARGETS_PUBLIC      := data.php
 
 # admin specific sources (PHP5)
-TARGETS_ADMIN := m_listDirs.php5 m_createDirPaths.php5
-SOURCES_ADMIN := $(filter-out $(TARGETS_ADMIN),$(wildcard m_*.php5)) util.php5 \
-   phpInfo.php5 phpInfo.php
+TARGETS_ADMIN := m_listDirs.php m_createDirPaths.php
+SOURCES_ADMIN := $(filter-out $(TARGETS_ADMIN),$(wildcard m_*.php)) util.php \
+   phpInfo.php phpInfo.php5
 
 TO_BE_COPIED_PUBLIC := $(SOURCES_JS) $(SOURCES_CSS) \
                        $(SOURCES_PHP5_PUBLIC) $(SOURCE_DIRS_PUBLIC) \
@@ -157,14 +157,14 @@ $(SCRIPT_DIR)/cleanOldReleases: $(SCRIPT_DIR)/cleanOldReleases.in
 	chmod u+x $@
 
 # only data dir
-m_createDirPaths.php5: m_createDirPaths.php5.in
+m_createDirPaths.php: m_createDirPaths.php.in
 	$(SCRIPT_DIR)/fillIn_dataDir $< $(RYT_DATA_DIRNAME) > $@
 
 # data dir and admin password
-.INTERMEDIATE: %.php5.in.withDataDir
-%.php5.in.withDataDir: %.php5.in
+.INTERMEDIATE: %.php.in.withDataDir
+%.php.in.withDataDir: %.php.in
 	$(SCRIPT_DIR)/fillIn_dataDir $< $(RYT_DATA_DIRNAME) > $@
-%.php5: %.php5.in.withDataDir
+%.php: %.php.in.withDataDir
 	$(call getPWOnce)
 	$(SCRIPT_DIR)/fillIn_adminPassword $< $(PASSWORD) > $@
 
@@ -289,11 +289,11 @@ RYT_ADMIN_DIR := $(RYT_DIR)/Admin
 checkRYTAtServer: checkServer
 	curl --fail "$(RYT_ADMIN_URL)/index.html"
 checkPHP5: checkRYTAtServer
-	curl --fail "$(RYT_ADMIN_URL)/m_pong.php5" | grep pong
+	curl --fail "$(RYT_ADMIN_URL)/m_pong.php" | grep pong
 
 $(RYT_DIR)/dataDirs_inited.flag: | $(RYT_ADMIN_DIR) $(RYT_DATA_DIR)
 	$(MAKE) -f $(THIS_FILE) checkPHP5
-	curl "$(RYT_ADMIN_URL)/m_createDirPaths.php5?depth=$(RYT_DATA_DIR_NESTING)&makeMissingDirs=true" | grep "Success!" || ( echo -e "Initing data dirs failed: correct RYT_ADMIN_URL '$(RYT_ADMIN_URL)'?\nMoreover WWW server needs write access in RYT_DATA_DIR '$(RYT_DATA_DIR)' for PHP5 scripts." && false )
+	curl "$(RYT_ADMIN_URL)/m_createDirPaths.php?depth=$(RYT_DATA_DIR_NESTING)&makeMissingDirs=true" | grep "Success!" || ( echo -e "Initing data dirs failed: correct RYT_ADMIN_URL '$(RYT_ADMIN_URL)'?\nMoreover WWW server needs write access in RYT_DATA_DIR '$(RYT_DATA_DIR)' for PHP5 scripts." && false )
 	touch $@
 	@echo "==> data dirs inited."
 initDataDirsIfMissing: $(RYT_DIR)/dataDirs_inited.flag

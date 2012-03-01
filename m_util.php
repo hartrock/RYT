@@ -18,7 +18,7 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-include 'util.php5';
+include 'util.php';
 function isMaintainanceForbidden()
 {
   return ! is_file("maintenanceAllowed.flag");

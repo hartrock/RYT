@@ -9,12 +9,14 @@
 
 # Preconditions
 # -------------
-# Before all of this stuff here can work, your webserver has to be configured to
-# interpret *.php5 files by a - no surprise - PHP5 interpreter (it may be
-# configured to only understand *.php files):
-# - examples for Apache PHP5 config are in ConfigExamples/.
+# Before all of this stuff here can work, your webserver has to be configured
+# - to interpret *.php files by a PHP5 interpreter, and
+# - to be able
+#   - to access WWW_SERVER_DIR and INSTALL_DIR, and
+#   - to write into INSTALL_DIR/RYT_DATA_DIRNAME
+# . Examples for Apache configs are in ConfigExamples/.
 #
-# Needed programs amongst others are: curl, (GNU) make.
+# Needed programs amongst others are: curl, (GNU) make, sudo.
 #
 
 # How to use make
@@ -32,7 +34,7 @@
 # Mandatory: these variables *have* to be proved/set by admin.
 # ============================================================
 
-# User id for changing RYT_DATA_DIR (e.g. writing project data into it by PHP5
+# User id having permissions for changing RYT_DATA_DIR (e.g. writing project data into it by PHP5
 # scripts).
 WWW_USER_ID=www-data
 # May be _www (OS X): you have to check this! Does this uid exist at all

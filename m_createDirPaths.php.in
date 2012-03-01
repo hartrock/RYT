@@ -20,7 +20,7 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-include 'm_util.php5';
+include 'm_util.php';
 isMaintainanceForbidden() && die("maintenance forbidden!");
 $prefix = "../../_RYT_DATA_DIRNAME_";
 $chars = "0123456789abcdef"; // sufficient for depth <= 8

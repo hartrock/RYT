@@ -10,12 +10,15 @@ and agpl.txt (referenced full license).
 Install
 -------
 
-Needed: a local web server.
+Needed: a local web server with PHP5.
 
 0. Repository: Use HEAD of master branch; git pull origin master, if not cloned just now.
 
-1. Config web server to work with PHP5 scripts: examples are in
+1. Config web server to work with PHP5 scripts and to have access to install
+directories: examples are in
   ConfigExamples/
+; some info about used dirs is in
+  ConfigExamples/config.src.example
 .
 
 2. Create your own config.src:

@@ -18,7 +18,7 @@ Readme.txt readme_sounds.txt Info readme_screenshots.txt \
 Credits.txt copyright.txt.tp ToDo.txt userSuggestions.txt \
 .boring \
 Makefile \
-m_createDirPaths.php5 m_util.php5 m_listDirs.php5 \
+m_createDirPaths.php m_util.php m_listDirs.php \
 External/qunit.js External/qunit.css External/Readme.txt \
 extension_eg_ryt.js.tp \
 External/raphael_2.0.1.js \
