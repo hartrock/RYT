@@ -85,18 +85,24 @@
     <p>Feedback is appreciated. Please use mail via (RYT) <em>?&rarr;Feedback</em> menu. Don't worry: it's an ordinary mailto (no web form).</p>
 
     <h2>ToDo</h2>
+    <p>
     Remake screencasts and screenshots with current RYT version.
+    </p>
     
     <hr>
 
     <h2>About this Service</h2>
+    <p>
     The RYT service here is provided as it is: feel free to use it
+    </p>
     <ul>
       <li>to play around with RYT, and</li>
       <li>for your own projects.</li>
     </ul>
+    <p>
     However, permanent availability cannot be guaranteed. If you want to start your own RYT service, see <a href="#Your_own_RYT_Service">Your own RYT Service</a> below.
-
+    </p>
+    
     <h3>About 'dangerous' JavaScript</h3>
     <p>
       There has been an article <a href="http://www.gnu.org/philosophy/javascript-trap.html">The JavaScript Trap</a> by Richard Stallman (FSF). This has motivated me to also provide an unminified - functional identical - RYT version in addition to the minified default.
@@ -105,14 +111,18 @@
     The minified version once has been made - <em>after</em> the unminified (more developer friendly) one -, because a colleague of mine has had a very slow internet connection in a train... (now it is the default). My suggestion is to use the minified default one.
     </p>
     <h3>Software as a Service (SAAS)</h3>
+    <p>
     The term 'software as a service' (SAAS) is suited for describing some of RYT's features:
+    </p>
     <ul>
       <li>no software installation needed,</li>
       <li>automatic upgrade (reload in browser),</li>
       <li>usable from different computers,</li>
       <li>data in the 'cloud'.</li>
     </ul>
+    <p>
     This functionality is comfortable for the enduser.
+    </p>
     <p>
     FSF sees SAAS as dangerous for the freedom of the individual person. But how to keep enduser comfort while at the same time keeping the user data private?
     </p>
@@ -124,14 +134,19 @@
     <hr>
     
     <h2><a name="Your_own_RYT_Service">Your own RYT Service</a></h2>
+    <p>
     Audience: this section is <em>not</em> for RYT endusers (using it as a service). It is for people, who want to provide their own RYT service.
+    </p>
+    
     <h3><a name="License_and_where_to_get_it">License and where to get it</a></h3>
     <p>
     RYT is open-sourced at
     <a href="https://github.com/hartrock/RYT">Github</a> under the <a href="https://github.com/hartrock/RYT/blob/master/agpl_short.txt">AGPL</a> license (<a href="https://github.com/hartrock/RYT/blob/master/agpl.txt">long version</a>).
     </p>
     <h4>What you can do with it</h4>
+    <p>
     This is how I (Stephan Rudlof) have understood the AGPL license: please contact me, if you want to start your own RYT service and think I'm wrong.
+    </p>
     <ul>
       <li>
       You are free to install RYT at your own server and provide a RYT service on your own (with being paid for it or not). To give your endusers access to the RYT software, a link to <a href="https://github.com/hartrock/RYT">Github</a> or <a href="http://www.evolgo.de/RYT/">this webside</a> should be sufficient.
@@ -140,7 +155,7 @@
       If you extend/fork RYT and provide the extended/forked version as a service (paid or not), you have to give every enduser of your extended/forked RYT version the possibility to get the extended/forked version as software (e.g. by publishing it at Github) under the same <a href="https://github.com/hartrock/RYT/blob/master/agpl_short.txt">AGPL</a> license. The idea here is, that extensions/forks become as free as the original software, too.
       </li>
     </ul>
-
+    
     <hr>
 
     <h2>Donations</h2>
@@ -168,7 +183,7 @@
     <hr>
     <address>
       Author: <a href="../mailToWebmaster.html">Stephan Rudlof</a><br>
-      <!-- hhmts start -->Last modified: Mon Feb 27 21:23:18 CET 2012 <!-- hhmts end -->
+      <!-- hhmts start -->Last modified: Fri Mar  2 02:53:59 CET 2012 <!-- hhmts end -->
     </address>
 
     <!-- validome validator detects more than W3C one (18.03.08) -->
