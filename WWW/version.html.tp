@@ -1,5 +1,5 @@
-<!--
 <!DOCTYPE HTML>
+<!--
 /*
  *  Roll Your Tasks (RYT)
  *  - mobile task management in the browser for individuals and small groups.
@@ -16,20 +16,18 @@
  *  GNU Affero General Public License for more details.
  *
  *  You should have received a copy of the GNU Affero General Public License
- *  along with this program.  If not, see http://www.gnu.org/licenses/.
+ *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 -->
 <html lang="en">
   <head>
     <meta http-equiv="content-type" content="text/html; charset=UTF-8">
-    <meta http-equiv="Content-Style-Type" content="text/css">
-
     <meta name="Author" content="Stephan Rudlof">
+
+    <title>Roll Your Tasks (RYT)</title>
 
     <link rel="shortcut icon" href="marble.ico" type="image/x-icon">
     <link rel="icon" href="marble.ico" type="image/x-icon">
-
-    <title>Roll Your Tasks (RYT)</title>
 
     <!-- -->
     <!-- External.. -->
@@ -67,7 +65,7 @@
     <audio id="mm_sound">
 <!--  <source src="Sounds/mm.wav" type="audio/wav" preload="auto"/>
 -->
-      <source src="Sounds/beep-10.wav" type="audio/wav" preload="auto" />
+      <source src="Sounds/beep-10.wav" type="audio/wav">
     </audio>
 
     <!-- replaced more and more by programmatically set styles -->
@@ -90,13 +88,10 @@
     <script src="_VERSION_DIR_/rytMain.js_URL_PARAMS_" type="text/javascript" charset="utf-8"></script>
     <!-- ..EvolGo, RYT -->
     <!-- -->
-  </head>
 
-<body>
   <h1>Roll Your Tasks (RYT)</h1>
   <!-- Following paragraphs are replaced by JavaScript, if all is OK. -->
   <p id="JavaScript_hint">You need JavaScript enabled!</p>
   <p id="FF_hint">If JavaScript is not the problem, you could try some incarnation of Firefox: it is used for RYT development...</p>
-</body>
 
 </html>
