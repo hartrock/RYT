@@ -9,12 +9,13 @@ srcDir=$1
 dstDir=$2
 doNotAsk=$3
 
-dstProjects=`ls $dstDir/*.json | xargs`
-info "destination projects:"
-info "  $dstProjects"
 srcProjects=`ls $srcDir/*.json | xargs`
 info "source projects:"
 info "  $srcProjects"
+dstProjects=`ls $dstDir/*.json | xargs`
+info "destination projects:"
+info "  $dstProjects"
+
 info
 [ "$doNotAsk" ] && info "Just sync src/dst." || info "Ask if there are conflicts."
 
