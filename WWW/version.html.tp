@@ -33,6 +33,7 @@
     <!-- External.. -->
 
     <!-- heavily used -->
+
     <script src="_VERSION_DIR_/External/raphael.js_URL_PARAMS_" type="text/javascript" charset="utf-8"></script>
 
     <script src="_VERSION_DIR_/External/jquery-1.7.1.js_URL_PARAMS_" type="text/javascript"></script>
@@ -40,14 +41,16 @@
     <script src="_VERSION_DIR_/External/jquery-ui-1.8.18.custom/jquery-ui-1.8.18.custom.js_URL_PARAMS_" type="text/javascript"></script>
     <link rel="stylesheet" type="text/css" href="_VERSION_DIR_/External/jquery-ui-1.8.18.custom/css/vader/jquery-ui-1.8.18.custom.css_URL_PARAMS_">
 
-    <link rel="stylesheet" href="_VERSION_DIR_/External/jquery.notice.css_URL_PARAMS_" type="text/css" media="screen">
     <script src="_VERSION_DIR_/External/jquery.notice.js_URL_PARAMS_" type="text/javascript" charset="utf-8"></script>
+    <link rel="stylesheet" href="_VERSION_DIR_/External/jquery.notice.css_URL_PARAMS_" type="text/css" media="screen">
 
-    <link rel="stylesheet" type="text/css" href="_VERSION_DIR_/External/jeegoocontext/skins/cm_blue/style.css_URL_PARAMS_">
     <script src="_VERSION_DIR_/External/jeegoocontext/jquery.jeegoocontext.js_URL_PARAMS_" type="text/javascript" charset="utf-8"></script>
+    <link rel="stylesheet" type="text/css" href="_VERSION_DIR_/External/jeegoocontext/skins/cm_blue/style.css_URL_PARAMS_">
 
-    <!-- needed by jstorage for older FF -->
-    <script src="_VERSION_DIR_/External/jquery.json-2.2.js_URL_PARAMS_" type="text/javascript"></script>
+
+    <!-- Misc -->
+
+    <script src="_VERSION_DIR_/External/jquery.json-2.2.js_URL_PARAMS_" type="text/javascript"></script>  <!-- needed by jstorage for older FF -->
     <script src="_VERSION_DIR_/External/jstorage.js_URL_PARAMS_" type="text/javascript"></script>
 
     <script src="_VERSION_DIR_/External/uuid.js_URL_PARAMS_" type="text/javascript"></script>
@@ -62,9 +65,10 @@
     <!-- -->
     <!-- EvolGo, RYT.. -->
 
-    <audio id="mm_sound">
-<!--  <source src="Sounds/mm.wav" type="audio/wav" preload="auto"/>
--->
+    <audio id="mm_sound" preload="auto">
+      <!-- self made 'mh, mmmh'
+          <source src="Sounds/mm.wav" type="audio/wav">
+      -->
       <source src="Sounds/beep-10.wav" type="audio/wav">
     </audio>
 
@@ -86,11 +90,12 @@
     <script src="_VERSION_DIR_/rytInfo.js_URL_PARAMS_" type="text/javascript" charset="utf-8"></script>
     <script src="_VERSION_DIR_/rytApp.js_URL_PARAMS_" type="text/javascript" charset="utf-8"></script>
     <script src="_VERSION_DIR_/rytMain.js_URL_PARAMS_" type="text/javascript" charset="utf-8"></script>
+
     <!-- ..EvolGo, RYT -->
     <!-- -->
 
   <h1>Roll Your Tasks (RYT)</h1>
-  <!-- Following paragraphs are replaced by JavaScript, if all is OK. -->
+  <!-- Following paragraphs are removed from JavaScript, if all is OK. -->
   <p id="JavaScript_hint">You need JavaScript enabled!</p>
   <p id="FF_hint">If JavaScript is not the problem, you could try some incarnation of Firefox: it is used for RYT development...</p>
 
