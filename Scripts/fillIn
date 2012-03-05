@@ -1,0 +1,28 @@
+#!/bin/bash
+# fills in replacement for to be replaced string into input stream
+
+# source utils
+. Scripts/util.src
+
+if [[ $# -ne 2 ]]
+then
+    usage 'TO_BE_REPLACED REPLACEMENT'
+fi
+
+toBeReplaced=$1
+replacement=$2
+if [[ -n "$toBeReplaced" ]]
+then
+    info "Given TO_BE_REPLACED: '$toBeReplaced'."
+else
+    error "empty TO_BE_REPLACED."
+fi
+if [[ -n "$replacement" ]]
+then
+    info "Given REPLACEMENT: '$replacement'."
+else
+    error "empty REPLACEMENT."
+fi
+SED_STR_REPLACE="s%$toBeReplaced%$replacement%"
+
+sed -e $SED_STR_REPLACE || error 'fail'

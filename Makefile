@@ -103,7 +103,7 @@ TARGETS_PUBLIC      := data.php
 # admin specific sources (PHP5)
 TARGETS_ADMIN := m_listDirs.php m_createDirPaths.php
 SOURCES_ADMIN := $(filter-out $(TARGETS_ADMIN),$(wildcard m_*.php)) util.php \
-   phpInfo.php phpInfo.php5
+   phpInfo.php
 
 TO_BE_COPIED_PUBLIC := $(SOURCES_JS) $(SOURCES_CSS) \
                        $(SOURCES_PHP5_PUBLIC) $(SOURCE_DIRS_PUBLIC) \
@@ -158,15 +158,16 @@ $(SCRIPT_DIR)/cleanOldReleases: $(SCRIPT_DIR)/cleanOldReleases.in
 
 # only data dir
 m_createDirPaths.php: m_createDirPaths.php.in
-	$(SCRIPT_DIR)/fillIn_dataDir $< $(RYT_DATA_DIRNAME) > $@
+	cat $< \
+	| $(SCRIPT_DIR)/fillIn _RYT_DATA_DIRNAME_ $(RYT_DATA_DIRNAME) \
+	> $@
 
-# data dir and admin password
-.INTERMEDIATE: %.php.in.withDataDir
-%.php.in.withDataDir: %.php.in
-	$(SCRIPT_DIR)/fillIn_dataDir $< $(RYT_DATA_DIRNAME) > $@
-%.php: %.php.in.withDataDir
+%.php: %.php.in
 	$(call getPWOnce)
-	$(SCRIPT_DIR)/fillIn_adminPassword $< $(PASSWORD) > $@
+	cat $< \
+	| $(SCRIPT_DIR)/fillIn _RYT_DATA_DIRNAME_ $(RYT_DATA_DIRNAME) \
+	| $(SCRIPT_DIR)/fillIn _RYT_ADMIN_PASSWORD_ $(PASSWORD) \
+	> $@
 
 
 %.html: Rel_%

@@ -1,1 +1,3 @@
-phpInfo.php5
+<?php
+phpinfo();
+?>
