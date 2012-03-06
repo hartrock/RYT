@@ -169,7 +169,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET') {
   if (! $os) {
     httpError('cannot open output stream', 500);
   }
-  $writtenBytes = @stream_copy_to_stream($is, $os);
+  /* [sec] limit written bytes: if one more than allowed, rm written file. */
+  $writtenBytes = @stream_copy_to_stream($is, $os, _MAX_PROJECT_SIZE_ + 1);
+  if ($writtenBytes == _MAX_PROJECT_SIZE_ + 1) {
+    cleanup(); /* close file */
+    unlink($filePath);
+    httpError('data size exceeds limit', 400);
+  }
   header('X-stored-bytes: '.$writtenBytes);
   cleanup();
  } else {

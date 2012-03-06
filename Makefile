@@ -50,6 +50,7 @@ WWW_PATH                ?= $(error var WWW_PATH missing)
 RYT_DIRNAME             ?= $(error var RYT_DIRNAME missing)
 RYT_DATA_DIRNAME        ?= $(error var RYT_DATA_DIRNAME missing)
 RYT_DATA_DIR_NESTING    ?= $(error var RYT_DATA_DIR_NESTING missing)
+MAX_PROJECT_SIZE        ?= $(error var MAX_PROJECT_SIZE missing)
 # technical
 CONFIG_HAS_BEEN_SOURCED ?= $(error var CONFIG_HAS_BEEN_SOURCED missing)
 
@@ -167,6 +168,7 @@ m_createDirPaths.php: m_createDirPaths.php.in
 	cat $< \
 	| $(SCRIPT_DIR)/fillIn _RYT_DATA_DIRNAME_ $(RYT_DATA_DIRNAME) \
 	| $(SCRIPT_DIR)/fillIn _RYT_ADMIN_PASSWORD_ $(PASSWORD) \
+	| $(SCRIPT_DIR)/fillIn _MAX_PROJECT_SIZE_ $(MAX_PROJECT_SIZE) \
 	> $@
 
 

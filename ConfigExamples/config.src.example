@@ -102,10 +102,13 @@ RYT_DATA_DIRNAME=RYT_Data
 # for being effective.
 RYT_DATA_DIR_NESTING=3
 
+# Do not store project data having more bytes.
+MAX_PROJECT_SIZE=5000000
+
 # Notes:
 # RYT_DATA_DIR (for project data) has to be installed in the *same* directory
 # as RYT_DIR.
-# This clear separation between application and data is good for pushing
+# A clear separation between application and data is good for pushing
 # non-data stuff (RYT upgrades) to some server (less risk of accidentally
 # overwriting data).
 
