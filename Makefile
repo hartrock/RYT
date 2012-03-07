@@ -99,7 +99,7 @@ SOURCES_JS          := $(wildcard *.js)
 SOURCES_CSS         := $(wildcard *.css)
 SOURCES_PHP5_PUBLIC := util.php
 SOURCE_DIRS_PUBLIC  := External
-TARGETS_PUBLIC      := data.php
+TARGETS_PUBLIC      := data.php dataREST.php
 
 # admin specific sources (PHP5)
 TARGETS_ADMIN := m_listDirs.php m_createDirPaths.php

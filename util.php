@@ -18,6 +18,57 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// from http://de3.php.net/manual/en/function.filectime.php#88670
+// depth: if dir, go into it as long as depth > 0
+// if there is no file, ret dir mtime; if there is no dir, ret 0
+function mtime_fileOrDir($path, $depth)
+{
+  if (! file_exists($path)) {
+    return 0;
+  }
+  if (is_file($path) || ! $depth) {
+    return filemtime($path); // 0 if not existing
+  }
+  $ret = 0;
+  foreach (glob($path."/*") as $fn) {
+    $mtime = mtime_fileOrDir($fn, $depth - 1);
+    if ($mtime > $ret) {
+      $ret = $mtime;   
+    }
+  }
+  if (! $ret) { // no files in dir
+    if (is_dir($path)) {
+      $ret = filemtime($path);
+    }
+  }
+  return $ret;   
+}
+// from http://de3.php.net/manual/en/function.header.php#85146
+function try304_file($filePath)
+{
+  $last_modified_time = mtime_fileOrDir($filePath, 1);
+  if ($last_modified_time) {
+    header("Last-Modified: ".gmdate("D, d M Y H:i:s", $last_modified_time)
+           ." GMT");
+  } else {
+    $last_modified_time = 'undefined';
+  }
+  /*
+  $etag = md5_file($filePath);
+  if ($etag) {
+    header("Etag: $etag");
+  } else {
+    $etag = 'undefined';
+  }
+  */
+  if (@strtotime($_SERVER['HTTP_IF_MODIFIED_SINCE']) == $last_modified_time) {
+    // does not work well with dirs:
+    //   || trim($_SERVER['HTTP_IF_NONE_MATCH']) == $etag) {
+    header("HTTP/1.1 304 Not Modified");
+    exit;
+  } 
+}
+
 function getTimezone($offset)
 {
   /* taken from:
