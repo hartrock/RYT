@@ -158,12 +158,10 @@ var EvolGo = EvolGo || {}, RYT = RYT || {};
   function performHttpRequest(p) {
     var xhr = makeXHRObject();
     xhr.open(p.method, p.url, p.asynchronous);
-    function headerFN(h) {
-      var key = h[0], val = h[1];
-      xhr.setRequestHeader(h[0], h[1]);
-    }
     if (p.headers) {
-      p.headers.forEach(headerFN);
+      p.headers.forEach(function(h){
+        xhr.setRequestHeader(h[0], h[1]);
+      });
     }
     if (p.asynchronous) {
       xhr.onreadystatechange = function() {
@@ -193,46 +191,89 @@ var EvolGo = EvolGo || {}, RYT = RYT || {};
   function pathComponents(pathIdent) {
     return pathIdent.split("/");
   }
-  function createHeaders(identOrNull, credentials, actionOrNil, timezoneOffsetOrNil) {
-    var headers = [ ];
-    headers.push(["Accept", "application/json"]);
-    identOrNull && headers.push(["X-data-ident", identOrNull]);
-    credentials.key && headers.push(["X-data-key", credentials.key]);
-    credentials.pw && headers.push(["X-data-pw", credentials.pw]);
-    actionOrNil && headers.push(["X-action", actionOrNil]);
-    ! eg.isNil(timezoneOffsetOrNil)
-      && headers.push(["X-timezone-offset", timezoneOffsetOrNil]);
-    return headers;
+  function createURLParameterArr(key, identOrNull, timezoneOffsetOrNil) {
+    var arr = [];
+    key         && arr.push(["key", key]);
+    identOrNull && arr.push(["project", identOrNull]);
+    ! eg.isNil(timezoneOffsetOrNil) // may be 0
+                && arr.push(["timezoneOffset", timezoneOffsetOrNil]);
+    return arr;
   }
-  function jsonHttpGET(headers, success, failure, asynchronous) {
-    performHttpRequest({
-      method: "GET",
-      url: ryt.info.versionDirName+"/data.php?avoidCaching=" + (new Date()).getTime(), // URL changes for each request
+  // no URL quoting
+  function createURLParameterString(paramArr) {
+    var str = '';
+    if (! paramArr.length) {
+      return str;
+    }
+    var entry = paramArr[0];
+    str += '?' + entry[0];
+    ! eg.isNil(entry[1]) && (str += '=' + entry[1]);
+    for (var i = 1, len = paramArr.length; i < len; ++i) {
+      entry = paramArr[i];
+      str += '&' + entry[0];
+      ! eg.isNil(entry[1]) && (str += '=' + entry[1]);
+    }
+    return str;
+  }
+  function createURLParams(
+    key, identOrNull, timezoneOffsetOrNil
+  ) {
+    var paramArr = createURLParameterArr(
+      key, identOrNull, timezoneOffsetOrNil
+    );
+    return createURLParameterString(paramArr);
+  }
+
+  function jsonHttp(method, URLParams, headers,
+                    data,
+                    success, failure, asynchronous) {
+    var requestObject = {
+      method: method,
+      url: ryt.info.versionDirName+"/data.php" + URLParams,
+      headers: headers,
       success: success, failure: failure,
-      asynchronous: asynchronous,
-      headers: headers
-    });
+      asynchronous: asynchronous
+    };
+    if (! eg.isNil(data)) {
+      requestObject.data = data;
+    }
+    performHttpRequest(requestObject);
   }
-  function jsonHttpPOST(ident, data, credentials, success, failure, asynchronous) {
-    performHttpRequest({
-      method: "POST",
-      url: ryt.info.versionDirName+"/data.php", // http://www.evolgo.de/RYT/data.php
-      data: data,
-      success: success, failure: failure,
-      asynchronous: asynchronous,
-      headers: createHeaders(ident, credentials)
-    });
+  function jsonHttpGET(URLParams, headers,
+                       success, failure, asynchronous) {
+    jsonHttp(
+      "GET", URLParams, headers,
+      null, // no data
+      success, failure, asynchronous
+    );
   }
-  function jsonHttpDELETE(ident, credentials, success, failure, asynchronous) {
-    performHttpRequest({
-      method: "DELETE",
-      url: ryt.info.versionDirName+"/data.php", // http://www.evolgo.de/RYT/data.php
-      //data: data,
-      success: success, failure: failure,
-      asynchronous: asynchronous,
-      headers: createHeaders(ident, credentials)
-    });
+  function jsonHttpDELETE(URLParams, headers,
+                          success, failure, asynchronous) {
+    jsonHttp(
+      "DELETE", URLParams, headers,
+      null, // no data
+      success, failure, asynchronous
+    );
   }
+  function jsonHttpPUT(URLParams, headers, data,
+                       success, failure, asynchronous) {
+    jsonHttp(
+      "PUT", URLParams, headers,
+      data,
+      success, failure, asynchronous
+    );
+  }
+  // unused; just for completeness
+  function jsonHttpPOST(URLParams, headers, data,
+                        success, failure, asynchronous) {
+    jsonHttp(
+      "POST", URLParams, headers,
+      data,
+      success, failure, asynchronous
+    );
+  }
+
+  // encryption
   function getCipherKey() {
     var keyEncoded = ryt.info.encryption.key;
     var key = sjcl.codec.base64.toBits(keyEncoded);
@@ -248,6 +289,7 @@ var EvolGo = EvolGo || {}, RYT = RYT || {};
     var pt = sjcl.decrypt(key, ct);
     return pt;
   }
+
   function exportData(id, dataObj, credentials, successCBOrNil, failCBOrNil) {
     var dataString, sendText;
     try {
@@ -257,7 +299,8 @@ var EvolGo = EvolGo || {}, RYT = RYT || {};
       failCBOrNil && failCBOrNil(e);
       return;
     }
-    // special case: there is *no* credentials.key for *unencrypted* public [] projects
+    // special case: there is *no* credentials.key for *unencrypted* public []
+    // projects
     if (ryt.info.encrypted && credentials.key) {
       try {
         sendText = encrypt(dataString);
@@ -269,20 +312,25 @@ var EvolGo = EvolGo || {}, RYT = RYT || {};
     } else {
       sendText = dataString;
     }
-    jsonHttpPOST(id, sendText, credentials,
-                 successCBOrNil
-                 || function(){ alert("POST successful!"); },
-                 failCBOrNil
-                 || function(xhr){ eg.error(xhr);
-                                   alert("POST failed! RYT started as file://* ?"); },
-                 true);
+    jsonHttpPUT(createURLParams(credentials.key, id),
+                credentials.pw && [["X-data-pw", credentials.pw]] || null,
+                sendText, // data
+                successCBOrNil || function(){
+                  alert("PUT successful!");
+                },
+                failCBOrNil || function(xhr){
+                  eg.error(xhr);
+                  alert("PUT failed! RYT started as file://* ?");
+                },
+                true);
   }
   function importData(id, credentials, successCBOrNil, failCBOrNil) {
     function callbackFN(xhr) {
       var responseText = xhr.responseText;
       var dataString, dataObj;
       if (responseText) {
-        // special case: there is *no* credentials.key for *unencrypted* public [] projects
+        // special case: there is *no* credentials.key for *unencrypted* public
+        // [] projects
         if (ryt.info.encrypted && credentials.key) {
           try {
             dataString = decrypt(responseText);
@@ -300,11 +348,13 @@ var EvolGo = EvolGo || {}, RYT = RYT || {};
           }
         }
       } else {
-        dataObj = null; // for project not existing; if there is an error above, dataObj stays undefined
+        dataObj = null; // for project not existing
       }
+      // if there is an exception above, dataObj stays undefined
       successCBOrNil ? successCBOrNil(dataObj) : alert("GET successful!");
     }
-    jsonHttpGET(createHeaders(id, credentials, null), // no specific action
+    jsonHttpGET(createURLParams(credentials.key, id),
+                [["Accept", "application/json"]],
                 callbackFN,
                 failCBOrNil
                 || function(xhr){ eg.error(xhr);
@@ -336,12 +386,13 @@ var EvolGo = EvolGo || {}, RYT = RYT || {};
       successCBOrNil ? successCBOrNil(dataObj) : alert("GET successful!");
     }
     jsonHttpGET(
-      // no ident, specific action, timezoneOff (for file mtime)
-      createHeaders(null, credentials, 'list', getTimezoneOffset()),
+      // no ident, timezoneOffset (for file mtime)
+      createURLParams(credentials.key, null, getTimezoneOffset()),
+      [["Accept", "application/json"]],
       callbackFN,
       failCBOrNil
         || function(xhr){ eg.error(xhr);
-                          alert("GET " + id
+                          alert("GET for area listing"
                                 + " failed! RYT started as file://* ?");
                         },
       true
@@ -349,6 +400,19 @@ var EvolGo = EvolGo || {}, RYT = RYT || {};
   }
 
   function deleteProject(id, credentials, successCBOrNil, failCBOrNil) {
+    jsonHttpDELETE(
+      createURLParams(credentials.key, id),
+      credentials.pw && [["X-data-pw", credentials.pw]] || null,
+      successCBOrNil
+        || function(){ alert("DELETE " + id + " successful!"); },
+      failCBOrNil
+        || function(xhr){
+          eg.error(xhr);
+          alert("DELETE of " + id + " failed! RYT started as file://* ?");
+        },
+      true
+    );
+/*
     jsonHttpDELETE(
       id, credentials,
       successCBOrNil
@@ -360,6 +424,7 @@ var EvolGo = EvolGo || {}, RYT = RYT || {};
         },
       true
     );
+    */
   }
 
   _init();

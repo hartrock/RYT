@@ -365,6 +365,8 @@ var EvolGo = EvolGo || {}, RYT = RYT || {};
       ? this.projectId2filename(this.currentProjectId)
       : null;
   };
+  // Keep '.json' suffix for local project data for not colliding with some keys
+  // used here (like 'projectProps').
   protoI.projectId2filename = function (id) {
     return id + ".json";
   };

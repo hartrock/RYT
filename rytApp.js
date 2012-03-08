@@ -3007,7 +3007,6 @@ protoApp.redoPossibleCheck = function () {
       }
     }
 
-    var projectFN = ryt.info.projectId2filename(id);
     var infoNotice = this.logger.info(prefix + "Load *" + id + "* from server ...");
     function successCB(serverData) {
       self.spinnerOff();
@@ -3131,7 +3130,7 @@ protoApp.redoPossibleCheck = function () {
       return;
     }
     self.spinnerOn(true);
-    ryt.importData(projectFN, credentials, successCB, failCB);
+    ryt.importData(id, credentials, successCB, failCB);
   }; // basicLoadProject()
 
   function setProjectPropsNCallBackIfSaved(id, projectProps, callbackOrNil) {
@@ -3162,7 +3161,6 @@ protoApp.redoPossibleCheck = function () {
         || isPublicDataIdent(id) && ! credentials.pw ) { // no pw given 
       return;
     }
-    var projectFN = ryt.info.projectId2filename(id);
     this.model.storeUndone();
     this.model.addSnapshotMarker('GUI');
     var toBeStoredObj = this.model.asData();
@@ -3191,7 +3189,7 @@ protoApp.redoPossibleCheck = function () {
       if (serverData === null) {
         self.logger.info(prefix + "... there is no server data ...");
         self.spinnerOn(false);
-        ryt.exportData(projectFN, toBeStoredObj, credentials, function(){ // success callback
+        ryt.exportData(id, toBeStoredObj, credentials, function(){ // success callback
           self.spinnerOff();
           projectProps.saveType = 'serverCreate';
           self.logger.success(prefix + "... local data of *" + id + "* creates server data.");
@@ -3203,7 +3201,7 @@ protoApp.redoPossibleCheck = function () {
         self.logger.warn(prefix + "... there is invalid server data: this should not happen!\n"
                          + "Anyway: let's overwrite it (could only make things better) ...");
         self.spinnerOn(false);
-        ryt.exportData(projectFN, toBeStoredObj, credentials, function(){ // success callback
+        ryt.exportData(id, toBeStoredObj, credentials, function(){ // success callback
           self.spinnerOff();
           projectProps.saveType = 'overwriteInvalidServer';
           self.logger.success(prefix + "... local data of *" + id + "* has overwritten - invalid - server data.");
@@ -3216,7 +3214,7 @@ protoApp.redoPossibleCheck = function () {
       if (isUpgradeOf(toBeStoredObj, serverData)) {
         self.spinnerOn(false);
         self.logger.info(prefix + "... local data of *" + id + "* upgrades server data, contacting server ...");
-        ryt.exportData(projectFN, toBeStoredObj, credentials, function(){ // success callback
+        ryt.exportData(id, toBeStoredObj, credentials, function(){ // success callback
           self.spinnerOff();
           projectProps.saveType = 'serverUpgrade';
           self.logger.success(prefix + "... local data of *" + id + "* has upgraded server data.");
@@ -3231,7 +3229,7 @@ protoApp.redoPossibleCheck = function () {
         var overwrite = confirm(prefix + "There is a conflict between server and local data:\nOverwrite server data?");
         if (overwrite) {
           self.spinnerOn(false);
-          ryt.exportData(projectFN, toBeStoredObj, credentials, function(){ // success callback
+          ryt.exportData(id, toBeStoredObj, credentials, function(){ // success callback
             self.spinnerOff();
             projectProps.saveType = 'conflictOverwriteServer';
             self.logger.warn(prefix + "... local data of *"
@@ -3249,7 +3247,7 @@ protoApp.redoPossibleCheck = function () {
     } // successCB()
     // imports server data for comparison with local one
     self.spinnerOn(true);
-    ryt.importData(projectFN, credentials, successCB, failImportCB);
+    ryt.importData(id, credentials, successCB, failImportCB);
   }; // basicSaveProject()
 
   protoApp.loadProjectByURL = function (ident, prefix) {
@@ -4149,7 +4147,7 @@ protoApp.createActionButtons = function () {
                 toBeDeleted.forEach(function(projectId) {
                   eg.log(projectId);
                   ryt.deleteProject(
-                    projectId + '.json',
+                    projectId,
                     self.createCredentials(projectId, false, true),
                     function() {
                       ryt.app.logger.success("Project *" + projectId
@@ -4216,7 +4214,7 @@ protoApp.createActionButtons = function () {
         return;
       }
       var credentials = ryt.app.createCredentials(ident, null, true);
-      ryt.deleteProject(ident + '.json', credentials);
+      ryt.deleteProject(ident, credentials);
     } },
     { key:"list projects", val: function() {
       var credentials = ryt.app.createCredentials(null, null, true);

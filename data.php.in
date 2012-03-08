@@ -47,16 +47,21 @@ function cleanup() {
   global $is, $os, $locked; /* get access to vars above */
   if ($locked) {
     flock($locked, LOCK_UN); /* unlock */
+    $locked = NULL;
   }
   if ($is) {
-    fclose($is);
+    fclose($is); $is = NULL;
   }
   if ($os) {
-    fclose($os);
+    fclose($os); $os = NULL;
   }
 }
 function httpError($msg, $httpCode) {
   header('X-Error: '.$msg, true, $httpCode);
+  if ($httpCode != 500) {
+    header('Content-Type: text/plain');
+    echo $msg;
+  }
   cleanup();
   die();
 }
@@ -64,23 +69,25 @@ function projectEntryJSON($fn, $dirPath) {
   $filePath = $dirPath.'/'.$fn;
   return '{"fn":"'.$fn.'", "mtime":"'.date('Y-m-d H:i:s', filemtime( $filePath ) ).'", "size":'.filesize($filePath).'}';
 }
-$ident = $_SERVER['HTTP_X_DATA_IDENT'];  /* mandatory, except for project listing */
-/* for saving without key pw is needed */
-$key = $_SERVER['HTTP_X_DATA_KEY']; /*  */
-$pw = $_SERVER['HTTP_X_DATA_PW']; /*  */
-$action = $_SERVER['HTTP_X_ACTION'];
-$timezoneOffset = $_SERVER['HTTP_X_TIMEZONE_OFFSET'];
 
-if (! $ident) {
-  if ($action != 'list') {
-    httpError('data identifier missing', 400);
-  }
-} else { // send ident back
+$key = isset($_REQUEST['key'])
+  ? $_REQUEST['key'] : NULL; /*  */
+$ident = isset($_REQUEST['project'])
+  ? $_REQUEST['project'] : NULL;  /* mandatory, except for project listing */
+$timezoneOffset = isset($_REQUEST['timezoneOffset'])
+  ? $_REQUEST['timezoneOffset'] : NULL;
+
+/* for saving without key pw is needed */
+$pw     = isset($_SERVER['HTTP_X_DATA_PW']) ? $_SERVER['HTTP_X_DATA_PW'] : NULL;
+$action = isset($_SERVER['HTTP_X_ACTION'])  ? $_SERVER['HTTP_X_ACTION']  : NULL;
+
+if ($ident) {
   header('X-data-ident: '.$ident);
 }
-if ($action == 'list') {
+
+if (! $ident) { // list dir
   if (! isset($timezoneOffset)) { // isset works with val '0'
-    httpError('timezone offset missing', 500);
+    httpError('URL param timezoneOffset missing', 403); // 
   } else {
     setDefaultTimezone($timezoneOffset);
     header('X-timezone: '.date_default_timezone_get());
@@ -89,7 +96,7 @@ if ($action == 'list') {
 if ($key) {
   header('X-data-key: '.$key);
   if (! preg_match("/[a-f0-9]{3}/", $key)) {
-    httpError('invalid key', 400);
+    httpError('invalid key', 403);
   }
   /* depth 3 has to fit to regex above */
   $dirPath = dirPathForKey($key, '../../_RYT_DATA_DIRNAME_', 3).'/'.$key;
@@ -99,11 +106,13 @@ if ($key) {
 } else { /* public area */
   $dirPath = '../../_RYT_DATA_DIRNAME_';
 }
-$filePath = $dirPath."/".$ident;
+$filePath = $dirPath."/".$ident.'.json';
 
 if ($_SERVER['REQUEST_METHOD'] == 'GET') {
   header('Content-Type: application/json; charset=UTF-8');
-  if ($action == 'list') {
+  if (! $ident) {
+    // no ident -> list dir
+    try304_file($dirPath); // may exit
     $files = array();
     if($dh=opendir($dirPath)){
       while(($file = readdir($dh)) !== false){
@@ -125,40 +134,47 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET') {
       }
     }
     echo ']';
-  } else {
-    /* without locking: $is = @fopen($filePath,'rb'); */
-    $is = openLockedForRead($filePath, $locked);
-    if (! $is) { /* file probably not there, so try to create an empty one: */
-      /* this simply lets stream logic below do its work. */
-      $is = openLockedForReadCreate($filePath, $locked); /* create empty file */
-      /* without locking: $is = @fopen($filePath,'a+b'); */
-    }
-    if (! $is) {
-      httpError('cannot open input stream', 500);
-    }
-    $os = @fopen('php://output','wb');
-    if (! $os) {
-      httpError('cannot open output stream', 500);
-    }
-    $writtenBytes = @stream_copy_to_stream($is, $os);
+    exit;
   }
+
+  //
+  // ident exists -> get file
+
+  try304_file($filePath);
+
+  /* without locking: $is = @fopen($filePath,'rb'); */
+  $is = openLockedForRead($filePath, $locked);
+  if (! $is) { /* file probably not there, so try to create an empty one: */
+    /* this simply lets stream logic below do its work. */
+    $is = openLockedForReadCreate($filePath, $locked); /* create empty file */
+    /* without locking: $is = @fopen($filePath,'a+b'); */
+  }
+  if (! $is) {
+    httpError('cannot open input stream', 500);
+  }
+  $os = @fopen('php://output','wb');
+  if (! $os) {
+    httpError('cannot open output stream', 500);
+  }
+  $writtenBytes = @stream_copy_to_stream($is, $os);
   /* cannot change headers from here: switch to buffered output? */
   cleanup();
 } else if ($_SERVER['REQUEST_METHOD'] == 'DELETE') {
   if (! ($key || $pw == "_RYT_ADMIN_PASSWORD_")) {
-    httpError('no key and no/wrong password', 500);
+    httpError('no key and no/wrong password', 403);
   }
   if (! is_file($filePath)) {
-    httpError('no file', 500);
+    httpError('no file '.$filePath, 403);
   }
   $OK = unlink($filePath);
   if (! $OK) {
     httpError('unlink failed', 500);
   }
   cleanup();
-} else if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+
+} else if ($_SERVER['REQUEST_METHOD'] == 'PUT') {
   if (! ($key || $pw == "_RYT_ADMIN_PASSWORD_")) {
-    httpError('no key and no/wrong password', 500);
+    httpError('no key and no/wrong password', 403);
   }
   $is = @fopen('php://input','rb');
   if (! $is) {
@@ -174,14 +190,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET') {
   if ($writtenBytes == _MAX_PROJECT_SIZE_ + 1) {
     cleanup(); /* close file */
     unlink($filePath);
-    httpError('data size exceeds limit', 400);
+    httpError('data size exceeds limit', 403);
   }
   header('X-stored-bytes: '.$writtenBytes);
   cleanup();
- } else {
-  httpError('request method not allowed', 400);
- }
-
+} else {
+  httpError("request method '".$_SERVER['REQUEST_METHOD']."' not allowed", 403);
+}
 /* old experimental code:
 if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
   * Access control does not work as expected... *

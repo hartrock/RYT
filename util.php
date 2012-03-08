@@ -26,19 +26,14 @@ function mtime_fileOrDir($path, $depth)
   if (! file_exists($path)) {
     return 0;
   }
+  $ret = filemtime($path); // get mtime of dir for deleted files in it
   if (is_file($path) || ! $depth) {
-    return filemtime($path); // 0 if not existing
+    return $ret; // 0 if not existing
   }
-  $ret = 0;
   foreach (glob($path."/*") as $fn) {
     $mtime = mtime_fileOrDir($fn, $depth - 1);
     if ($mtime > $ret) {
       $ret = $mtime;   
-    }
-  }
-  if (! $ret) { // no files in dir
-    if (is_dir($path)) {
-      $ret = filemtime($path);
     }
   }
   return $ret;   

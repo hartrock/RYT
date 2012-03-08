@@ -1610,6 +1610,10 @@ Wenn Sie XHTML-Standard-konform arbeiten wollen, müssen Sie das Attribut in der
     for (ix = 0; ix < len; ++ix) {
       var entry = entries[ix];
       var ident = entry.fn.slice(0, -5);
+      var suffix = entry.fn.slice(-5);
+      if (! ident || suffix != '.json') {
+        continue; // robustness against files not being project data files
+      }
       str += '<tr>'
       str +=   '<td>' + ident + '</td>';
       str +=   '<td style ="text-align:center;">' + entry.mtime + '</td>';

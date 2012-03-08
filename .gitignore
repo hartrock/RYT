@@ -20,7 +20,6 @@
 /Scripts/uploadRYTDeleteOld.lftp
 /Scripts/pullPublicProjects.lftp
 #
-/dataREST.php
 /data.php
 /m_listDirs.php
 /m_createDirPaths.php
