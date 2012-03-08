@@ -65,9 +65,9 @@ function httpError($msg, $httpCode) {
   cleanup();
   die();
 }
-function projectEntryJSON($fn, $dirPath) {
-  $filePath = $dirPath.'/'.$fn;
-  return '{"fn":"'.$fn.'", "mtime":"'.date('Y-m-d H:i:s', filemtime( $filePath ) ).'", "size":'.filesize($filePath).'}';
+function projectEntryJSON($dirPath, $fn) {
+  $fp = $dirPath.'/'.$fn;
+  return '{"fn":"'.$fn.'", "mtime":"'.date('Y-m-d H:i:s', filemtime( $fp ) ).'", "size":'.filesize( $fp ).'}';
 }
 
 $key = isset($_REQUEST['key'])
@@ -115,9 +115,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET') {
     try304_file($dirPath); // may exit
     $files = array();
     if($dh=opendir($dirPath)){
-      while(($file = readdir($dh)) !== false){
-        if ($file != '..' && $file != '.') {
-          $files[]=$file; // push
+      while(($fn = readdir($dh)) !== false){
+        $fp = $dirPath.'/'.$fn;
+        if (is_file($fp)) {
+          $files[]=$fn; // push
         }
       }
     } else {
@@ -127,10 +128,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET') {
     echo '[';
     if ($count) {
       $fn = $files[0];
-      echo projectEntryJSON($fn, $dirPath);
+      echo projectEntryJSON($dirPath, $fn);
       for ($ix = 1; $ix < $count; ++$ix) {
         $fn = $files[$ix];
-        echo ','.projectEntryJSON($fn, $dirPath);
+        echo ','.projectEntryJSON($dirPath, $fn);
       }
     }
     echo ']';
