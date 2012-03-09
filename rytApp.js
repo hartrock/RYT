@@ -2423,7 +2423,7 @@ protoApp.createEntriesForPopupMenu = function (parentOrNil) {
 };
 protoApp.createCreateButton = function (r, pos, parentOrNil) {
   var self = this;
-  var createButton = r.eg.createTextButtonAt(pos, "create");
+  var createButton = r.eg.createTextButtonAt(pos, "Create..");
   var entries = this.createEntriesForPopupMenu(parentOrNil);
   this.popupMenuForWidget(entries, "create element", createButton);
   return createButton;
@@ -3503,17 +3503,17 @@ protoApp.createMainButtons = function () {
     this,
     eg.bindThis(this.undoPossibleCheck, this),
     undoToSnapshot));
-  var undoButton = r.eg.createTextButtonAt(undoToSnapshotB.topRight(), "Undo");
+  var undoButton = r.eg.createTextButtonAt(undoToSnapshotB.topRight(), "undo");
   undoButton.click(navigateButtonAction(
     this,
     eg.bindThis(this.undoPossibleCheck, this),
     undo));
-  var stopButton = r.eg.createTextButtonAt(undoButton.topRight(), "Stop");
+  var stopButton = r.eg.createTextButtonAt(undoButton.topRight(), "stop");
   stopButton.click(function() {
     //eg.log("stopButton pressed");
     self.naviState = null;
   });
-  var redoButton = r.eg.createTextButtonAt(stopButton.topRight(), "Redo");
+  var redoButton = r.eg.createTextButtonAt(stopButton.topRight(), "redo");
   redoButton.click(navigateButtonAction(
     this,
     eg.bindThis(this.redoPossibleCheck, this),
@@ -3664,10 +3664,12 @@ protoApp.popupMenuForWidget = function (entries, title, widget) {
   var widgetRect = widget.egRect();
   var widgetExtent = widgetRect.extent();
   var divStr = ''
-    +'<div id="menuDiv_'+ protoApp.popupMenuForWidget.count++ + '" title="'+title+'" '
-    +  'style="position:absolute; z-index:900; '
-    +  'top:'+widgetRect.top()+'px; left:'+widgetRect.left()+'px; '
-    +  'width:'+widgetExtent.x+'px; height:'+widgetExtent.y+'px">'
+    +'<div'
+    + ' id="menuDiv_'+ protoApp.popupMenuForWidget.count++ + '"'
+    + (title ? ' title="'+title+'"' : '')
+    + ' style="position:absolute; z-index:900;'
+    + ' top:'+widgetRect.top()+'px; left:'+widgetRect.left()+'px;'
+    + ' width:'+widgetExtent.x+'px; height:'+widgetExtent.y+'px">'
     +'</div>';
   var divElem = $(divStr);
   divElem.appendTo($("body"));
@@ -3741,7 +3743,7 @@ protoApp.createActionButtons = function () {
   var lastPos = this.mainButtons.saveAsB.topRight();
 
   // action buttons
-  var condenseButt = r.eg.createTextButtonAt(lastPos.add(gap), "condense");
+  var condenseButt = r.eg.createTextButtonAt(lastPos.add(gap), "Condense..");
   var condenseBeforeSnapshotMarkersFunc = this.addBlockedCheck(function() {
     if (! ryt.info.inBeginnerMode()
         || confirm("[Condense] This condenses undo/redo history before snapshot markers and after last one.\nReally continue?")) {
@@ -3775,16 +3777,16 @@ protoApp.createActionButtons = function () {
     }
   });
   var entries = [
-    { key:'condense between snapshots',
+    { key:'Condense between Snapshots',
       val: condenseBeforeSnapshotMarkersFunc },
-    { key: 'condense all (remove all history)',
+    { key: 'Condense all (remove all History)',
       val: condenseAllFunc }
   ];
-  this.popupMenuForWidget(entries, "condense", condenseButt);
+  this.popupMenuForWidget(entries, "condense history", condenseButt);
 
   lastPos = condenseButt.topRight();
 
-  var helpButt = r.eg.createTextButtonAt(lastPos.add(gap), "?");
+  var helpButt = r.eg.createTextButtonAt(lastPos.add(gap), "?..");
   /*
   var logFunc = function(e, context) {
     eg.log("e:", e, "context:", context, 'text:', e.target.textContent);
@@ -4051,7 +4053,7 @@ protoApp.createActionButtons = function () {
   lastPos = helpButt.topRight();
 
   var advancedButt
-    = r.eg.createTextButtonAt(lastPos.add(gap), "advanced");
+    = r.eg.createTextButtonAt(lastPos.add(gap), "Advanced..");
   var setKeyFunc = function () {
     self.createOrSetEncryptionKey(null, null, true);
   }
@@ -4242,7 +4244,7 @@ protoApp.createActionButtons = function () {
   var clearLocalProjectDataFun = function () {
     ryt.info.removeAllProjects();
   };
-  var develButt = r.eg.createTextButtonAt(lastPos.add(gap), "devel");
+  var develButt = r.eg.createTextButtonAt(lastPos.add(gap), "Devel..");
   entries = [
     { key:"show news", val: function() { ryt.showNews(true); } },
     { key:"log", val: [
