@@ -37,23 +37,27 @@ var EvolGo = EvolGo || {}, RYT = RYT || {};
       noticeWrap.css("top","" + yPos + "px");
       noticeWrapInited = true;
     }
-    function _log(str, params, prefix, messageNumber) {
+    function _log(str, params, prefix, topic, messageNumber) {
       if (! noticeWrapInited) { // lazy init, if not inited before
         initNoticeWrap();
       }
-      params.text =
-        "[" + messageNumber +"]" + (prefix ? prefix : "") + " " + str;
+      params.text = eg.str2HTML(
+        "[" + messageNumber +"]"
+        + (prefix ? "[" + prefix + "]" : "")
+        + (topic  ? "[" + topic  + "]" : "")
+        + (topic ? "\n" : " ") + str
+      );
       params.inEffect = {opacity: 'show', width: 'show'}; //, height: 'show'};
       lastNoticeItemInner = jQuery.noticeAdd(params);
       return lastNoticeItemInner;
     }
-    function log(strOrObjOrNil, params, prefix) {
+    function log(strOrObjOrNil, params, prefix, topic) {
       if (justRemovingNotices) {
         return null; // ignore log()
       }
-      var htmlStr = eg.str2HTML(strOrObjOrNil ? strOrObjOrNil.toString() : "");
+      var str = strOrObjOrNil ? strOrObjOrNil.toString() : "";
       var messageNumber = ++numOfMessages; // reference local copy instead of changing var
-      return _log(htmlStr, params, prefix, messageNumber);
+      return _log(str, params, prefix, topic, messageNumber);
       /*
         tryAgainPre(_log, this,
         [htmlStr, params, prefix, messageNumber], // prefix can be undefined, messageNumber added
@@ -85,7 +89,7 @@ var EvolGo = EvolGo || {}, RYT = RYT || {};
           appendOrPrepend: 'prepend'
         });
       },
-      info: function (str) {
+      info: function (str, topic) {
         if (! ryt.info.develMode && ! ryt.info.prefs.showInfoMessagesFlag) {
           return;
         }
@@ -93,9 +97,9 @@ var EvolGo = EvolGo || {}, RYT = RYT || {};
           type: 'info',
           stayTime: 20000,
           appendOrPrepend: 'prepend'
-        },"[Info]");
+        },"Info", topic);
       },
-      infoNStayLong: function (str) {
+      infoNStayLong: function (str, topic) {
         if (! ryt.info.develMode && ! ryt.info.prefs.showInfoMessagesFlag) {
           return;
         }
@@ -103,63 +107,63 @@ var EvolGo = EvolGo || {}, RYT = RYT || {};
           type: 'info',
           stayTime: 60000,
           appendOrPrepend: 'prepend'
-        },"[Info]");
+        },"Info", topic);
       },
-      infoNStay: function (str) { // ignore showInfoMessagesFlag for explicit stay
+      infoNStay: function (str, topic) { // ignore showInfoMessagesFlag for explicit stay
         return log(str, {
           type: 'info',
           stay: true,
           appendOrPrepend: 'prepend'
-        },"[Info]");
+        },"Info", topic);
       },
-      success: function (str) {
+      success: function (str, topic) {
         return log(str, {
           type: 'success',
           stayTime: 30000,
           appendOrPrepend: 'prepend'
-        },"[Success]");
+        },"Success", topic);
       },
-      warn: function (str) {
+      warn: function (str, topic) {
         return log(str, {
           type: 'warn',
           stayTime: 20000,
           appendOrPrepend: 'prepend'
-        },"[Warning]");
+        },"Warning", topic);
       },
-      problem: function (str) {
+      problem: function (str, topic) {
         return log(str, {
           type: 'problem',
           stayTime: 40000,
           appendOrPrepend: 'prepend'
-        },"[Problem]");
+        },"Problem", topic);
       },
-      problemNStay: function (str) {
+      problemNStay: function (str, topic) {
         return log(str, {
           type: 'problem',
           stay: true,
           appendOrPrepend: 'prepend'
-        },"[Problem]");
+        },"Problem", topic);
       },
-      error: function (str) {
+      error: function (str, topic) {
         return log(str, {
           type: 'error',
           stay: true,
           appendOrPrepend: 'prepend'
-        }, "[ERROR]");
+        }, "ERROR", topic);
       },
-      unexpectedError: function (str) {
+      unexpectedError: function (str, topic) {
         return log(str, {
           type: 'error',
           stay: true,
           appendOrPrepend: 'prepend'
-        }, "[UNEXPECTED ERROR]");
+        }, "UNEXPECTED ERROR", topic);
       },
-      help: function (str) {
+      help: function (str, topic) {
         return log(str, {
           type: 'help',
           stay: true,
           appendOrPrepend: 'prepend'
-        },"[Help]");
+        },"Help", topic);
       },
       append: function (str, noticeItemInnerOrNil) {
         if (justRemovingNotices) { // nothing to append to anymore
