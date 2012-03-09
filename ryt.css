@@ -96,7 +96,7 @@ a.followLink:active {
 
 .elementLink {
     color:blue; /* default to be overridden by computed style */
-    line-height: 1.5em;
+    line-height: 1.5;
     cursor: pointer;
     border-radius: 10px;
 }
@@ -139,13 +139,13 @@ body ul.cm_blue li.hover.separator {
 
 
 div.yesNoCancelDialog {
-    line-height: 1.2em;
+    line-height: 1.2;
 }
 div.helpDialog {
-    line-height: 1.2em;
+    line-height: 1.2;
 }
 div.helpDialog pre {
-    line-height: 1.1em;
+    line-height: 1.1;
 }
 /*
 div.helpDialog ul li {
