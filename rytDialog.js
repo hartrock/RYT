@@ -1662,6 +1662,72 @@ Wenn Sie XHTML-Standard-konform arbeiten wollen, müssen Sie das Attribut in der
     });
     return dia;
   }
+
+  function openTextareaDialog(argObj, callbackOK) {
+    argObj = argObj || {};
+    var title = argObj.title || '?';
+    var diaCount = ++openTextareaDialog.diaCount;
+    var $dia = $(
+      '<div id="textarea-dialog'+ diaCount +'" title="'+ title +'"'
+        +'style="overflow:hidden;" '
+        +'>'
+
+    //+'<form accept-charset="utf-8">'
+
+        +'<textarea '
+        +   'name="text" id="text" rows="10" '
+        +   'style="width:100%; height:100%; font-family:Courier;" '
+        +'>'
+      //+ text
+        +'</textarea>'
+
+      //+'</form>'
+
+        +'</div>'
+    );
+    $dia.find("#text").val(argObj.text || "");
+    $dia.extractProps = function () {
+      var textarea = $dia.find("#text");
+      $dia.props = { text:textarea.val() };
+    };
+    $dia.closeFromOK = false;
+
+    var helpText = argObj.helpText || 'No help available.';
+
+    var buttons = {}, labelOK = argObj.labelOK, labelCancel = argObj.labelCancel;
+    var buttons = {};
+    labelOK && (buttons[labelOK] = function() {
+      $dia.closeFromOK = true;
+      $dia.dialog('close');
+    });
+    labelCancel && (buttons[labelCancel] = function() {
+      $dia.dialog('close');
+    });
+    buttons["?"] = function() {
+      ryt.helpDialog(title, helpText);
+    };
+    $dia.dialog({
+      position: argObj.pos ? [argObj.pos.x, argObj.pos.y] : 'center',
+      autoOpen: true, modal: true, show: 'scale', hide: 'scale', width: 800,
+      open: function(){
+        var textArea = $dia.find("#text");
+        setTimeout(function() {
+          textArea.focus();
+        }, 500);
+      },
+      close: function(event, ui) {
+        if ($dia.closeFromOK && callbackOK) {
+          $dia.extractProps();
+          callbackOK($dia.props);
+        }
+      },
+      buttons: buttons
+      //beforeClose: self.createElemDialogBeforeCloseFunc($dia, dialogTitle, commentIdOrNil),
+    });
+  } // openTextareaDialog()
+  openTextareaDialog.diaCount = 0;
+
+
 /* test:
 var ryt = RYT;
 var t1 = 'foo\neins\nzwei\ndrei\nvier\nfuenf';
@@ -1690,6 +1756,7 @@ ryt.diffDialog(t1, t2)
   ryt.newsDialog = newsDialog;
 
   // dialogs specific
+  ryt.openTextareaDialog = openTextareaDialog;
   ryt.openUserInfoDialog = openUserInfoDialog;
   ryt.openProjectSaveAsOrLoadDialog = openProjectSaveAsOrLoadDialog;
   ryt.openPrefsDialog = openPrefsDialog;

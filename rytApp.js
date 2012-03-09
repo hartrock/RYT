@@ -4163,6 +4163,65 @@ protoApp.createActionButtons = function () {
           );
         });
     } },
+    { key: "Backup", val: [
+      { key:"Export raw Project Data", val: function() {
+        var topic = "Export raw Project Data";
+        var toBeStoredObj = self.model.asData();
+        var rawDataString = eg.JSON.stringify(toBeStoredObj);
+        var argObj = {
+          title: "[" + topic + "] copy/paste/save text from this window...",
+          text: rawDataString,
+          helpText: "This is for storing raw project data of current project in your local file system (e.g. for backup): you could \n# copy,\n# paste (e.g. into some editor window), and\n# store\nit."
+            + "\n-> After that you could import stored data by ***import raw project data***.",
+          labelCancel: "Close"
+        };
+        ryt.openTextareaDialog(argObj);
+      } },
+      { key:"Import raw Project Data", val: function() {
+        var topic = "Import raw Project Data";
+        if (ryt.info.currentProjectId) {
+          ryt.confirmDialog({
+            topic: topic,
+            text: "Raw project data import only possible into *new* project.\n"
+              + "-> Try again after pressing the 'new' button.",
+            yesButtonText: "OK"
+          });
+          return;
+        }
+        if (! self.unsavedChangesCheck()) {
+          return;
+        }
+        var argObj = {
+          title: "[" + topic + "] paste text into this window...",
+          helpText: "This is for importing previously stored raw project data, and recreates corresponding project. After that you have to ***save/saveAs*** for getting it onto server (and/or into browser storage).",
+          labelOK: "Import",
+          labelCancel: "Cancel"
+        };
+        ryt.openTextareaDialog(argObj, function(props){
+          var text = props.text;
+          if (! text) {
+            self.logger.warn("Nothing to import.");
+            return;
+          }
+          try {
+            var modelData = eg.JSON.parse(text);
+          } catch (ex) {
+            self.logger.error("Invalid project data: cannot parse JSON text.", topic);
+            return;
+          }
+          try {
+            self.initFromData(modelData);
+            self.logger.success("", topic);
+          } catch (ex) {
+            if (eg.isString(ex)) {
+              self.logger.error(ex, topic);
+            } else {
+              self.logger.unexpectedError(ex, topic);
+            }
+          }
+        });
+      } }
+    ] }
   ];
   if (ryt.info.encrypted) {
     entries.push({ key:"Set Encryption Key", val:setKeyFunc });
@@ -4367,14 +4426,13 @@ protoApp.deleteModelNFlowEditor = function() {
   var rootFlowEditor = this.flowEditorNObservers.flowEditor;
   this.unwireModelObserver(this.flowEditorNObservers.mo_flowEditor);
   this.unwireModelActionSObserver(this.mo_MilestonesWidget);
-  this.unwireModelObserver(this.mo_App);
-//  this.unwireModelObserver(this.mo_VisualizerLast);
+  this.unwireModelActionSObserver(this.mo_App);
   this.model.channel = rootFlowEditor.channel = null;
   this.flowEditors.remove(rootFlowEditor);
   rootFlowEditor.removeFromGUI();
   this.mw.remove();
   this.mw = null;
-  this.mo_Visualizer // = this.mo_VisualizerLast
+  this.mo_Visualizer
     = this.flowEditorNObservers
     = this.mo_MilestonesWidget = this.mo_App
     = null;
