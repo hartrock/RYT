@@ -256,9 +256,9 @@ Wenn Sie XHTML-Standard-konform arbeiten wollen, müssen Sie das Attribut in der
       };
     }
     dia.dialog({
+      modal: true,
       resizable: false,
       width: argObj.width || 900,
-      modal: true,
       buttons: buttons
     });
   }

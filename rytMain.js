@@ -188,15 +188,14 @@ function window_onload () {
 
   // default: show only if not seen before
   ryt.showNews = function(forceFlag) {
-    var ident = 'RYTv2.2';
+    var ident = 'RYTv2.2.5';
     // content
     var topic = ""
-      + "RYT open-sourced under AGPL license at Github now";
+      + "[enh] Advanced -> backup: export/import of raw project data";
     var text = ""
       + ident +": " + topic + "\n"
       +"========\n"
-      +"- https://github.com/hartrock/RYT'RYT at Github'\n"
-      +"- https://github.com/hartrock/RYT/blob/master/agpl_short.txt'RYT license (AGPL)'\n"
+      +"Export/import of current project as raw project data (JSON format) via textarea window. This allows backups into local file system by copy/paste/store.\n"
 /*
       +"\n"
       +"Older News\n"
