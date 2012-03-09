@@ -4084,10 +4084,10 @@ protoApp.createActionButtons = function () {
         $(e.target).text(self.model.lockedBy ? unlockStr : lockStr);
       } },
       */
+    { key:"Set Preferences", val:setPreferencesFunc },
+    { }, // separator
     { key:lockStr, val: function() { self.lockProject(); } },
     { key:unlockStr, val: function() { self.unlockProject(); } },
-    { }, // separator
-    { key:"Set Preferences", val:setPreferencesFunc },
     { }, // separator
     { key:"Sanity Checks", val:function() {
       eg.assert.throwOnce = true;
@@ -4133,6 +4133,7 @@ protoApp.createActionButtons = function () {
         );
       } }
     ] },
+    { }, // separator
     { key:"Project Area Maintenance", val:function() {
       var credentials = ryt.app.createCredentials(null, null, true);
       ryt.importProjectList(
