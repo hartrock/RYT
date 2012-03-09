@@ -183,7 +183,6 @@ html, body {
     padding: 0;
     outline: 0;
     width: 100%;
-    line-height: 1;
 }
 
 /* does not seem to have an effect (at non IEs) */
@@ -204,7 +203,7 @@ html {
 }
 body {
     height: 99%;
-    line-height: 1;
+    line-height: 1.1;
 /*
     color: black;
     border: none;
@@ -341,23 +340,24 @@ svg {
     padding: 5px;
 }
 .showHoverInfo ul {
-    line-height: 1.1em;
     padding-left: 15px;
 }
 .showHoverInfo ol {
-    line-height: 1.1em;
     padding-left: 25px;
 }
+.showHoverInfo li {
+}
+
 .showInfo {
     padding: 5px;
 }
 .showInfo ul {
-    line-height: 1.1em;
     padding-left: 15px;
 }
 .showInfo ol {
-    line-height: 1.1em;
     padding-left: 25px;
+}
+.showInfo li {
 }
 
 /* help, prefs dialog */
