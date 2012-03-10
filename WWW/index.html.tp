@@ -16,7 +16,11 @@
 
     <title>Roll Your Tasks (RYT)</title>
 
-    <link rel="stylesheet" type="text/css" href="../formats.css">
+    <style type="text/css">
+      <!--
+          body { background-color:#e0e0e0 }
+        -->
+    </style>
 
     <!-- colorbox -->
     <script src="jquery-1.7.1-min.js" type="text/javascript" charset="utf-8"></script>
@@ -24,7 +28,6 @@
     <link rel="stylesheet" type="text/css" href="Colorbox/colorbox.css">
     <script type="text/javascript" charset="utf-8">
       $(document).ready(function(){
-      //Examples of how to assign the ColorBox event to elements
       $("a[rel='screenshots']").colorbox();
       $("a[rel='thumbnails']").colorbox({ width:"75%", height:"90%", scalePhotos:true });
       });
@@ -183,7 +186,7 @@
     <hr>
     <address>
       Author: <a href="../mailToWebmaster.html">Stephan Rudlof</a><br>
-      <!-- hhmts start -->Last modified: Fri Mar  2 02:53:59 CET 2012 <!-- hhmts end -->
+      <!-- hhmts start -->Last modified: Sat Mar 10 10:46:42 CET 2012 <!-- hhmts end -->
     </address>
 
     <!-- validome validator detects more than W3C one (18.03.08) -->
