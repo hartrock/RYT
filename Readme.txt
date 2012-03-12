@@ -33,7 +33,7 @@ Note: you *have* to edit it!
 4. Have fun!
 
 More info is available via
-  http://www.evolgo.de/RYT/app.html?key=1395a3b3-c006-4f9e-9359-b073e2eb455b&project=[installation]&element=sr_1330290330348_1_3
+  http://www.evolgo.de/RYT/app.html?project=[installation]&element=sr_1330290330348_1_3
 .
 
 
