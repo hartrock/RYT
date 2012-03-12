@@ -104,19 +104,26 @@ function window_onload () {
  
   function checkForNakedStart() {
     if (! ryt.info.dataKey) {
-      //alert("You have started RYT without key parameter (part of URL), which is needed for working.\n"
-      alert("RYT started freshly.\n"
-            +"Next step is to generate a key to your project area (suited for multiple projects) ...");
-      //eg.info("Math.seedrandom()..");
-      Math.seedrandom();
-      //eg.info("..Math.seedrandom()");
-      var key = UUID.uuid4();
-      alert("... generated key is\n\t" + key + "\n: it is needed for separating your data from other's."
-            + "\nAfter restart you will see a generated URL (containing above key) in the browser line."
-            +"\n\n[Important] Please bookmark "
-            + (ryt.info.defaultProjectId ? "an" : "this")
-            +" URL then: it is your personal link to your data!");
-      ryt.storeLocally("justKeyGenerated", true);
+      var key = ryt.info.lastKeyGenerated;
+      if (key) {
+        var text = "RYT started without key, but it has detected an earlier generated one:\n-> restart with key"
+          + "\n\t" + key + "\n.";
+        alert(eg.strAscii2Unicode(text));
+      } else {
+        alert("RYT started freshly (no key known).\n"
+              +"Next step is to generate a key to your project area (suited for multiple projects) ...");
+        //eg.info("Math.seedrandom()..");
+        Math.seedrandom();
+        //eg.info("..Math.seedrandom()");
+        key = UUID.uuid4();
+        alert("... generated key is\n\t" + key + "\n: it is needed for separating your data from other's."
+              + "\nAfter restart you will see a generated URL (containing above key) in the browser line."
+              +"\n\n[Important] Please bookmark "
+              + (ryt.info.defaultProjectId ? "an" : "this")
+              +" URL then: it is your personal link to your data!");
+        ryt.storeLocally("justKeyGenerated", true);
+        ryt.storeLocally("lastKeyGenerated", key);
+      }
       // redirect, because we don't want to give user a new key by back button
       eg.redirect_URL(
         ryt.info.rytURL(
@@ -254,7 +261,7 @@ function window_onload () {
 
   if (ryt.info.justKeyGenerated) {
     ryt.storeLocally("justKeyGenerated", false);
-    alert(
+    alert(eg.strAscii2Unicode(
       ( ryt.info.defaultProjectId
         ? ( (ryt.info.isPublicId(ryt.info.defaultProjectId)
              ?"Public"
@@ -267,7 +274,7 @@ function window_onload () {
             ? ("\n\nNote:\nBecause you seem to be a first time user, [info] project will be started automatically after pressing OK."
                + " This changes current URL; so it's a good idea to bookmark it before doing that.\nAlternatively you can get back this URL later by pressing the 'new' button.")
             : "" )
-    );
+    ));
   }
   if (ryt.info.firstTimeStart) {
     ryt.storeLocally('notTheFirstTime', true); // first time only once

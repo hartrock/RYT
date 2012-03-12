@@ -56,10 +56,18 @@ var EvolGo = EvolGo || {}, RYT = RYT || {};
       this.defaultElementIds = [this.defaultElementIds];
     }
     this.encrypted = this.urlVars.encrypted || false;
+    this.lastKeyGenerated = ryt.loadLocally('lastKeyGenerated');
     this.dataKey = this.urlVars.key || null;
+    //
+    // All needed in case of missing URL key has to be before this line.
+    //
     if (! this.dataKey) {
       return; // only continue with dataKey -> redirect elsewhere
     }
+    //
+    // From here there is an URL key.
+    //
+    this.justKeyGenerated = ryt.loadLocally('justKeyGenerated');
     this.getLocally('knownKeys', { });
     if (! (this.dataKey in this.knownKeys)) {
       this.knownKeys[this.dataKey] = +new Date();
@@ -68,7 +76,6 @@ var EvolGo = EvolGo || {}, RYT = RYT || {};
     this.infoProjectFlag = (this.defaultProjectId === "[info]");
     this.firstTimeStart = ! ryt.loadLocally('notTheFirstTime');
     this.infoProjectSeen = ryt.loadLocally('infoProjectSeen');
-    this.justKeyGenerated = ryt.loadLocally('justKeyGenerated');
     this.sessionID = new Date().getTime(); // KISS: ms should be random enough for getting unique id
     this.getLocally('lastLoadedVersion');
     this.getLocally('encryption', { });
