@@ -1580,7 +1580,7 @@ Function.prototype.bindThis = function (obj) {
   // e.g.
   //   this service (at http://www.foo.bar)
   // would work.
-  var followLinkRE = /(\s|^|\()((?:http|https|ftp):\/\/[^\s'")]+)(?:(?:')((?:[^'\n<]|'\w)+)(?:')|(?:")([^"\n]+)(?:"))?(\s|$|\))/gm;
+  var followLinkRE = /(\s|^|\()((?:http|https|ftp):\/\/[^\s'")]+)(?:(?:')((?:[^'\n]|'\w)+)(?:')|(?:")([^"\n]+)(?:"))?(\s|$|\))/gm;
   function followLinks2HTML(str, followLinkClassString) {
     return str.replace(followLinkRE, function(
       a1, pre, link, singleQuotedText, doubleQuotedText, post, a7) {
