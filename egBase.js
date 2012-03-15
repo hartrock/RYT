@@ -1622,13 +1622,13 @@ Function.prototype.bindThis = function (obj) {
   }
 
   // lower level conversion: also used by - higher level - str2HTMLList().
-  // \B -> non-word boundary
+  // see http://www.regular-expressions.info/reference.html
   // *word*, also *[word]*
-  var em1WordRE = /(?=\B)\*((\w|')+|\[(\w|')+\])\*(?=\B)/g;
+  var em1WordRE = /(?=\W)\*((\w|')+|\[(\w|')+\])\*(?=\W)/g;
   // !word!, also ![word]!
-  var em2WordRE = /(?=\B)!((\w|')+|\[(\w|')+\])!(?=\B)/g;
+  var em2WordRE = /(?=\W)!((\w|')+|\[(\w|')+\])!(?=\W)/g;
   // *!word!* or !*word*!, also bracketed variants
-  var emBothWordRE = /(?=\B)(?:!\*|\*!)((\w|')+|\[(\w|')+\])(?:!\*|\*!)(?=\B)/g;
+  var emBothWordRE = /(?=\W)(?:!\*|\*!)((\w|')+|\[(\w|')+\])(?:!\*|\*!)(?=\W)/g;
 
   // "*** foo bar ***"
   var em1SentenceRE = /\*\*\*(([^\*]|[\*][^\*]|[\*][\*][^\*])+)\*\*\*/g;
