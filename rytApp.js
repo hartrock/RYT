@@ -3348,20 +3348,24 @@ protoApp.redoPossibleCheck = function () {
   protoApp.loadProject = function (identOrNil) { // expects well formed ident or nil
     this.saveOrLoadProject(identOrNil, false/* load */);
   }; // loadProject()
-  protoApp.openUserInfoDialogWithCB = function (confirmFailureStr, successCB, failureCB) {
+
+  protoApp.openUserInfoDialogNeedValidInput = function(
+    noValidInputErrStr, topic, successCB, failureCB
+  ) {
     var self = this;
+    var cb = function(data) {
+      if (! (data && data.id)) {
+        self.logger.problem(noValidInputErrStr, topic);
+        failureCB && failureCB();
+        return;
+      }
+      ryt.info.setLocally('user', data);
+      self.greetingsAnimation();
+      successCB(data);
+    }
     ryt.openUserInfoDialog(
       ryt.info.user, // may be undefined
-      function(data) {
-        if (! (data && data.id)) {
-          confirm(confirmFailureStr);
-          failureCB && failureCB();
-          return;
-        }
-        ryt.info.setLocally('user', data);
-        self.greetingsAnimation();
-        successCB(data);
-      }
+      cb, cb // OK CB same as cancel CB
     );
   };
   protoApp.saveProject = function (identOrNil) { // expects well formed ident or nil
@@ -3398,9 +3402,9 @@ protoApp.redoPossibleCheck = function () {
       }
     };
     if (! ryt.info.user) {
-      this.openUserInfoDialogWithCB(
-        "invalid userID: cannot lock project!",
-        lockWithUserIDFun
+      this.openUserInfoDialogNeedValidInput(
+        "Invalid userID: cannot lock project!", "Lock Project",
+        lockWithUserIDFun // success callback
       );
       return;
     }
@@ -4089,6 +4093,32 @@ protoApp.createActionButtons = function () {
     { key:lockStr, val: function() { self.lockProject(); } },
     { key:unlockStr, val: function() { self.unlockProject(); } },
     { }, // separator
+    { key:"Change User Info", val: function() {
+      var topic = "Change User Info";
+      var userInfo = ryt.info.user;
+      var cbOK = function(data) {
+        //eg.log("user info", data);
+        if (data && data.id) {
+          if (! userInfo
+              || userInfo.id !== data.id || userInfo.name !== data.name) {
+            ryt.info.setLocally('user', data);
+            self.setUserInModel();
+            self.logger.success(
+              "User info changed to id *" + data.id + "* and name ***"
+                + data.name + "***.",
+              topic
+            );
+          } else {
+            self.logger.info("User info unchanged.", topic);
+          }
+        } else {
+          self.logger.warn("Invalid input!\nNothing changed.", topic);
+        }
+      }
+      var argObj = eg.cloneProps(userInfo); argObj.title = topic;
+      ryt.openUserInfoDialog(argObj, cbOK);
+    } },
+    { }, // separator
     { key:"Sanity Checks", val:function() {
       eg.assert.throwOnce = true;
       try {
@@ -4378,14 +4408,13 @@ protoApp.initModelNFlowEditor = function (data) {
   var self = this;
   eg.assert(! this.flowEditors.size());
   this.model = RYT.createModel(this.logger, this.selectedStore, data);
-
-  var callback = function() {
-    eg.log("user info", data);
-    self.setUserInModel();
-  };
   if (! ryt.info.user) {
-    this.openUserInfoDialogWithCB(
-      "Invalid userID: no user info for newly created elements!",
+    var callback = function() {
+      eg.log("user info", data);
+      self.setUserInModel();
+    };
+    this.openUserInfoDialogNeedValidInput(
+      "Invalid userID: no user info for newly created elements!", "Init",
       callback, // success
       callback  // failure
     );

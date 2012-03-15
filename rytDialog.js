@@ -280,8 +280,8 @@ Wenn Sie XHTML-Standard-konform arbeiten wollen, müssen Sie das Attribut in der
     argObj.width = 'auto';
     yesNoCancelDialog(argObj);
   }
-  function openUserInfoDialog(argObj, callback) {
-    var dialogTitle = (argObj && 'Edit user info') || 'Who are you? Create user info...';
+  function openUserInfoDialog(argObj, cb_OK, cb_Cancel) {
+    var dialogTitle = argObj && (argObj.title || 'Edit user info') || 'Who are you? Create user info...';
     var name = (argObj && argObj.name) || "";
     var id = (argObj && argObj.id) || "..";
     var closeFromOK = false;
@@ -327,11 +327,11 @@ Wenn Sie XHTML-Standard-konform arbeiten wollen, müssen Sie das Attribut in der
       //ryt.logger.log("name: " + name, "userID: " + userID);
       closeFromOK = true;
       $dia.dialog('close');
-      callback && callback({ name: name, id: userID });
+      cb_OK && cb_OK({ name: name, id: userID });
     };
     var cancelFN = function() {
       $dia.dialog('close');
-      callback && callback();
+      cb_Cancel && cb_Cancel();
     };
     form.keyup(function(e) {
       e = e || window.event;
@@ -389,7 +389,6 @@ Wenn Sie XHTML-Standard-konform arbeiten wollen, müssen Sie das Attribut in der
         nameArea.focus();
       },
       close: function(event, ui) {
-        closeFromOK || ryt.logger.info("'"+dialogTitle + "' cancelled.");
         $dia.remove();
         ryt.app.inModalDialog = false;
       },
@@ -1652,7 +1651,6 @@ Wenn Sie XHTML-Standard-konform arbeiten wollen, müssen Sie das Attribut in der
       buttons: {
         DeleteSelected: function() {
           deleteFlag = true;
-          eg.log('foo');
           $(this).dialog('close');
         },
         Cancel: function() {
