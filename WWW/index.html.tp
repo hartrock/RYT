@@ -77,6 +77,125 @@
         </ul>
       </li>
     </ul>
+    <h3>Some Features</h3>
+    <ul>
+      <li>Mobile:
+        <ul>
+          <li>data storage at server allows accessing
+            <ul>
+              <li><em>own</em>    projects from different hosts,</li>
+              <li><em>shared</em> projects with others you know,</li>
+              <li><em>public</em> projects for all;</li>
+            </ul>
+          </li>
+          <li>using local browser storage allows
+            <ul>
+              <li>offline mode,</li>
+              <li>temporarily having no server connection, and</li>
+              <li>personalized user experience.</li>
+            </ul>
+          </li>
+        </ul>
+      </li>
+      <li>GUI:
+        <ul>
+          <li>responsive: because server interaction is only needed for loading/storing project data from/to there, user interaction with GUI widgets is very fast;</li>
+          <li>comfortable (see below).</li>
+        </ul>
+      </li>
+      <li>Arbitrary task nesting: tasks may contain subtasks, which may also contain subtasks, etc..</li>
+      <li>Task properties:
+        <ul>
+          <li>successors/predecessors:
+            <ul>
+              <li>finishing a task may depend from finishing predecessors, for which it is one of their successors;</li>
+              <li>such a relation is made by dragging an arrow from a task to its successor;</li>
+            </ul>
+          </li>
+          <li>finished state:
+            <ul>
+              <li>mutliple subtask logics (all have to be finished, one has to be finished, etc.);</li>
+              <li>propagates to successors;</li>
+            </ul>
+          </li>
+          <li>priority:
+            <ul>
+              <li>propagates to predecessors;</li>
+            </ul>
+          </li>
+          <li>priority and finished state may be set to 'non-applicable' (which is the default for priority).</li>
+        </ul>
+      </li>
+      <li>Versioning with smart comparison of different versions:<br>
+        if there is a 'save' or 'load' interaction (between client and server), it is known
+        <ul>
+          <li>if they are the same, or</li>
+          <li>if the target can be upgraded savely, or</li>
+          <li>if there is some conflict needing to ask for a decision from the user.</li>
+        </ul>
+      </li>
+    </ul>
+
+    <h4>GUI Features</h4>
+    <p>
+      Looking at screenshots or into screencasts is recommended, but for those preferring text here are some GUI features.
+    </p>
+    <ul>
+      <li>2-D positioning of elements:
+        <ul>
+          <li>task and comment elements (widgets) can be placed <em>freely</em> into so called 'flow' canvases (this is possible by using SVG),
+          </li>
+          <li>this also works for subtasks by using 'flow' canvases for them, too (being part of the task editor widget);
+          </li>
+        </ul>
+      </li>
+      <li>fast element creation by clicking at (flow) canvas:
+        <ul>
+          <li>double-click -> task,</li>
+          <li>shift-double-click -> comment;</li>
+        </ul>
+      </li>
+      <li>fast navigation by hovering (moving mouse over) element widgets, which triggers info windows with rendered element - task, comment - content;
+      </li>
+      <li>unlimited undo/redo of all element/relation changes (as long as storage isn't exhausted):
+        <ul>
+          <li>history of element/relation changes can be condensed;</li>
+        </ul>
+      </li>
+      <li>'tape recorder' widget for undo/redo actions:
+        <ul>
+          <li>replay of changes forward and backward in time,</li>
+          <li>visualization of 'save' actions by 'snapshot markers',</li>
+          <li>triggers windows for visualizing changes;</li>
+        </ul>
+      </li>
+      <li>diff windows:
+        <ul>
+          <li>showing textual differences between elements,</li>
+          <li>automatically triggered by undo/redo actions;</li>
+        </ul>
+      </li>
+      <li>markup for rendering typed-in text into HTML:
+        <ul>
+          <li>simple:
+            <ul>
+              <li>should mostly give what you expect, if you don't know it at all,</li>
+              <li>easy to learn, if you want to use it,</li>
+              <li>does <em>not</em> try to replace HTML,</li>
+            </ul>
+          </li>
+          <li>modest: tries to stay near what you see in the text editor,</li>
+          <li>raw text mode: for embedding console output, etc.,</li>
+          <li>support for links:
+            <ul>
+              <li><em>internal</em> for referencing other elements in <em>current</em> project (opening info windows), and</li>
+              <li><em>external</em> for referencing things <em>outside</em> current project,</li>
+            </ul>
+          <li>flexible: if you really want it, you can even embed HTML.</li>
+        </ul>
+      </li>
+    </ul>
+
     <h3>Unminified Version</h3>
       <p>
         There is an <a href="app_unminified.html" title="click for starting RYT">unminified version</a>, too.
@@ -184,7 +303,7 @@
     <hr>
     <address>
       Author: <a href="../mailToWebmaster.html">Stephan Rudlof</a><br>
-      <!-- hhmts start -->Last modified: Fri Mar 16 06:22:37 CET 2012 <!-- hhmts end -->
+       <!-- hhmts start -->Last modified: 2012-03-18 00:44:46 CET by: sr<!-- hhmts end -->
     </address>
 
     <!-- validome validator detects more than W3C one (18.03.08) -->
