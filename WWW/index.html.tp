@@ -151,8 +151,8 @@
       </li>
       <li>fast element creation by clicking at (flow) canvas:
         <ul>
-          <li>double-click -> task,</li>
-          <li>shift-double-click -> comment;</li>
+          <li>double-click &rarr; task,</li>
+          <li>shift-double-click &rarr; comment;</li>
         </ul>
       </li>
       <li>fast navigation by hovering (moving mouse over) element widgets, which triggers info windows with rendered element - task, comment - content;
@@ -303,7 +303,7 @@
     <hr>
     <address>
       Author: <a href="../mailToWebmaster.html">Stephan Rudlof</a><br>
-      <!-- hhmts start -->Last modified: 2012-03-18 01:40:13 CET by: sr<!-- hhmts end -->
+      <!-- hhmts start -->Last modified: 2012-03-18 12:05:35 CET by: sr<!-- hhmts end -->
     </address>
 
     <!-- validome validator detects more than W3C one (18.03.08) -->
