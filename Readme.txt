@@ -6,7 +6,9 @@ Purpose
 =======
 
 RYT is a browser-based task management app for individuals and small groups.
-
+More info:
+  http://www.evolgo.de/RYT/
+.
 
 Features
 ========
