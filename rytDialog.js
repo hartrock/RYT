@@ -811,6 +811,13 @@ Wenn Sie XHTML-Standard-konform arbeiten wollen, müssen Sie das Attribut in der
       var text = this.form.Select.options[this.form.Select.selectedIndex].value;
       idArea.val(text);
     });
+    if (saveFlag && ! (ryt.info.develMode || ryt.info.prefs.adminModeFlag)) {// ordinary user may load, but ..
+      var allowedIdRE = /[a-zA-Z-_0-9]+/;   // .. not save public '[*]' files.
+      var inputIdRE = allowedIdRE;
+    } else { // greedy regexes
+      var allowedIdRE = /[a-zA-Z-_0-9]+|[\[][a-zA-Z-_0-9]+[\]]/;
+      var inputIdRE = /[a-zA-Z-_0-9]+|[\[][a-zA-Z-_0-9]+[\]]?|[\[]/;
+    }
     var okFN = function() {
       var id = idArea.val();
       var title = titleArea.val() && titleArea.val().replace(/\s+/g, " ");
@@ -822,13 +829,6 @@ Wenn Sie XHTML-Standard-konform arbeiten wollen, müssen Sie das Attribut in der
       $dia.dialog('close');
       callbackOK && callbackOK({ id: id, title: title });
     };
-    if (saveFlag && ! ryt.info.develMode) { // ordinary user may load, but ..
-      var allowedIdRE = /[a-zA-Z-_0-9]+/;   // .. not save public '[*]' files.
-      var inputIdRE = allowedIdRE;
-    } else { // greedy regexes
-      var allowedIdRE = /[a-zA-Z-_0-9]+|[\[][a-zA-Z-_0-9]+[\]]/;
-      var inputIdRE = /[a-zA-Z-_0-9]+|[\[][a-zA-Z-_0-9]+[\]]?|[\[]/;
-    }
     form.keyup(function(e) {
       e = e || window.event;
       if (e.target === idArea[0]) {
