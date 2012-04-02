@@ -3884,14 +3884,14 @@ protoApp.createActionButtons = function () {
     var adder_1_URL = ryt.info.rytURL_project("[adder_1]");
     var adder_4_URL = ryt.info.rytURL_project("[adder_4]");
     var ViP_URL = ryt.info.rytURL_project("[ViP]");
-    var MaryNPeterConflictResolution_URL = ryt.info.rytURL_project("[MaryNPeterConflictResolution]");
+    var PeterNMaryConflictResolution_URL = ryt.info.rytURL_project("[PeterNMaryConflictResolution]");
     //var ?_URL = ryt.info.rytURL_project("[?]");
 
     var text = ''
       +'These public (read-only) project examples can be stored in your own project area by choosing a name without brackets ([]) around.\n'
       +'Feel free to use them however you like.\n'
-      +'- '+ MaryNPeterConflictResolution_URL + "'Mary'n'Peter conflict resolution'\n"
-      +'  Example from screencast.\n'
+      +'- '+ PeterNMaryConflictResolution_URL + "'Peter'n'Mary conflict resolution'\n"
+      +'  Project example from screencast.\n'
       +'- '+ ViP_URL + '"ViP"\n'
       +'  Some real life project (RYT is in use in its developer\'s \'bread and butter\' job).\n'
       +'- '+ adder_1_URL + '"1-bit adder"\n'
