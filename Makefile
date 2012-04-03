@@ -387,16 +387,28 @@ $(SCRIPT_DIR)/%.lftp: $(SCRIPT_DIR)/%.lftp.in
 #
 lftp: $(TARGETS_LFTP) $(TMP_DIR)
 
-
 # admin scripts
+EXTERNAL_SERVER_URL    := http://$(EXTERNAL_SERVER)
+EXTERNAL_RYT_PATH      := $(RYT_DIRNAME)
+RYT_EXTERNAL_URL       := $(EXTERNAL_SERVER_URL)/$(EXTERNAL_RYT_PATH)
+RYT_EXTERNAL_ADMIN_URL := $(RYT_EXTERNAL_URL)/Admin
+$(SCRIPT_DIR)/external_%: $(SCRIPT_DIR)/external_%.PW.in
+	echo '### hier ###'
+	$(call getPWOnce)
+	$(SCRIPT_DIR)/fillIn_adminURL_adminPW_dirDepth \
+          $< $(RYT_EXTERNAL_ADMIN_URL) $(PASSWORD) $(RYT_DATA_DIR_NESTING) > $@
+	@chmod u+x $@
 $(SCRIPT_DIR)/%: $(SCRIPT_DIR)/%.PW.in
 	$(call getPWOnce)
 	$(SCRIPT_DIR)/fillIn_adminURL_adminPW_dirDepth \
           $< $(RYT_ADMIN_URL) $(PASSWORD) $(RYT_DATA_DIR_NESTING) > $@
 	@chmod u+x $@
 
-# non-lftp non-PW scripts: more specific %.lftp %.PW rules above (seq counts)
-$(SCRIPT_DIR)/%: $(SCRIPT_DIR)/%.in
+
+# Non-lftp non-PW non-external scripts: more specific %.lftp %.PW external_%
+# rules above (seq counts).
+$(SCRIPT_DIR)/%: $(SCRIPT_DIR)/%.in.foo
+	echo '### 2. ###'
 	cat $< \
 	| $(SCRIPT_DIR)/fillIn _INSTALL_DIRNAME_ $(INSTALL_DIRNAME) \
 	| $(SCRIPT_DIR)/fillIn _RYT_DATA_DIRNAME_ $(RYT_DATA_DIRNAME) \
@@ -404,16 +416,6 @@ $(SCRIPT_DIR)/%: $(SCRIPT_DIR)/%.in
 	| $(SCRIPT_DIR)/fillIn _EXTERNAL_SSH_USER_ $(EXTERNAL_SSH_USER) \
 	| $(SCRIPT_DIR)/fillIn _TMP_DIR_ $(TMP_DIR) \
 	> $@
-	@chmod u+x $@
-
-EXTERNAL_SERVER_URL    := http://$(EXTERNAL_SERVER)
-EXTERNAL_RYT_PATH      := $(RYT_DIRNAME)
-RYT_EXTERNAL_URL       := $(EXTERNAL_SERVER_URL)/$(EXTERNAL_RYT_PATH)
-RYT_EXTERNAL_ADMIN_URL := $(RYT_EXTERNAL_URL)/Admin
-$(SCRIPT_DIR)/external_%: $(SCRIPT_DIR)/%.in
-	$(call getPWOnce)
-	$(SCRIPT_DIR)/fillIn_adminURL_adminPW_dirDepth \
-          $< $(RYT_EXTERNAL_ADMIN_URL) $(PASSWORD) $(RYT_DATA_DIR_NESTING) > $@
 	@chmod u+x $@
 
 
