@@ -47,7 +47,8 @@ yesNo "cleanOldReleases?" && {
     $SCRIPT_DIR/cleanOldReleases || error "cleanOldReleases"
 }
 
-$SCRIPT_DIR/external_pushToServer
+# for lftp push to external server
+#  $SCRIPT_DIR/external_pushToServer
 
 yesNo "git push?" && {
     git push --tags -u origin master || error "git push";
