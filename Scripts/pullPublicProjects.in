@@ -11,6 +11,7 @@
 server_ssh_login=_EXTERNAL_SSH_USER_@_EXTERNAL_SERVER_
 
 cd _TMP_DIR_
+rm *
 ssh $server_ssh_login ls -l ~/_INSTALL_DIRNAME_/_RYT_DATA_DIRNAME_
 scp -p $server_ssh_login:~/_INSTALL_DIRNAME_/_RYT_DATA_DIRNAME_/*.json .
 ls -l *.json
