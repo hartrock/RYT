@@ -1,0 +1,16 @@
+#!/bin/bash
+# Pulls public projects from *external* server and puts them into TMP_DIR.
+# Requires RYT installation
+# in
+#   ~/INSTALL_DIRNAME
+# of
+#   EXTERNAL_SSH_USER
+# @
+#   EXTERNAL_SERVER.
+
+server_ssh_login=_EXTERNAL_SSH_USER_@_EXTERNAL_SERVER_
+
+cd _TMP_DIR_
+ssh $server_ssh_login ls -l ~/_INSTALL_DIRNAME_/_RYT_DATA_DIRNAME_
+scp -p $server_ssh_login:~/_INSTALL_DIRNAME_/_RYT_DATA_DIRNAME_/*.json .
+ls -l *.json

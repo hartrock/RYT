@@ -116,13 +116,17 @@ MAINTENANCE_ALLOWED_FLAG_FILE := $(ADMIN_DIR)/maintenanceAllowed.flag
 # lftp
 TMP_DIR := tmp
 TARGETS_LFTP := $(SCRIPT_DIR)/uploadRYT.lftp $(SCRIPT_DIR)/uploadRYTDeleteOld.lftp $(SCRIPT_DIR)/pullPublicProjects.lftp
+TARGETS_SSH := $(SCRIPT_DIR)/pullPublicProjects
 
 # devel
 TARGETS_QUERY          := $(SCRIPT_DIR)/numOfProjects $(SCRIPT_DIR)/numOfKeys
 TARGETS_QUERY_EXTERNAL := $(SCRIPT_DIR)/external_numOfProjects $(SCRIPT_DIR)/external_numOfKeys
 TARGETS_DEVEL          := $(SCRIPT_DIR)/cleanOldReleases
 
-TARGETS_ALL            := $(TARGETS_PUBLIC) $(TARGETS_ADMIN) $(TARGETS_QUERY) $(TARGETS_QUERY_EXTERNAL) $(TARGETS_LFTP) $(TARGETS_DEVEL)
+TARGETS_ALL            := $(TARGETS_PUBLIC) $(TARGETS_ADMIN) \
+  $(TARGETS_QUERY) $(TARGETS_QUERY_EXTERNAL) \
+  $(TARGETS_SSH) $(TARGETS_LFTP) \
+  $(TARGETS_DEVEL)
 
 
 #
@@ -370,26 +374,36 @@ webside: $(THIS_FILE) \
 
 
 #
-# lftp targets
+# external server interaction targets
 
+# lftp
 $(SCRIPT_DIR)/pullPublicProjects.lftp: $(TMP_DIR)
-
+$(SCRIPT_DIR)/pullPublicProjects: $(TMP_DIR)
+#
 $(SCRIPT_DIR)/%.lftp: $(SCRIPT_DIR)/%.lftp.in
 	$(SCRIPT_DIR)/fillIn_lftpInfo \
           $< $(INSTALL_DIR) $(RYT_DIRNAME) $(EXTERNAL_SERVER) $(RYT_DATA_DIRNAME) $(TMP_DIR) \
           > $@
-
+#
 lftp: $(TARGETS_LFTP) $(TMP_DIR)
 
 
-#
 # admin scripts
-
-# more specific %.lftp rule above (seq counts)
-$(SCRIPT_DIR)/%: $(SCRIPT_DIR)/%.in
+$(SCRIPT_DIR)/%: $(SCRIPT_DIR)/%.PW.in
 	$(call getPWOnce)
 	$(SCRIPT_DIR)/fillIn_adminURL_adminPW_dirDepth \
           $< $(RYT_ADMIN_URL) $(PASSWORD) $(RYT_DATA_DIR_NESTING) > $@
+	@chmod u+x $@
+
+# non-lftp non-PW scripts: more specific %.lftp %.PW rules above (seq counts)
+$(SCRIPT_DIR)/%: $(SCRIPT_DIR)/%.in
+	cat $< \
+	| $(SCRIPT_DIR)/fillIn _INSTALL_DIRNAME_ $(INSTALL_DIRNAME) \
+	| $(SCRIPT_DIR)/fillIn _RYT_DATA_DIRNAME_ $(RYT_DATA_DIRNAME) \
+	| $(SCRIPT_DIR)/fillIn _EXTERNAL_SERVER_ $(EXTERNAL_SERVER) \
+	| $(SCRIPT_DIR)/fillIn _EXTERNAL_SSH_USER_ $(EXTERNAL_SSH_USER) \
+	| $(SCRIPT_DIR)/fillIn _TMP_DIR_ $(TMP_DIR) \
+	> $@
 	@chmod u+x $@
 
 EXTERNAL_SERVER_URL    := http://$(EXTERNAL_SERVER)

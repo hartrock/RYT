@@ -44,6 +44,9 @@ WWW_USER_ID=www-data
 INSTALL_DIR=~/RYT_Install
 # May be OK. For testing purposes: INSTALL_DIR=/tmp .
 
+INSTALL_DIRNAME=RYT_Install
+# For use in scripts: has to be consistent with INSTALL_DIR above.
+
 # Server reachable dir, where RYT_DIR will be referenced from by a symbolic link
 WWW_SERVER_DIR=~/WWW
 # May be OK (Linux).
@@ -115,9 +118,13 @@ MAX_PROJECT_SIZE=5000000
 #
 # external server 
 
-# for using lftp
+# for ssh and/or lftp
 EXTERNAL_SERVER=foo.bar.org
 # If you want to use an external server, you *have* to change this!
+
+# ssh specific
+EXTERNAL_SSH_USER=uid
+# lftp credentials are located in ~/.netrc
 
 #
 # End of optional stuff.
