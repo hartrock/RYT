@@ -116,16 +116,15 @@ MAINTENANCE_ALLOWED_FLAG_FILE := $(ADMIN_DIR)/maintenanceAllowed.flag
 # lftp
 TMP_DIR := tmp
 TARGETS_LFTP := $(SCRIPT_DIR)/uploadRYT.lftp $(SCRIPT_DIR)/uploadRYTDeleteOld.lftp $(SCRIPT_DIR)/pullPublicProjects.lftp
-TARGETS_SSH := $(SCRIPT_DIR)/pullPublicProjects
 
 # devel
 TARGETS_QUERY          := $(SCRIPT_DIR)/numOfProjects $(SCRIPT_DIR)/numOfKeys
 TARGETS_QUERY_EXTERNAL := $(SCRIPT_DIR)/external_numOfProjects $(SCRIPT_DIR)/external_numOfKeys
-TARGETS_DEVEL          := $(SCRIPT_DIR)/cleanOldReleases
+TARGETS_DEVEL          := $(SCRIPT_DIR)/cleanOldReleases $(SCRIPT_DIR)/pullPublicProjects
 
 TARGETS_ALL            := $(TARGETS_PUBLIC) $(TARGETS_ADMIN) \
   $(TARGETS_QUERY) $(TARGETS_QUERY_EXTERNAL) \
-  $(TARGETS_SSH) $(TARGETS_LFTP) \
+  $(TARGETS_LFTP) \
   $(TARGETS_DEVEL)
 
 
@@ -393,7 +392,6 @@ EXTERNAL_RYT_PATH      := $(RYT_DIRNAME)
 RYT_EXTERNAL_URL       := $(EXTERNAL_SERVER_URL)/$(EXTERNAL_RYT_PATH)
 RYT_EXTERNAL_ADMIN_URL := $(RYT_EXTERNAL_URL)/Admin
 $(SCRIPT_DIR)/external_%: $(SCRIPT_DIR)/external_%.PW.in
-	echo '### hier ###'
 	$(call getPWOnce)
 	$(SCRIPT_DIR)/fillIn_adminURL_adminPW_dirDepth \
           $< $(RYT_EXTERNAL_ADMIN_URL) $(PASSWORD) $(RYT_DATA_DIR_NESTING) > $@
@@ -407,8 +405,7 @@ $(SCRIPT_DIR)/%: $(SCRIPT_DIR)/%.PW.in
 
 # Non-lftp non-PW non-external scripts: more specific %.lftp %.PW external_%
 # rules above (seq counts).
-$(SCRIPT_DIR)/%: $(SCRIPT_DIR)/%.in.foo
-	echo '### 2. ###'
+$(SCRIPT_DIR)/%: $(SCRIPT_DIR)/%.in
 	cat $< \
 	| $(SCRIPT_DIR)/fillIn _INSTALL_DIRNAME_ $(INSTALL_DIRNAME) \
 	| $(SCRIPT_DIR)/fillIn _RYT_DATA_DIRNAME_ $(RYT_DATA_DIRNAME) \
