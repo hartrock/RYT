@@ -195,14 +195,14 @@ function window_onload () {
 
   // default: show only if not seen before
   ryt.showNews = function(forceFlag) {
-    var ident = 'RYTv2.2.5';
+    var ident = 'RYTv2.2.7';
     // content
     var topic = ""
-      + "[enh] Advanced -> backup: export/import of raw project data";
+      + "[new] HTTPS for RYT service";
     var text = ""
       + ident +": " + topic + "\n"
       +"========\n"
-      +"Export/import of current project as raw project data (JSON format) via textarea window. This allows backups into local file system by copy/paste/store.\n"
+      +"There is an https://www.evolgo.de/RYT/app.html'HTTPS version of RYT' now: if used, all data will be transferred encrypted between browser and server."
 /*
       +"\n"
       +"Older News\n"

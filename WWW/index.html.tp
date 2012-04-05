@@ -68,13 +68,13 @@
           <li>screencasts about
           <ul>
             <li>
-            <a href="../RYT_Screencast/firstSteps.mov">first steps</a>,
+            <a href="../RYT_Screencast/firstSteps.mov_NOSSL">first steps</a>,
             </li>
             <li>
-            <a href="../RYT_Screencast/PeterNMaryConflictResolution.mov">creating a project</a>,
+            <a href="../RYT_Screencast/PeterNMaryConflictResolution.mov_NOSSL">creating a project</a>,
             </li>
             <li>
-            <a href="../RYT_Screencast/copyPasteAlias.mov">copy/paste/alias behavior</a>,
+            <a href="../RYT_Screencast/copyPasteAlias.mov_NOSSL">copy/paste/alias behavior</a>,
             </li>
           </ul>
           which are showing you how to work with RYT; and
@@ -228,6 +228,9 @@
       <li>for your own projects.</li>
     </ul>
     <p>
+      If you want to have your project data encrypted <em>while</em> being transferred from/to the server, just use <a href="./app.html_SSL">RYT via https</a>. You have to accept a self signed certificate to get this working, though. For encrypted storage at server see <a href="#There_is_a_partial_solution">There is a partial solution...</a>.
+    </p>
+    <p>
     However, permanent availability cannot be guaranteed. If you want to start your own RYT service, see <a href="#Your_own_RYT_Service">Your own RYT Service</a> below.
     </p>
     
@@ -254,9 +257,12 @@
     <p>
     FSF sees SAAS as dangerous for the freedom of the individual person. But how to keep enduser comfort while at the same time keeping the user data private?
     </p>
-    <h3>There is a partial solution...</h3>
+    <h3><a name="There_is_a_partial_solution">There is a partial solution...</a></h3>
     <p>
-    Currently there is an - experimental - feature of <em>encrypting</em> user project data <em>before</em> pushing it onto the server. It remains the problem of not using https for communication with the server. I'm providing RYT at my own server costs (not much so far) and currently don't have such a use case for myself; but installing RYT at a server providing https access should be no problem.
+    Currently there is an - experimental - feature of <em>encrypting</em> user project data <em>before</em> pushing it onto the server. So even a RYT admin cannot read your project data (but nevertheless a RYT admin could always read your keys and project names, of course).
+    </p>
+    <p>
+      Note: for having your keys and project names encrypted in server interactions, too, please use <a href="./app.html_SSL">RYT via https</a>.
     </p>
 
     <hr>
@@ -311,7 +317,7 @@
     <hr>
     <address>
       Author: <a href="../mailToWebmaster.html">Stephan Rudlof</a><br>
-      <!-- hhmts start -->Last modified: Mon Apr  2 21:32:38 CEST 2012 <!-- hhmts end -->
+      <!-- hhmts start -->Last modified: 2012-04-05 03:55:37 CEST by: sr<!-- hhmts end -->
     </address>
 
     <!-- validome validator detects more than W3C one (18.03.08) -->
