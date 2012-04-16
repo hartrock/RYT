@@ -68,13 +68,16 @@
           <li>screencasts about
           <ul>
             <li>
-            <a href="../RYT_Screencast/firstSteps.mov_NOSSL">first steps</a>,
+            <!-- href="../RYT_Screencast/firstSteps.mov_NOSSL" -->
+            <a href="http://www.youtube.com/watch?v=AZgOCLNtvxE">first steps</a>,
             </li>
             <li>
-            <a href="../RYT_Screencast/PeterNMaryConflictResolution.mov_NOSSL">creating a project</a>,
+            <!-- href="../RYT_Screencast/PeterNMaryConflictResolution.mov_NOSSL" -->
+            <a href="http://www.youtube.com/watch?v=6CWbBWia-ss">creating a project</a>,
             </li>
             <li>
-            <a href="../RYT_Screencast/copyPasteAlias.mov_NOSSL">copy/paste/alias behavior</a>,
+            <!-- href="../RYT_Screencast/copyPasteAlias.mov_NOSSL" -->
+            <a href="http://www.youtube.com/watch?v=TeovDgVbC5I">copy/paste/alias behavior</a>,
             </li>
           </ul>
           which are showing you how to work with RYT; and
@@ -317,7 +320,7 @@
     <hr>
     <address>
       Author: <a href="../mailToWebmaster.html">Stephan Rudlof</a><br>
-      <!-- hhmts start -->Last modified: 2012-04-05 03:55:37 CEST by: sr<!-- hhmts end -->
+      <!-- hhmts start -->Last modified: Mon Apr 16 02:32:01 CEST 2012 <!-- hhmts end -->
     </address>
 
     <!-- validome validator detects more than W3C one (18.03.08) -->
