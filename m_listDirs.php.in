@@ -51,7 +51,7 @@ foreach ($globArr as $filename) {
   //echo str_pad($str, 100, ".")." "."$filename " . filesize($filename)."\n";
   $tmpArr[] = $str." "."$filename " . filesize($filename)."\n";
 }
-sort($tmpArr);
+rsort($tmpArr);
 foreach ($tmpArr as $val) {
   echo $val;
 }
