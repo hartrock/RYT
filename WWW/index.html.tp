@@ -12,7 +12,7 @@
     <meta name="keywords" content="task management, project management, personal organizer, software as a service, SaaS">
     <meta name="keywords" content="JavaScript, browser based, data server, Raphael">
     <meta name="keywords" content="bitcoin, donation">
-    <meta name="robots" content="all">
+    <meta name="robots" content="index, nofollow">
 
     <title>Roll Your Tasks (RYT)</title>
 
@@ -320,7 +320,7 @@
     <hr>
     <address>
       Author: <a href="../mailToWebmaster.html">Stephan Rudlof</a><br>
-      <!-- hhmts start -->Last modified: Mon Apr 16 02:32:01 CEST 2012 <!-- hhmts end -->
+      <!-- hhmts start -->Last modified: Fri May 25 19:17:59 CEST 2012 <!-- hhmts end -->
     </address>
 
     <!-- validome validator detects more than W3C one (18.03.08) -->
