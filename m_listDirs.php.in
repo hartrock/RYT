@@ -18,7 +18,18 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+include 'util.php';
+
 header('Content-Type: text/plain'); // plain text file output
+
+$timezoneOffset = (isset($_REQUEST['timezoneOffset'])
+                   ? $_REQUEST['timezoneOffset']
+                   : NULL);
+if (! isset($timezoneOffset)) { // isset works with val '0'
+  echo 'URL param timezoneOffset missing';
+  die;
+}
+setDefaultTimezone($timezoneOffset);
 
 $pwOK = $_REQUEST[pw] == "_RYT_ADMIN_PASSWORD_";
 !$pwOK && die("wrong password");
@@ -34,9 +45,14 @@ for($i = 0; $i < $depth; ++$i) {
 }
 if ($debug) echo "glob pattern: ".$glob."\n";
 $globArr = glob($glob);
+$tmpArr = array();
 foreach ($globArr as $filename) {
   $str = date('Y-m-d H:i:s', filemtime( $filename ) );
   //echo str_pad($str, 100, ".")." "."$filename " . filesize($filename)."\n";
-  echo $str." "."$filename " . filesize($filename)."\n";
+  $tmpArr[] = $str." "."$filename " . filesize($filename)."\n";
+}
+sort($tmpArr);
+foreach ($tmpArr as $val) {
+  echo $val;
 }
 ?>
