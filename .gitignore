@@ -11,7 +11,7 @@
 
 # Makefile targets
 #
-/Scripts/pullPublicProjects
+/Scripts/external_pullPublicProjects
 #
 /Scripts/cleanOldReleases
 /Scripts/external_numOfKeys

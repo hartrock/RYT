@@ -120,7 +120,7 @@ TARGETS_LFTP := $(SCRIPT_DIR)/uploadRYT.lftp $(SCRIPT_DIR)/uploadRYTDeleteOld.lf
 # devel
 TARGETS_QUERY          := $(SCRIPT_DIR)/numOfProjects $(SCRIPT_DIR)/numOfKeys
 TARGETS_QUERY_EXTERNAL := $(SCRIPT_DIR)/external_numOfProjects $(SCRIPT_DIR)/external_numOfKeys
-TARGETS_DEVEL          := $(SCRIPT_DIR)/cleanOldReleases $(SCRIPT_DIR)/pullPublicProjects
+TARGETS_DEVEL          := $(SCRIPT_DIR)/cleanOldReleases $(SCRIPT_DIR)/external_pullPublicProjects
 
 TARGETS_ALL            := $(TARGETS_PUBLIC) $(TARGETS_ADMIN) \
   $(TARGETS_QUERY) $(TARGETS_QUERY_EXTERNAL) \
@@ -377,11 +377,12 @@ webside: $(THIS_FILE) \
 
 # lftp
 $(SCRIPT_DIR)/pullPublicProjects.lftp: $(TMP_DIR)
-$(SCRIPT_DIR)/pullPublicProjects: $(TMP_DIR)
+# ssh
+$(SCRIPT_DIR)/external_pullPublicProjects: $(TMP_DIR)
 #
 $(SCRIPT_DIR)/%.lftp: $(SCRIPT_DIR)/%.lftp.in
 	$(SCRIPT_DIR)/fillIn_lftpInfo \
-          $< $(INSTALL_DIR) $(RYT_DIRNAME) $(EXTERNAL_SERVER) $(RYT_DATA_DIRNAME) $(TMP_DIR) \
+          $< $(EXTERNAL_INSTALL_DIR) $(RYT_DIRNAME) $(EXTERNAL_SERVER) $(RYT_DATA_DIRNAME) $(TMP_DIR) \
           > $@
 #
 lftp: $(TARGETS_LFTP) $(TMP_DIR)
@@ -407,7 +408,7 @@ $(SCRIPT_DIR)/%: $(SCRIPT_DIR)/%.PW.in
 # rules above (seq counts).
 $(SCRIPT_DIR)/%: $(SCRIPT_DIR)/%.in
 	cat $< \
-	| $(SCRIPT_DIR)/fillIn _INSTALL_DIRNAME_ $(INSTALL_DIRNAME) \
+	| $(SCRIPT_DIR)/fillIn _EXTERNAL_INSTALL_DIR_ $(EXTERNAL_INSTALL_DIR) \
 	| $(SCRIPT_DIR)/fillIn _RYT_DATA_DIRNAME_ $(RYT_DATA_DIRNAME) \
 	| $(SCRIPT_DIR)/fillIn _EXTERNAL_SERVER_ $(EXTERNAL_SERVER) \
 	| $(SCRIPT_DIR)/fillIn _EXTERNAL_SSH_USER_ $(EXTERNAL_SSH_USER) \
