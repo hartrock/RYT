@@ -3939,7 +3939,7 @@ protoApp.createActionButtons = function () {
         +'  -> Loads current project *'+ryt.info.currentProjectId+'* and opens info window of referenced element during RYT startup.\n\n';
     }
     text += ''
-      +'- Links to selected elements of current project *'+ryt.info.currentProjectId+'*:';
+      +'- Links to copied elements of current project *'+ryt.info.currentProjectId+'*:';
 
     var selected = self.model.getSelected();
     if (eg.numOfProps(selected)) {
