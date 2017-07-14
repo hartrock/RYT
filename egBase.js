@@ -608,9 +608,9 @@ Function.prototype.bindThis = function (obj) {
   }
   // untested
   function alt_propsSame(props_1, props_2) {
-    return
-    ! ( some(props_1, function(val, key) { props_2[key] !== val; })
-        || some(props_2, function(val, key) { props_1[key] !== val; }) );
+    // 'return' with expr only works with expr starting same line! (automatic ';' insertion)
+    return ! ( some(props_1, function(val, key) { props_2[key] !== val; })
+               || some(props_2, function(val, key) { props_1[key] !== val; }) );
   }
 
   // Note: if path is empty, obj itself will be returned
