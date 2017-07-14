@@ -1270,7 +1270,8 @@ Function.prototype.bindThis = function (obj) {
   function getUrlVars() {
     var map = {};
     var parts = window.location.search.replace(/[?&]+([^=&]+)(=[^&]*)?/gi, function(m,key,value) {
-      var newVal = ( value === "" || value === "=true"
+      // unclear, if "" may appear (looks (after some years...) like "" has worked instead of 'unsigned' some time ago)
+      var newVal = ( value === undefined || value === "" || value === "=true" // first two for usage without '='
                      ? true // flag
                      : (value === "=false"
                         ? false // flag
