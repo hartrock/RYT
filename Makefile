@@ -114,18 +114,21 @@ TO_BE_COPIED_ADMIN  := $(SOURCES_ADMIN) $(TARGETS_ADMIN)
 MAINTENANCE_ALLOWED_FLAG_FILE := $(ADMIN_DIR)/maintenanceAllowed.flag
 
 # lftp
-TMP_DIR := tmp
+TMP_DIR := ~/tmp
 TARGETS_LFTP := $(SCRIPT_DIR)/uploadRYT.lftp $(SCRIPT_DIR)/uploadRYTDeleteOld.lftp $(SCRIPT_DIR)/pullPublicProjects.lftp
 
 # devel
 TARGETS_QUERY          := $(SCRIPT_DIR)/numOfProjects $(SCRIPT_DIR)/numOfKeys
-TARGETS_QUERY_EXTERNAL := $(SCRIPT_DIR)/external_numOfProjects $(SCRIPT_DIR)/external_numOfKeys
-TARGETS_DEVEL          := $(SCRIPT_DIR)/cleanOldReleases $(SCRIPT_DIR)/external_pullPublicProjects
+TARGETS_QUERY_EXTERNAL := $(SCRIPT_DIR)/external_numOfProjects \
+                          $(SCRIPT_DIR)/external_numOfKeys
+TARGETS_DEVEL          := $(SCRIPT_DIR)/cleanOldReleases \
+                          $(SCRIPT_DIR)/pullPublicProjects \
+                          $(SCRIPT_DIR)/external_pullPublicProjects
 
-TARGETS_ALL            := $(TARGETS_PUBLIC) $(TARGETS_ADMIN) \
-  $(TARGETS_QUERY) $(TARGETS_QUERY_EXTERNAL) \
-  $(TARGETS_LFTP) \
-  $(TARGETS_DEVEL)
+TARGETS                := $(TARGETS_PUBLIC) $(TARGETS_ADMIN) \
+                          $(TARGETS_QUERY) $(TARGETS_QUERY_EXTERNAL) \
+                          $(TARGETS_DEVEL)
+TARGETS_ALL := $(TARGETS) $(TARGETS_LFTP)
 
 
 #
@@ -152,7 +155,7 @@ $(THIS_FILE): config.src
 	$(MAKE) -f $(THIS_FILE) clean # .. to avoid endless recursion.
 
 $(TARGETS_ALL): $(THIS_FILE)
-targets: $(TARGETS_ALL)
+targets: $(TARGETS)
 	@echo "==> $@ succeeded."
 
 #
@@ -372,6 +375,9 @@ webside: $(THIS_FILE) \
          $(WWW_DST)
 
 
+# local server interaction target
+$(SCRIPT_DIR)/pullPublicProjects: $(TMP_DIR)
+
 #
 # external server interaction targets
 
@@ -408,8 +414,9 @@ $(SCRIPT_DIR)/%: $(SCRIPT_DIR)/%.PW.in
 # rules above (seq counts).
 $(SCRIPT_DIR)/%: $(SCRIPT_DIR)/%.in
 	cat $< \
-	| $(SCRIPT_DIR)/fillIn _EXTERNAL_INSTALL_DIR_ $(EXTERNAL_INSTALL_DIR) \
+	| $(SCRIPT_DIR)/fillIn _INSTALL_DIR_ $(INSTALL_DIR) \
 	| $(SCRIPT_DIR)/fillIn _RYT_DATA_DIRNAME_ $(RYT_DATA_DIRNAME) \
+	| $(SCRIPT_DIR)/fillIn _EXTERNAL_INSTALL_DIR_ $(EXTERNAL_INSTALL_DIR) \
 	| $(SCRIPT_DIR)/fillIn _EXTERNAL_SERVER_ $(EXTERNAL_SERVER) \
 	| $(SCRIPT_DIR)/fillIn _EXTERNAL_SSH_USER_ $(EXTERNAL_SSH_USER) \
 	| $(SCRIPT_DIR)/fillIn _TMP_DIR_ $(TMP_DIR) \
@@ -467,6 +474,7 @@ info:
 	@echo ">>     RELEASE_DIR    : $(RELEASE_DIR)"
 	@echo ">>     ADMIN_DIR      : $(ADMIN_DIR)"
 	@echo ">>     DEVEL_DIR      : $(DEVEL_DIR)"
+	@echo ">>     TMP_DIR        : $(TMP_DIR)"
 	@echo ">>     MAIN_HTML      : $(MAIN_HTML)"
 	@echo ">>     DEVEL_HTML     : $(DEVEL_HTML)"
 	@echo ">>     VERSION_HTML   : $(VERSION_HTML)"
