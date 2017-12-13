@@ -4027,8 +4027,7 @@ protoApp.createActionButtons = function () {
           +'I want to donate without using bitcoins: please contact me.'
           +'%0a%0a'
           + featuresNiceToHave)
-      +'@@@.'
-      +'\nIf you want to donate anonymously (as far as possible with bitcoins), please send http://bitcoin.org/"bitcoins" to bitcoin address @@@<span style="color:#000000; background:#FFFF00">&nbsp;15BfuYWY1Ro8sZM4LEbU9x7QMZHLnEa13V&nbsp;</span>@@@.';
+      +'@@@.';
     ryt.helpDialog("Donations", text);
   };
   var aboutFunc = function () {
