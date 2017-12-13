@@ -32,6 +32,6 @@ fi
 #info "SED_STR_FILENAME: $SED_STR_FILENAME"
 #info "SED_STR_COPYRIGHT: $SED_STR_COPYRIGHT"
 
-$SED -e $SED_STR_RYT_VERSION -e $SED_STR_FILENAME -e "$SED_STR_COPYRIGHT" -i .old $FILE || error "sed"
+$SED -e $SED_STR_RYT_VERSION -e $SED_STR_FILENAME -e "$SED_STR_COPYRIGHT" -i .old $FILE && rm $FILE.old || error "sed"
 
 success
