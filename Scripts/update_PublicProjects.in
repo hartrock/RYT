@@ -3,4 +3,4 @@
 # - assumes pulled projects in tmp/
 # - files are diff'ed and timestamp compared
 
-Scripts/updateProjects_from_to tmp PublicProjects
+Scripts/updateProjects_from_to _TMP_DIR_/Projects PublicProjects

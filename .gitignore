@@ -12,6 +12,7 @@
 # Makefile targets
 #
 /Scripts/pullPublicProjects
+/Scripts/update_PublicProjects
 /Scripts/external_pullPublicProjects
 #
 /Scripts/cleanOldReleases
