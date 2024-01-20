@@ -88,7 +88,7 @@ function getTimezone($offset)
   return $index[0];
 }
 function setDefaultTimezone($offset) {
-    if (! isset($offset)) $offset = 1;
+    if (! isset($offset)) $offset = _RYT_PHP_TIMEZONE_OFFSET_;
     date_default_timezone_set(getTimezone($offset));
 }
 

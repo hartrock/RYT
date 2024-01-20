@@ -168,6 +168,10 @@ m_createDirPaths.php: m_createDirPaths.php.in
 	cat $< \
 	| $(SCRIPT_DIR)/fillIn _RYT_DATA_DIRNAME_ $(RYT_DATA_DIRNAME) \
 	> $@
+util.php: util.php.in
+	cat $< \
+	| $(SCRIPT_DIR)/fillIn _RYT_PHP_TIMEZONE_OFFSET_ $(RYT_PHP_TIMEZONE_OFFSET) \
+	> $@
 
 %.php: %.php.in
 	$(call getPWOnce)

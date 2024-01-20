@@ -25,6 +25,7 @@
 /Scripts/pullPublicProjects.lftp
 #
 /data.php
+/util.php
 /m_listDirs.php
 /m_createDirPaths.php
 

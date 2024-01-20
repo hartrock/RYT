@@ -24,8 +24,8 @@ include 'm_util.php';
 isMaintainanceForbidden() && die("maintenance forbidden!");
 $prefix = "../../_RYT_DATA_DIRNAME_";
 $chars = "0123456789abcdef"; // sufficient for depth <= 8
-$depth = $_REQUEST[depth];
-$makeMissingDirs = $_REQUEST[makeMissingDirs];
+$depth = $_REQUEST['depth'];
+$makeMissingDirs = $_REQUEST['makeMissingDirs'];
 $makeMissingDirsFlag = $makeMissingDirs == "true";
 
 printbr("prefix: ".$prefix.", chars: ".$chars.", depth: ".$depth.", makeMissingDirs: ".$makeMissingDirs.", makeMissingDirsFlag: ".$makeMissingDirsFlag);

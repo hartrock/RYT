@@ -195,7 +195,7 @@ var EvolGo = EvolGo || {}, RYT = RYT || {};
     var arr = [];
     key         && arr.push(["key", key]);
     identOrNull && arr.push(["project", identOrNull]);
-    ! eg.isNil(timezoneOffsetOrNil) // may be 0
+    ! eg.isNil(timezoneOffsetOrNil)
                 && arr.push(["timezoneOffset", timezoneOffsetOrNil]);
     return arr;
   }

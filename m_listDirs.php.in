@@ -22,21 +22,22 @@ include 'util.php';
 
 header('Content-Type: text/plain'); // plain text file output
 
+$debug = $_REQUEST['debug'] == "true";
 $timezoneOffset = (isset($_REQUEST['timezoneOffset'])
                    ? $_REQUEST['timezoneOffset']
                    : NULL);
-if (! isset($timezoneOffset)) { // isset works with val '0'
-  echo 'URL param timezoneOffset missing';
-  die;
+if (! isset($timezoneOffset)) {
+  if ($debug) {
+     echo "URL param timezoneOffset missing: set timezone to RYT server default.\n";
+  }
 }
 setDefaultTimezone($timezoneOffset);
 
-$pwOK = $_REQUEST[pw] == "_RYT_ADMIN_PASSWORD_";
+$pwOK = $_REQUEST['pw'] == "_RYT_ADMIN_PASSWORD_";
 !$pwOK && die("wrong password");
 
 $prefix = "../../_RYT_DATA_DIRNAME_";
-$depth = $_REQUEST[depth];
-$debug = $_REQUEST[debug] == "true";
+$depth = $_REQUEST['depth'];
 
 if ($debug) echo "prefix: ".$prefix.", depth: ".$depth."\n";
 $glob = $prefix;
