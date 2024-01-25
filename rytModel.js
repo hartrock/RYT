@@ -1255,10 +1255,28 @@ var EvolGo = EvolGo || {}, RYT = RYT || {};
       eg.assert(obj.finished === false); // avoid thinking errs
       return this.fromTo[id]; // next id2val, val unused
     };
+
+    function actionRetNeighborsFunc(val, id) {
+      var obj = this.getObject(id);
+      if (eg.isNil(obj.finished)) {
+        return { }; // only propagate finished === false (implies via tasks)
+      }
+      if (obj.finished) {
+        this.change(id, { finished:false }, 'propagateFinishedState()');
+      }
+      return this.fromTo[id]; // next id2val, val unused
+    }
+
     var startId2val = this.fromTo[startId];
-    this.traverseOmitVisitedSingle(
-      startId2val, actionFunc, neighborsFunc, this
-    );
+    if (false) {
+      this.traverseOmitVisitedSingle(
+        startId2val, actionFunc, neighborsFunc, this
+      );
+    } else {
+      this.traverseOmitVisitedSingle2(
+        startId2val, actionRetNeighborsFunc, this
+      );
+    }
   };
   proto.propagatePrio = function (startId) {
     var prio = this.getObject(startId).prio;
@@ -1337,11 +1355,31 @@ var EvolGo = EvolGo || {}, RYT = RYT || {};
       }
       return this.fromTo[id]; // next id2val, val unused
     };
-    this.traverseOmitVisitedSingle(
-      startId2val, actionFunc, neighborsFunc, this
-    );
+
+    function actionRetNeighborsFunc(val, id) {
+      var obj = this.getObject(id);
+      if (! eg.isNil(obj.prio)) {
+        prio = prio === null ? obj.prio : Math.max(prio, obj.prio);
+      }
+      if (obj.type !== 'task' // only traverse via tasks
+          || ! eg.isNil(obj.prio)) { // only traverse to first found prio
+        return { };
+      }
+      return this.fromTo[id]; // next id2val, val unused
+    }
+
+    if (false) {
+      this.traverseOmitVisitedSingle(
+        startId2val, actionFunc, neighborsFunc, this
+      );
+    } else {
+      this.traverseOmitVisitedSingle2(
+        startId2val, actionRetNeighborsFunc, this
+      );
+    }
     return prio;
   };
+
   proto.hasUnfinishedPreds = function (id) {
     var startId2val = this.toFrom[id];
     var pred = function(val, key) {
@@ -1372,10 +1410,20 @@ var EvolGo = EvolGo || {}, RYT = RYT || {};
     function neighborsFunc(val, id) {
       return rel[id];
     };
+    function actionRetNeighborsFunc(val, id) {
+      res[id] = val;
+      return rel[id];
+    }
     var startId2val = rel[fromId];
-    this.traverseOmitVisitedSingle(
-      startId2val, actionFunc, neighborsFunc //, this unused
-    );
+    if (false) {
+      this.traverseOmitVisitedSingle(
+        startId2val, actionFunc, neighborsFunc //, this unused
+      );
+    } else {
+      this.traverseOmitVisitedSingle2(
+        startId2val, actionRetNeighborsFunc //, this unused
+      );
+    }
     return res;
   };
   proto.reachablesByRelToFromId = function (id) {
