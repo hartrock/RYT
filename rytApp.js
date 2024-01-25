@@ -995,12 +995,24 @@ protoMO_FE.handle_changedParentChildRelation = function (relObj) {
 protoMO_FE.responsibleForChildObj = function (obj) {
   return this.model.elemHasParent(obj.id, this.parentId);
 };
+protoMO_FE.responsibleForChild = function (id) {
+  return this.model.elemHasParent(id, this.parentId);
+};
 protoMO_FE.parentsOfObjChildsHere = function (obj) {
   eg.assert(obj);
   return this.model.parentsOfNChildsOf(obj.id, this.parentId);
 };
+protoMO_FE.handle_updateElem = function (msg) {
+  //eg.log("protoMO_FE.handle_updateElem");
+  //eg.log(msg);
+  if (this.responsibleForChild(msg.elem)) {
+    this.handle_changedChild(msg.elem); // treat it as changed for rerendering
+  }
+}
 protoMO_FE.handle_changed = function (msg) {
-  //eg.log("MO_FlowEditor.prototype.handle_changed()");
+  eg.log("MO_FlowEditor.prototype.handle_changed()");
+  eg.log(this);
+  eg.log(msg);
   var obj = msg.objProps;
   if (obj._relation === 'parentChild') {
     if (msg.triggeredBy !== this.corresponding_feoId
@@ -1011,7 +1023,9 @@ protoMO_FE.handle_changed = function (msg) {
   }
   if (this.responsibleForChildObj(obj)) {
     this.handle_changedChildObj(obj);
-    if ("prio" in msg.newProps) {
+    /*
+    // prio by propagatePrio in model
+    if (false && "prio" in msg.newProps) {
       var elementsConnectedToFrom = eg.filter(
         this.model.reachablesByRelToFromId(obj.id), function(val, elem) {
           return this.model.elemHasParent(elem, this.parentId);
@@ -1020,25 +1034,16 @@ protoMO_FE.handle_changed = function (msg) {
         this.handle_changedChild(elem);
       }, this);
     }
-/*
-    if ("finished" in msg.props) {
-      var elementsConnectedFromTo = eg.filter(
-        this.model.deepElementsConnectedFromTo(obj.id), function(val, elem) {
-          return this.model.elemHasParent(elem, this.parentId);
-        }, this);
-      eg.forEach(elementsConnectedFromTo, function(val, elem) {
-        this.handle_changedChildObj(this.model.getObject(elem));
-      }, this);
-    }
     */
     if ("finished" in msg.newProps) {
-      var elementsConnectedFromTo = eg.filter(
-        this.model.reachablesByRelFromToId(obj.id), function(val, elem) {
-          return this.model.elemHasParent(elem, this.parentId);
-        }, this);
-      eg.forEach(elementsConnectedFromTo, function(val, elem) {
-        this.handle_changedChild(elem);
-      }, this);
+      eg.forEach(this.model.reachablesByRelFromToId(obj.id),
+		 function(val, elem) {
+		   this.model.send({event:'updateElem',
+				    elem:elem,
+				    reason:'predecessor finished prop changed',
+				    predecessor:obj.id, // opt possibility
+				    triggeredBy:this});
+		 }, this);
       var connsTo = this.model.filterConnsConnectingTo(obj.id);
       var connsFrom = this.model.filterConnsConnectingFrom(obj.id);
       eg.forEach(connsFrom, function(connObj, id) {
