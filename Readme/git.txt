@@ -1,0 +1,3 @@
+ssh-keygen -t ed25519 -C "sr@evolgo.de"
+ssh-add ~/.ssh/id_ed25519
+git remote set-url origin git@github.com:hartrock/RYT.git
