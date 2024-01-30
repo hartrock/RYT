@@ -523,7 +523,7 @@ protoMO_FE.createTaskWidget = function (taskObj, parent, argObj) {
   var bgCircleRight = posCircle.add(eg.Point.xy(radius, 0));
   var bgCircleTop = posCircle.sub(eg.Point.xy(0, radius));
   var bgCircleBottom = posCircle.add(eg.Point.xy(0, radius));
-  if (! eg.isUndefined(taskObj.prio)) {
+  if (! eg.isNil(taskObj.prio)) {
     var upTop, upLeft, upRight, downBottom, downLeft, downRight;
     var triaLeftSmallest, triaRightSmallest, upTopSmallest, downBottomSmallest;
     triaLeftSmallest = posCircle.sub(eg.Point.xy(5,0));
