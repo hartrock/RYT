@@ -418,11 +418,11 @@ $(SCRIPT_DIR)/%: $(SCRIPT_DIR)/%.PW.in
 # rules above (seq counts).
 $(SCRIPT_DIR)/%: $(SCRIPT_DIR)/%.in
 	cat $< \
+	| $(SCRIPT_DIR)/fillIn _EXTERNAL_INSTALL_DIR_ $(EXTERNAL_INSTALL_DIR) \
+	| $(SCRIPT_DIR)/fillIn _EXTERNAL_SSH_USER_ $(EXTERNAL_SSH_USER) \
+	| $(SCRIPT_DIR)/fillIn _EXTERNAL_SERVER_ $(EXTERNAL_SERVER) \
 	| $(SCRIPT_DIR)/fillIn _INSTALL_DIR_ $(INSTALL_DIR) \
 	| $(SCRIPT_DIR)/fillIn _RYT_DATA_DIRNAME_ $(RYT_DATA_DIRNAME) \
-	| $(SCRIPT_DIR)/fillIn _EXTERNAL_INSTALL_DIR_ $(EXTERNAL_INSTALL_DIR) \
-	| $(SCRIPT_DIR)/fillIn _EXTERNAL_SERVER_ $(EXTERNAL_SERVER) \
-	| $(SCRIPT_DIR)/fillIn _EXTERNAL_SSH_USER_ $(EXTERNAL_SSH_USER) \
 	| $(SCRIPT_DIR)/fillIn _TMP_DIR_ $(TMP_DIR) \
 	> $@
 	@chmod u+x $@
@@ -451,7 +451,7 @@ info:
 	@echo ">>     WWW_USER_ID   : $(WWW_USER_ID)"
 	@echo ">>     WWW_SERVER_DIR: $(WWW_SERVER_DIR)"
 	@echo ">>     WWW_SERVER_URL: $(WWW_SERVER_URL)"
-	@echo ">>     WWW_PATH      : $(WWW_PATH)"
+	@echo ">>     WWW_PATH      : $(WWW_PATH)" 
 	@echo ">>"
 	@echo ">>   ..[config.src]"
 	@echo ">>"
@@ -484,6 +484,10 @@ info:
 	@echo ">>     VERSION_HTML   : $(VERSION_HTML)"
 	@echo ">>"
 	@echo ">>   ..[computed]"
+	@echo ">>"
+	@echo ">>   Webserver test page:"
+	@echo ">>     $(WWW_SERVER_URL)/$(WWW_PATH)/$(RYT_DIRNAME)/helloWorld.html"
+
 	@echo ">>"
 	@echo ">> ..[$@]"
 	@echo ">>"
