@@ -43,6 +43,8 @@ WWW_USER_ID=www-data
 # Where RYT_DIR and RYT_DATA_DIR will be created in.
 INSTALL_DIR=~/RYT_Install
 # May be OK. For testing purposes: INSTALL_DIR=/tmp .
+INSTALL_DIRNAME=RYT_Install
+# For use in scripts: has to be consistent with INSTALL_DIR above.
 
 # Server reachable dir, where RYT_DIR will be referenced from by a symbolic link
 WWW_SERVER_DIR=~/WWW
@@ -60,11 +62,16 @@ WWW_PATH=~sr
 # You *have* to change this!
 # It's very likely, that you have another user id than me or a totally
 # different config not using user local WWW access.
-# Testing: ater install
+# Testing: after install
 #   WWW_SERVER_URL/WWW_PATH/RYT_DIRNAME/helloWorld.html
 # or - after this example config -
 #   http://localhost/~sr/RYT/helloWorld.html
 # should give - the expected - result.
+
+# Which default time to get by php scripts: admin|user may be located elsewhere,
+#   so there are scripts with a param for overriding default.
+RYT_PHP_TIMEZONE_OFFSET=1
+# Geographical timezone; 1 for Germany. See util.php.in for more info.
 
 # Further notes:
 # - WWW_USER_ID: at my (sr) system it is APACHE_RUN_USER taken from
@@ -108,14 +115,14 @@ MAX_PROJECT_SIZE=5000000
 # Notes:
 # RYT_DATA_DIR (for project data) has to be installed in the *same* directory
 # as RYT_DIR.
-# A clear separation between application and data is good for pushing
+# This clear separation between application and data is good for pushing
 # non-data stuff (RYT upgrades) to some server (less risk of accidentally
 # overwriting data).
 
 #
 # external server 
 
-# for using ssh or lftp (recently untested (due to not using lftp anymore))
+# for ssh
 EXTERNAL_SERVER=foo.bar.org
 EXTERNAL_INSTALL_DIR='~/RYT_Install' # avoid bash evaluation of '~'
 
