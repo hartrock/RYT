@@ -318,7 +318,7 @@ Function.prototype.bindThis = function (obj) {
   function new_map2arr(obj, fun, thisOrNil) {
     var res = [];
     forEach(obj, function(val, key, obj) {
-      res.push(fun.call(this, val, key, obj));
+      res.push(fun.call(this, val, key, obj));//...
     }, thisOrNil);
     return res;
   }

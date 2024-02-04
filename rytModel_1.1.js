@@ -1312,7 +1312,7 @@ changedKeys2Vals =
     );
     return found !== null;
   };
-  proto.traverseReachesIdWithRel = function (id2val, id, rel) {
+  proto.traverseReachesIdByRel = function (id2val, id, rel) {
     function neighborsFunc(val, id) {
       return rel[id];
     };

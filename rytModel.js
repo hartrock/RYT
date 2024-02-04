@@ -148,7 +148,7 @@ var EvolGo = EvolGo || {}, RYT = RYT || {};
   proto.getUserID = function () {
     eg.assert(this.currentUID !== this.initUID);
     return this.currentUID;
-  }
+  };
   proto.getUser = function (uid) {
     return this.users[uid] || null;
   };
@@ -423,10 +423,10 @@ var EvolGo = EvolGo || {}, RYT = RYT || {};
   };
   proto.undo = function (from) {
     this.objectStore.undo(from);
-  }
+  };
   proto.redo = function (from) {
     this.objectStore.redo(from);
-  }
+  };
   proto.atBegin = function () {
     return this.objectStore.indexAtBegin();
   };
@@ -673,7 +673,7 @@ var EvolGo = EvolGo || {}, RYT = RYT || {};
     data.rootID = this.rootID;
     data.copyStoreID = this.copyStoreID;
     return data;
-  }
+  };
   proto.initFromData = function (data) {
     proto._proto.initFromData.call(this, data);
     this.rootID = data.rootID;
@@ -1059,162 +1059,172 @@ var EvolGo = EvolGo || {}, RYT = RYT || {};
     return this.distanceToParent(elem, this.rootID);
   };
 
+
   // generic
   //
 
-  proto.traverseMulti = function (
-    id2val, actionFunc, neighborsFunc, thisOrNil)
-  {
-    if (! eg.hasProps(id2val)) {
-      return;
-    }
-    actionFunc.call(thisOrNil, id2val);
-    var neighbors = neighborsFunc.call(thisOrNil, id2val);
-    this.traverseMulti(neighbors, actionFunc, neighborsFunc, thisOrNil);
-  };
-  proto.traverseSingle = function (
-    id2val, actionFunc, neighborsFunc, thisOrNil)
-  {
-    var actionFuncMulti = eg.applyFunc(actionFunc);
-    var neighborsFuncMulti = eg.mapReduceFunc(neighborsFunc,
-                                              eg.propsUnion, { });
-    return this.traverseMulti(
-      id2val, actionFuncMulti, neighborsFuncMulti, thisOrNil
-    );
-  };
-
-  var sum_nextNeighbors = 0;
-  var sum_nextNeighbors2 = 0;
-  proto.h_traverseOmitVisitedMulti = function (
-    id2val, actionFunc, neighborsFunc, alreadyVisited, thisOrNil)
-  {
-    if (! eg.hasProps(id2val)) {
-      return;
-    }
-    actionFunc.call(thisOrNil, id2val);
-    var nextNeighbors = neighborsFunc.call(thisOrNil, id2val);
-    eg.log("nextNeighbors:", nextNeighbors);
-    sum_nextNeighbors += Object.keys(nextNeighbors).length;
-    eg.log("sum_nextNeighbors:", sum_nextNeighbors);
-    alreadyVisited = eg.propsUnion(alreadyVisited, id2val);
-    var neighbors = eg.propsSub(nextNeighbors, alreadyVisited);
-    this.h_traverseOmitVisitedMulti(
-      neighbors, actionFunc, neighborsFunc, alreadyVisited, thisOrNil
-    );
-  };
-  proto.traverseOmitVisitedMulti = function (
-    id2val, actionFunc, neighborsFunc, thisOrNil)
-  {
-    return this.h_traverseOmitVisitedMulti(
-      id2val, actionFunc, neighborsFunc,
-      { }, thisOrNil
-    );
-  }
-  proto.traverseOmitVisitedSingle = function (
-    id2val, actionFunc, neighborsFunc, thisOrNil)
-  {
-    var actionFuncMulti = eg.applyFunc(actionFunc);
-    var neighborsFuncMulti = eg.mapReduceFunc(neighborsFunc,
-                                              eg.propsUnion, { });
-    return this.traverseOmitVisitedMulti(
-      id2val, actionFuncMulti, neighborsFuncMulti, thisOrNil
-    );
-  };
-
-  proto.h_traverseOmitVisitedMulti2 = function (
-    id2val, actionRetNeighborsFunc, alreadyVisited, thisOrNil)
-  {
-    if (! eg.hasProps(id2val)) {
-      return;
-    }
-    var nextNeighbors = actionRetNeighborsFunc.call(thisOrNil, id2val);
-    eg.log("nextNeighbors:", nextNeighbors);
-    sum_nextNeighbors2 += Object.keys(nextNeighbors).length;
-    eg.log("sum_nextNeighbors2:", sum_nextNeighbors2);
-    alreadyVisited = eg.propsUnion(alreadyVisited, id2val);
-    var neighbors = eg.propsSub(nextNeighbors, alreadyVisited);
-    this.h_traverseOmitVisitedMulti2(
-      neighbors, actionRetNeighborsFunc, alreadyVisited, thisOrNil
-    );
-  };
-  proto.traverseOmitVisitedMulti2 = function (
+  proto.traversePropsF_breadth = function (
     id2val, actionRetNeighborsFunc, thisOrNil)
   {
-    return this.h_traverseOmitVisitedMulti2(
-      id2val, actionRetNeighborsFunc,
-      { }, thisOrNil
-    );
-  }
-  proto.traverseOmitVisitedSingle2 = function (
+    while (eg.hasProps(id2val)) {
+      var next = { };
+      eg.forEach(id2val, function(val, elem) {
+        next = eg.propsUnion(next,
+                             actionRetNeighborsFunc.call(thisOrNil, val, elem));
+      });
+      id2val = next;
+    }
+  };
+  proto.traversePropsF_depth = function (
     id2val, actionRetNeighborsFunc, thisOrNil)
   {
-    var actionRetNeighborsFuncMulti = eg.mapReduceFunc(actionRetNeighborsFunc,
-                                                       eg.propsUnion, { });
-    return this.traverseOmitVisitedMulti2(
-      id2val, actionRetNeighborsFuncMulti, thisOrNil
-    );
+    var that = this;
+    eg.forEach(id2val, function(val, elem) {
+      var next = actionRetNeighborsFunc.call(thisOrNil, val, elem);
+      if (eg.hasProps(next)) {
+        that.traversePropsF_depth(next,
+                                  actionRetNeighborsFunc,
+                                  thisOrNil);
+      }
+    });
   };
+
+  proto.Ex_cycle_marker = {}; // singleton
+  // depth-first needed
+  proto.h_traversePropsF_throwIfCycle = function (
+    id2val, actionRetNeighborsFunc, thisOrNil, elemsInPath)
+  {
+    var that = this;
+    eg.forEach(id2val, function(val, elem) {
+      if (elemsInPath[elem] !== undefined) {
+        throw [that.Ex_cycle_marker, "Cycle detected!", elem];
+      }
+      elemsInPath[elem] = val;
+      var next = actionRetNeighborsFunc.call(thisOrNil, val, elem);
+      if (eg.hasProps(next)) {
+        that.h_traversePropsF_throwIfCycle(next,
+                                           actionRetNeighborsFunc,
+                                           thisOrNil,
+                                           elemsInPath);
+      }
+      delete elemsInPath[elem];
+    });
+  };
+  proto.traversePropsF_throwIfCycle = function (
+    id2val, actionRetNeighborsFunc, thisOrNil)
+  {
+    var elemsInPath = { };
+    this.h_traversePropsF_throwIfCycle(id2val,
+                                       actionRetNeighborsFunc,
+                                       thisOrNil,
+                                       elemsInPath);
+  };
+  //
+  proto.traversePropsF = proto.traversePropsF_breadth;
+
+  proto.traverseOmitVisitedPropsF_breadth = function (
+    id2val, actionRetNeighborsFunc, thisOrNil)
+  {
+    var alreadyVisited = { };
+    while (eg.hasProps(id2val)) {
+      var next = { };
+      eg.forEach(id2val, function(val, elem) {
+        alreadyVisited[elem] = val;
+        next = eg.propsUnion(next,
+                             actionRetNeighborsFunc.call(thisOrNil, val, elem));
+      });
+      id2val = eg.propsSub(next, alreadyVisited); // unvisited next
+    }
+  };
+  //
+  proto.h_traverseOmitVisitedPropsF_depth = function (
+    id2val, actionRetNeighborsFunc, thisOrNil, alreadyVisited)
+  {
+    var next, unvisitedNext;
+    eg.forEach(id2val, function(val, elem) {
+      alreadyVisited[elem] = val;
+      next = actionRetNeighborsFunc.call(thisOrNil, val, elem);
+      unvisitedNext = eg.propsSub(next, alreadyVisited);
+      this.h_traverseOmitVisitedPropsF_depth(
+        unvisitedNext, actionRetNeighborsFunc, thisOrNil, alreadyVisited
+      );
+    });
+  };
+  proto.traverseOmitVisitedPropsF_depth = function (
+    id2val, actionRetNeighborsFunc, thisOrNil)
+  {
+    h_traverseOmitVisitedPropsF_depth(
+      nextElems, actionRetNeighborsFunc, thisOrNil, { });
+  }
+  proto.traverseOmitVisitedPropsF = proto.traverseOmitVisitedPropsF_breadth;
 
   proto.traverseDetect = function (
     id2val, pred, neighborsFunc, thisOrNil)
   {
     var found = null;
-    var actionFuncMulti = function (id2val) {
-      found = eg.detect(id2val, pred, thisOrNil);
-    }
-    var inner_neighborsFuncMulti = eg.mapReduceFunc(neighborsFunc,
-                                                    eg.propsUnion, { });
-    var neighborsFuncMulti = function (id2val) {
-      if (found) {
+    var actionRetNeighborsFunc = function(val, elem) {
+      if (found !== null) {
         return { };
       }
-      return inner_neighborsFuncMulti.call(this, id2val);
-    }
-    this.traverseOmitVisitedMulti(
-      id2val, actionFuncMulti, neighborsFuncMulti, thisOrNil
-    );
+      if (pred.call(this, val, elem)) { // this here injected ..
+        found = [elem, val];
+        return { };
+      }
+      return neighborsFunc.call(this, val, elem);
+    };
+    // .. from here, being thisOrNil arg from above.
+    this.traverseOmitVisitedPropsF(id2val, actionRetNeighborsFunc, thisOrNil);
     return found;
   };
-  // detects cycle for all reached from id2val (inclusive)
-  proto.traverseDetectCycleWithVisitedFor = function (
-    id2val, neighborsFunc, thisOrNil)
+
+  // Returns
+  //   null      : not detected;
+  //   [key, val]: detected prop obj entry as arr.
+  proto.traverseDetect = function (
+    id2val, pred, neighborsFunc, thisOrNil)
   {
-    var visited = { };
-    var revisited = { };
-    var cycle = false;
-    var actionFuncMulti = function (id2val) {
-      revisited = eg.intersection(id2val, visited);
-      cyle = revisited > 0;
-      visited = eg.propsUnion(visited, id2val);
-    }
-    var inner_neighborsFuncMulti
-      = eg.mapReduceFunc(neighborsFunc, eg.propsUnion, { });
-    var neighborsFuncMulti = function (id2val) {
-      if (cycle) {
-        return { }; // end condition
+    var found = null;
+    var actionRetNeighborsFunc = function(val, elem) {
+      if (found !== null) {
+        return { };
       }
-      return inner_neighborsFuncMulti.call(this, id2val);
+      if (pred.call(this, val, elem)) { // this here injected ..
+        found = [elem, val];
+        throw found; // fast-finish traversal
+      }
+      return neighborsFunc.call(this, val, elem);
+    };
+    try {
+      // .. from here, being thisOrNil arg from above.
+      this.traverseOmitVisitedPropsF(id2val,
+                                     actionRetNeighborsFunc,
+                                     thisOrNil);
+    } catch (ex) {
+      if (ex !== found) { // some unexpected exception
+        throw ex;
+      }
     }
-    this.traverseMulti(
-      id2val, actionFuncMulti, neighborsFuncMulti, thisOrNil
-    );
-    return { cycle:cycle, revisited:revisited };
+    return found; // null, if nothing detected
   };
-  // detects cycle for id2val only (not for new ones reached from them)
-  proto.traverseDetectCycleFor = function (
+
+  // detects cycles reachable from id2val elems; stops after first cycle found
+  proto.traverseDetectCycle = function (
     id2val, neighborsFunc, thisOrNil)
   {
-    var neighborsFuncMulti = eg.mapReduceFunc(neighborsFunc,
-                                              eg.propsUnion, { });
-    var neighbors = neighborsFuncMulti.call(thisOrNil, id2val);
-    var pred = function (val, key) {
-      return key in id2val;
-    };
-    // look if one in id2val will be visited starting with its neighbors
-    return this.traverseDetect(
-      neighbors, pred, neighborsFunc, thisOrNil
-    );
+    try {
+      this.traversePropsF_throwIfCycle(id2val, neighborsFunc, thisOrNil);
+    } catch (ex) {
+      if (ex[0] === this.Ex_cycle_marker) {
+        eg.log(ex, "Starting with:", id2val);
+        return true;
+      } else {
+        throw ex;
+      }
+    }
+    eg.log("No cycle found; starting with:", id2val);
+    return false;
   };
+
   // detects reachability of id: good for avoiding cycles by not creating them
   proto.traverseReachesId = function (id2val, id, neighborsFunc, thisOrNil) {
     var found = this.traverseDetect(
@@ -1225,12 +1235,66 @@ var EvolGo = EvolGo || {}, RYT = RYT || {};
     );
     return found !== null;
   };
-  proto.traverseReachesIdWithRel = function (id2val, id, rel) {
+  proto.traverseReachesIdByRel = function (id2val, id, rel) {
     function neighborsFunc(val, id) {
       return rel[id];
     };
     return this.traverseReachesId(id2val, id, neighborsFunc);
   };
+
+
+  proto.test_traverseDetectCycle = function () {
+    var foobarbuz = {foo:"foo",bar:"bar",buz:"buz"};
+    var foobar = {foo:"foo",bar:"bar"};
+    var foo = {foo:"foo"};
+    var bar = {bar:"bar"};
+    var buz = {buz:"buz"};
+    var fool = {fool:"fool"};
+    var neighbors = {foo:{bar:"bar",buz:"buz"},
+                     bar:{buz:"buz"},
+                     buz:{foo:"foo"}};
+    var neighbors = {foo:{bar:"bar",buz:"buz",bal:"bal"},
+                     bar:{buz:"buz",bal:"bal"},
+                     buz:{bal:"bal"}};
+    var neighbors = {foo:{bar:"bar",buz:"buz"},
+                     bar:{buz:"buz"},
+                     buz:{bar:"bar"}};
+    var actionRetNeighborsFunc = function(val, key) {
+      return neighbors[key];
+    };
+    eg.log(this.traverseDetectCycle(fool,
+                                    actionRetNeighborsFunc,
+                                    this));
+    eg.log(this.traverseDetectCycle(foo,
+                                    actionRetNeighborsFunc,
+                                    this));
+    eg.log(this.traverseDetectCycle(bar,
+                                    actionRetNeighborsFunc,
+                                    this));
+    eg.log(this.traverseDetectCycle(buz,
+                                    actionRetNeighborsFunc,
+                                    this));
+    eg.log(this.traverseDetectCycle(foobar,
+                                    actionRetNeighborsFunc,
+                                    this));
+    eg.log(this.traverseDetectCycle(foobarbuz,
+                                    actionRetNeighborsFunc,
+                                    this));
+  };
+
+  proto.test_traverseReachesId = function () {
+    var foobar = {foo:"foo",bar:"bar"};
+    var neighbors = {foo:{bar:"bar",buz:"buz"},
+                     bar:{buz:"buz"},
+                     buz:{foo:"foo"}};
+    eg.log(this.traverseReachesId(foobar,"buz", function(val, key) {
+      return neighbors[key];
+    }, this));
+    eg.log(this.traverseReachesId(foobar,"not_there", function(val, key) {
+      return neighbors[key];
+    }, this));
+  };
+
 
   proto.propagateFinishedState = function (startId) {
     var finished = this.getObject(startId).finished;
@@ -1238,24 +1302,6 @@ var EvolGo = EvolGo || {}, RYT = RYT || {};
       // finished === undefined || finished === true -> propagate nothing
       return;
     }
-    function actionFunc(val, id) {
-      var obj = this.getObject(id);
-      if (! eg.isNil(obj.finished)) {
-        if (obj.finished) {
-          this.change(id, { finished:false }, 'propagateFinishedState()');
-        }
-      }
-    }
-    // finished === false -> propagate finished=false to succs
-    function neighborsFunc(val, id) {
-      var obj = this.getObject(id);
-      if (eg.isNil(obj.finished)) {
-        return { }; // only propagate finished === false (implies via tasks)
-      }
-      eg.assert(obj.finished === false); // avoid thinking errs
-      return this.fromTo[id]; // next id2val, val unused
-    };
-
     function actionRetNeighborsFunc(val, id) {
       var obj = this.getObject(id);
       if (eg.isNil(obj.finished)) {
@@ -1268,48 +1314,15 @@ var EvolGo = EvolGo || {}, RYT = RYT || {};
     }
 
     var startId2val = this.fromTo[startId];
-    if (false) {
-      this.traverseOmitVisitedSingle(
-        startId2val, actionFunc, neighborsFunc, this
-      );
-    } else {
-      this.traverseOmitVisitedSingle2(
-        startId2val, actionRetNeighborsFunc, this
-      );
-    }
+    this.traverseOmitVisitedPropsF(
+      startId2val, actionRetNeighborsFunc, this
+    );
   };
   proto.propagatePrio = function (startId) {
     var prio = this.getObject(startId).prio;
     if (prio === undefined) {
       return;
     }
-    function actionFunc(val, id) {
-      var obj = this.getObject(id);
-      if (! eg.isNil(obj.prio)) {
-        if (obj.prio < prio) {
-          this.change(id, { prio:prio }, 'propagatePrio()');
-        } else { // update in all views
-          this.send({event:'updateElem',
-		     elem:id,
-		     reason:'some successor prio prop changed',
-		     succcessor:startId,
-		     triggeredBy:this});
-        }
-      }
-    }
-    function neighborsFunc(val, id) {
-      var obj = this.getObject(id);
-      if (obj.type !== 'task' // only propagate via tasks
-          // "shortcut" '|| obj.prio == prio' would be wrong
-         ) {
-        return { };
-      }
-      // jump over non-prio task to next task
-      var res = this.toFrom[id]; // next id2val obj (val unused)
-      //eg.log(res);
-      return res;
-    }
-
     function actionReturnNeighborsFunc(val, id) {
       var obj = this.getObject(id);
       if (obj.type == 'task' && ! eg.isNil(obj.prio)) {
@@ -1328,55 +1341,28 @@ var EvolGo = EvolGo || {}, RYT = RYT || {};
     }
 
     var startId2val = this.toFrom[startId];
-    if (false) {
-      this.traverseOmitVisitedSingle(
-        startId2val, actionFunc, neighborsFunc, this
-      );
-    } else {
-      this.traverseOmitVisitedSingle2(
-        startId2val, actionReturnNeighborsFunc, this
-      );
-    }
+    this.traverseOmitVisitedPropsF(
+      startId2val, actionReturnNeighborsFunc, this
+    );
   };
   proto.followerMaxPrioOrNull = function (id) {
     var prio = null;
     var startId2val = this.fromTo[id];
-    function actionFunc(val, id) {
-      var obj = this.getObject(id);
-      if (! eg.isNil(obj.prio)) {
-        prio = prio === null ? obj.prio : Math.max(prio, obj.prio);
-      }
-    }
-    function neighborsFunc(val, id) {
-      var obj = this.getObject(id);
-      if (obj.type !== 'task' // only traverse via tasks
-          || ! eg.isNil(obj.prio)) { // only traverse to first found prio
-        return { };
-      }
-      return this.fromTo[id]; // next id2val, val unused
-    };
 
     function actionRetNeighborsFunc(val, id) {
       var obj = this.getObject(id);
+      if (obj.type !== 'task') { // only traverse via tasks
+        return { };
+      }
       if (! eg.isNil(obj.prio)) {
         prio = prio === null ? obj.prio : Math.max(prio, obj.prio);
-      }
-      if (obj.type !== 'task' // only traverse via tasks
-          || ! eg.isNil(obj.prio)) { // only traverse to first found prio
-        return { };
+        return { }; // only traverse to first found prio
       }
       return this.fromTo[id]; // next id2val, val unused
     }
-
-    if (false) {
-      this.traverseOmitVisitedSingle(
-        startId2val, actionFunc, neighborsFunc, this
-      );
-    } else {
-      this.traverseOmitVisitedSingle2(
-        startId2val, actionRetNeighborsFunc, this
-      );
-    }
+    this.traverseOmitVisitedPropsF(
+      startId2val, actionRetNeighborsFunc, this
+    );
     return prio;
   };
 
@@ -1404,26 +1390,14 @@ var EvolGo = EvolGo || {}, RYT = RYT || {};
 
   proto.reachablesByRelFrom = function (rel, fromId) {
     var res = { };
-    function actionFunc(val, id) {
-      res[id] = val;
-    }
-    function neighborsFunc(val, id) {
-      return rel[id];
-    };
     function actionRetNeighborsFunc(val, id) {
       res[id] = val;
       return rel[id];
     }
     var startId2val = rel[fromId];
-    if (false) {
-      this.traverseOmitVisitedSingle(
-        startId2val, actionFunc, neighborsFunc //, this unused
-      );
-    } else {
-      this.traverseOmitVisitedSingle2(
-        startId2val, actionRetNeighborsFunc //, this unused
-      );
-    }
+    this.traverseOmitVisitedPropsF(
+      startId2val, actionRetNeighborsFunc //, this unused
+    );
     return res;
   };
   proto.reachablesByRelToFromId = function (id) {
