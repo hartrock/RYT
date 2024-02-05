@@ -1564,13 +1564,27 @@ Wenn Sie XHTML-Standard-konform arbeiten wollen, müssen Sie das Attribut in der
       modal: false,
       resizable: true,
       width: diaArgObj.width || 'auto',
+      //mem position: ['center', 200], // mixed type of args working
       position: diaArgObj.pos ?
         [diaArgObj.pos.x, diaArgObj.pos.y]
         : diaArgObj.position ?
         [diaArgObj.position, topOff]
         : 'center',
+      // could be of interest later:
+      // collision: 'none',
+      // position: {my: 'top left', 
+      //            at: 'top left',
+      //            of: window,
+      //            offset: '0% 50px'},
       open: function () {
         ryt.app.registerDiff(elementId, dia);
+        // Dialog windows covering action buttons at top can happen, if main
+        //   window is too small for some dia window: lines here correct this
+        //   behavior.
+        var topStr = $(this).parent().css('top'); // string with 'px' postfix
+        if (parseInt(topStr, 10) < topOff) {// compare numbers (get rid of 'px')
+          $(this).parent().css({'top': topOff});
+        }
       },
       close: function() {
         dia.remove();
