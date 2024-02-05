@@ -2,6 +2,8 @@
 
 *~
 
+/clip.*
+
 # darcs
 /_darcs/
 /.boring
