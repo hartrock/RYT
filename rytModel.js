@@ -172,6 +172,7 @@ var EvolGo = EvolGo || {}, RYT = RYT || {};
   proto.send = function (msg) {
     return this.channel && this.channel.sendFrom(msg, this);
   };
+  // Events here used for updating flow|elem|conn widgets.
   proto.createEvents = function (event, triggeredBy, transInfo) {
     var id2oldProps = transInfo.id2old;
     var id2newProps = transInfo.id2new;
@@ -1329,12 +1330,15 @@ var EvolGo = EvolGo || {}, RYT = RYT || {};
         if (obj.prio < prio) {
           this.change(id, { prio:prio }, 'propagatePrio()');
           return { }; // its neighbors computation triggered by change()
-        } else { // update in all FEs
+        } else {
+          // update in all FEs by other means...
+          /*
           this.send({event:'updateElem',
 		     elem:id,
 		     reason:'some successor\'s prio prop changed',
 		     succcessor:startId,
 		     triggeredBy:this});
+          */
         }
       }
       return this.toFrom[id];

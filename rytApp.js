@@ -1023,9 +1023,8 @@ protoMO_FE.handle_changed = function (msg) {
   }
   if (this.responsibleForChildObj(obj)) {
     this.handle_changedChildObj(obj);
-    /*
-    // prio by propagatePrio in model
-    if (false && "prio" in msg.newProps) {
+    ///*
+    if ("prio" in msg.newProps) {
       var elementsConnectedToFrom = eg.filter(
         this.model.reachablesByRelToFromId(obj.id), function(val, elem) {
           return this.model.elemHasParent(elem, this.parentId);
@@ -1034,7 +1033,8 @@ protoMO_FE.handle_changed = function (msg) {
         this.handle_changedChild(elem);
       }, this);
     }
-    */
+    //*/
+    //todo move to global looking model observer
     if ("finished" in msg.newProps) {
       eg.forEach(this.model.reachablesByRelFromToId(obj.id),
 		 function(val, elem) {
