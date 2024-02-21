@@ -27,10 +27,16 @@ function _receiveFrom(msg, from, doLogging, doAssertHandler) {
   var handlerName = 'handle_' + msg.event;
   var handlerFun = this[handlerName];
   if (doLogging) {
-    eg.log(this + " receiveFrom(): msg:", msg);
+    /*
+    eg.log(this + " receiveFrom(): msg:", msg, ", from:", from);
     if (! handlerFun) {
       eg.log("--> no handler: " + handlerName);
     }
+    */
+    eg.log(this + " receiveFrom(): msg:", msg,
+           (! handlerFun
+            ? "--> no handler: " + handlerName
+            : "--> handled"));
   }
   doAssertHandler && eg.assert(handlerFun);
   handlerFun && handlerFun.call(this, msg, from);
@@ -428,6 +434,160 @@ protoMO_CD.handle_changed = function (msg) {
   attrs.text && this.elementDialog.find("#text").val(attrs.text);
 };
 
+
+// Common computations of visual updates for all insts of MO_FlowEditor (see
+//   handle_update* there).
+function MO_FlowEditors(app) {
+  this.app = app;
+  this.model = app.model;
+  app.wireModelObserver(this);
+}
+var protoMO_FEs = MO_FlowEditors.prototype;
+protoMO_FEs.toString = function() {
+  return this.id || "MO_FlowEditors";
+};
+protoMO_FEs.receiveFrom = receiveFrom;
+
+
+// elem'n'conn updates
+// Visualization updates after model modifications.
+
+protoMO_FEs.do_prioState_updates = function(to, neighbors) {
+  var that = this;
+  var toObj = this.model.getObject(to);
+  var propagatePrio = (typeof toObj.prio === 'number'
+                       ? toObj.prio
+                       : this.model.followerMaxPrioOrNull(to));
+  function actionRetNeighborsFunc(val, id) {
+    var obj = this.getObject(id); // this is model here
+    if (obj.type !== 'task') { // only traverse via tasks
+      return { };
+    }
+    this.send({event: 'updateElem',
+               elem: id,
+               reason: 'some successor\'s prio prop changed',
+               succcessor: to,
+               triggeredBy: that});
+    if (! eg.isNil(obj.prio)) {
+      return { }; // traverse until non-nil prio hull
+    }
+    return this.toFrom[id]; // next id2val, val unused
+  }
+  this.model.traverseOmitVisitedPropsF(this.model.toFrom[to],// start id2val
+                                       actionRetNeighborsFunc,
+                                       this.model);
+};
+
+// Somewhat hackish is using rel vals for storing previously traversed elems:
+//   alt (and more generic) would be additional traversal funcs.
+protoMO_FEs.do_finishedState_updates = function(from, neighbors) {
+  var that = this;
+  var fromObj = this.model.getObject(from);
+  var allowsFinishingTo = this.model.allowsFinishingTo(from);
+  function actionRetNeighborsFunc(prevId, id) {
+    var tobj = this.getObject(id); // this is model here
+    if (tobj.type !== 'task') { // only traverse via tasks
+      return { };
+    }
+    if (true) {
+      this.send({event: 'updateElem',
+                 elem: tobj.id,
+		 reason: 'predecessor finished prop changed',
+		 predecessor: fromObj.id,
+                 triggeredBy: that});
+    }
+    var connObj = this.getConnObjConnectingFromTo(prevId, id); // this->model
+    eg.assert(connObj);
+    this.send({event: 'updateConn',
+               conn: connObj.id,
+               connObj: connObj,
+	       reason: 'finished prop changed',
+               allowsFinishingTo: allowsFinishingTo,
+	       predecessor: from,
+               triggeredBy: that});
+    if (! eg.isNil(tobj.finished)) {
+      return { };  // traverse until non-nil finished hull
+    }
+    // Prepare next id2prevId, prevId used! Avoid changing global rel vals.
+    //   May work without cloneProps: but avoid violating forgotten preconds...
+    var neighbors = eg.cloneProps(this.fromTo[id]);// keep global (src) rel vals
+    for (var n in neighbors) { neighbors[n] = id; } // store prev elem as val
+    return neighbors;
+  }
+  var start_neighbors = { };
+  for (var n in neighbors) { start_neighbors[n] = from; }
+  this.model.traverseOmitVisitedPropsF(start_neighbors, // id2prevId
+                                       actionRetNeighborsFunc,
+                                       this.model);
+};
+
+protoMO_FEs.handle_changed = function (msg) {
+  eg.log("protoMO_FEs.handle_changed()...", msg);
+  var that = this;
+  var obj = msg.objProps;
+  var id = obj.id;
+  if ("prio" in msg.newProps) { // possible prios propagate to -> from
+    var old_propagatePrio = (typeof msg.oldProps.prio === 'number'
+                             ? msg.oldProps.prio
+                             : this.model.followerMaxPrioOrNull(id));
+    var propagatePrio = (typeof obj.prio === 'number'
+                         ? obj.prio
+                         : this.model.followerMaxPrioOrNull(id));
+    if (true) {
+      this.do_prioState_updates(id);
+    } else {
+      if (propagatePrio !== old_propagatePrio) {
+      function actionRetNeighborsFunc(val, id) {
+        var tobj = this.getObject(id); // this is model here
+        if (tobj.type !== 'task') { // only traverse via tasks
+          return { };
+        }
+        this.send({event: 'updateElem',
+                   elem: tobj.id,
+                   reason: 'some successor\'s prio prop changed',
+                   succcessor: obj.id,
+                   triggeredBy: that});
+        if (! eg.isNil(tobj.prio)) {
+          return { }; // traverse until non-nil prio hull
+        }
+        return this.toFrom[id]; // next id2val, val unused
+      }
+      this.model.traverseOmitVisitedPropsF(this.model.toFrom[id],// start id2val
+                                           actionRetNeighborsFunc,
+                                           this.model);
+      }
+    }
+  }
+  if ("finished" in msg.newProps) { // propagate from -> to
+      this.do_finishedState_updates(msg.objProps.id,
+                                    this.model.fromTo[msg.objProps.id]);
+  }
+};
+
+protoMO_FEs.handle_created = function (msg) {
+  eg.log("protoMO_FEs.handle_created()...", msg);
+  var obj = msg.newProps;
+  if (obj._relation === 'conn_fromTo') {
+    var neighbors = { }; neighbors[obj.key_2] = obj.key_2;
+    this.do_finishedState_updates(obj.key_1, neighbors);
+    this.do_prioState_updates(obj.key_2);
+  }
+};
+
+protoMO_FEs.handle_deleted = function (msg) {
+  eg.log("protoMO_FEs.handle_deleted()...", msg);
+  var obj = msg.oldProps;
+  if (obj._relation === 'conn_fromTo') {
+    var allowsFinishingTo_from = this.model.allowsFinishingTo(obj.key_1);
+    var allowsFinishingTo_to = this.model.allowsFinishingTo(obj.key_2);
+    if (allowsFinishingTo_from !== allowsFinishingTo_to) {
+      this.do_finishedState_updates(obj.key_2, this.model.fromTo[obj.key_2]);
+    }
+    this.do_prioState_updates(obj.key_1);
+  }
+};
+
+
 function MO_FlowEditor(app, flowEditor, parentId) {
   this.app = app;
   this.model = app.model;
@@ -441,19 +601,12 @@ protoMO_FE.toString = function() {
   return this.id || "MO_FlowEditor";
 };
 protoMO_FE.receiveFrom = receiveFrom;
-/*
+
+/* // may be of interest later
 protoMO_FE.handle_trans_open = function (msg, from) {};
 protoMO_FE.handle_trans_close = function (msg, from) {};
 protoMO_FE.handle_trans_apply_begin = function (msg, from) {};
 protoMO_FE.handle_trans_apply_end = function (msg, from) {};
-*/
-/*&&& probably obsolete
-protoMO_FE.handle_id2obj_handler = function (id2obj, handler,
-                                             triggeredBy) {
-  eg.forEach(id2obj, function(props, id) {
-    handler.call(this, id, props, triggeredBy);
-  }, this);
-};
 */
 
 function elementWidgetOndblclick(app) {
@@ -515,7 +668,7 @@ protoMO_FE.createTaskWidget = function (taskObj, parent, argObj) {
   var radiusPoint = eg.Point.xy(radius, radius);
   var posCircle = taskWidget.bottomLeft().sub(eg.Point.xy(0, taskWidget.extent().y/2)).sub(eg.Point.xy(radius, 0));
   var bgCircle = r.circle(posCircle.x, posCircle.y, radius).attr(
-    {"fill":"black", "fill-opacity": 0.25, "stroke-width":0.1}
+    {"fill":"grey", "fill-opacity": 0.25, "stroke-width":0.1}
   );
   bgCircle.addClassAttributes(["FPP","finishedBg"]);
   taskWidget.push(bgCircle);
@@ -524,78 +677,70 @@ protoMO_FE.createTaskWidget = function (taskObj, parent, argObj) {
   var bgCircleTop = posCircle.sub(eg.Point.xy(0, radius));
   var bgCircleBottom = posCircle.add(eg.Point.xy(0, radius));
   if (! eg.isNil(taskObj.prio)) {
+    const yOff_Point = eg.Point.xy(0,5);
+    const xOff_Point = eg.Point.xy(5,0);
     var upTop, upLeft, upRight, downBottom, downLeft, downRight;
-    var triaLeftSmallest, triaRightSmallest, upTopSmallest, downBottomSmallest;
-    triaLeftSmallest = posCircle.sub(eg.Point.xy(5,0));
-    triaRightSmallest = posCircle.add(eg.Point.xy(5,0));
-    downBottomSmallest = posCircle.add(eg.Point.xy(0,5));
-    upTopSmallest = posCircle.sub(eg.Point.xy(0,5));
     switch (taskObj.prio) {
     case -1:
-      downBottom = bgCircleBottom;
-      downLeft = bgCircleLeft;
-      downRight = bgCircleRight;
+      downBottom = bgCircleBottom.add(yOff_Point);
+      downLeft = bgCircleLeft.add(yOff_Point);
+      downRight = bgCircleRight.add(yOff_Point);
       break;
-/*
-    case undefined:
-      downBottom = bgCircleBottom;
-      downLeft = bgCircleLeft.add(eg.Point.xy(5,0));
-      downRight = bgCircleRight.sub(eg.Point.xy(5,0));
-      break;
-*/
     case 0:
       break;
-/*
-    case undefined:
-      upTop = bgCircleTop;
-      upLeft = bgCircleLeft.add(eg.Point.xy(5,0));
-      upRight = bgCircleRight.sub(eg.Point.xy(5,0));
-      break;
-*/
     case 1:
-      upTop = bgCircleTop;
-      upLeft = bgCircleLeft;
-      upRight = bgCircleRight;
+      upTop = bgCircleTop.sub(yOff_Point);
+      upLeft = bgCircleLeft.sub(yOff_Point);
+      upRight = bgCircleRight.sub(yOff_Point);
       break;
     default:
       eg.warn("Should not happen.");
       break;
     }
     if (upTop) {
-      upTria = r.path(upTop.to_M() + upLeft.to_L() + upRight.to_L() + upTop.to_L())
-        .attr({fill:"red", "fill-opacity": 1});
+      var upTria
+          = r.path(upTop.to_M()
+                   + upLeft.to_L()
+                   + upRight.to_L()
+                   + upTop.to_L()).attr({fill:"red", "fill-opacity": 1});
       taskWidget.push(upTria);
     }
     if (downBottom) {
-      var downTria = r.path(downBottom.to_M() + downLeft.to_L() + downRight.to_L() + downBottom.to_L())
-        .attr({fill:"blue", "fill-opacity": 1});
+      var downTria
+          = r.path(downBottom.to_M()
+                   + downLeft.to_L()
+                   + downRight.to_L()
+                   + downBottom.to_L()).attr({fill:"blue", "fill-opacity": 1});
       taskWidget.push(downTria);
     }
     var maxPrio = 1, minPrio = -1;
-    var upClickFunc = eg.bindThis(function(e) {
-      this.model.change(id, { prio: Math.min(taskObj.prio + 1, maxPrio) }, "GUI");
-    }, this);
-    var downClickFunc = eg.bindThis(function(e) {
-      this.model.change(id, { prio: Math.max(taskObj.prio - 1, minPrio) }, "GUI");
-    }, this);
-    var upTriggerTop = bgCircleTop.sub(eg.Point.xy(0,5));
-    var upTrigger = r.path(
-      upTriggerTop.to_M()
-        + bgCircleTop.sub(eg.Point.xy(5, 0)).to_L()
-        + bgCircleTop.add(eg.Point.xy(5, 0)).to_L()
-        + upTriggerTop.to_L())
-      .attr({fill:"red", "fill-opacity": 1, "cursor":"pointer"});
-    taskWidget.push(upTrigger);
-    upTrigger.click(upClickFunc);
+    if (taskObj.prio < maxPrio) {
+      var upTriggerTop = bgCircleTop.sub(yOff_Point);
+      var upTrigger = r.path(
+        upTriggerTop.to_M()
+          + bgCircleTop.sub(xOff_Point).to_L()
+          + bgCircleTop.add(xOff_Point).to_L()
+          + upTriggerTop.to_L())
+          .attr({fill:"red", "fill-opacity": 1, "cursor":"pointer"});
+      var upClickFunc = eg.bindThis(function(e) {
+        this.model.change(id, { prio: Math.min(taskObj.prio + 1, maxPrio) }, "GUI");
+      }, this);
+      taskWidget.push(upTrigger);
+      upTrigger.click(upClickFunc);
+    }
     var followerMaxPrio = this.model.followerMaxPrioOrNull(id);
-    if (followerMaxPrio === null || followerMaxPrio < taskObj.prio) {
-      var downTriggerBottom = bgCircleBottom.add(eg.Point.xy(0,5));
+    if (taskObj.prio > minPrio
+        && (followerMaxPrio === null || followerMaxPrio < taskObj.prio)) {
+      var downTriggerBottom = bgCircleBottom.add(yOff_Point);
       var downTrigger = r.path(
         downTriggerBottom.to_M()
-          + bgCircleBottom.sub(eg.Point.xy(5, 0)).to_L()
-          + bgCircleBottom.add(eg.Point.xy(5, 0)).to_L()
+          + bgCircleBottom.sub(xOff_Point).to_L()
+          + bgCircleBottom.add(xOff_Point).to_L()
           + downTriggerBottom.to_L())
         .attr({fill:"blue", "fill-opacity": 1, "cursor":"pointer"});
+      var downClickFunc = eg.bindThis(function(e) {
+        this.model.change(id, { prio: Math.max(taskObj.prio - 1, minPrio) }, "GUI");
+      }, this);
       taskWidget.push(downTrigger);
       downTrigger.click(downClickFunc);
     }
@@ -721,7 +866,7 @@ protoMO_FE.createTaskWidget = function (taskObj, parent, argObj) {
             || ! taskObj.finished && ! this.model.hasUnfinishedPreds(id)) {
           this.model.change(id, {
             finished: ! taskObj.finished
-          }, "GUI");
+          }, "GUI click");
         }
       }, this);
       dot && dot.click(clickFunc);
@@ -817,22 +962,17 @@ protoMO_FE.getOrCreateConn = function (id) {
   return conn;
 };
 protoMO_FE.updateConnWidgetObj = function (widget, obj) {
-  var to = this.model.getObject(obj.key_2);
-  if (to.type !== 'task') {
+  var toObj = this.model.getObject(obj.key_2);
+  if (toObj.type !== 'task') {
     return; // no triggering via comments
   }
-  var from = this.model.getObject(obj.key_1);
-  if (from.finished !== undefined) {
-    if (from.finished) {
-      widget.removeClassAttribute("cold");
-      widget.addClassAttribute("hot");
-    } else {
-      widget.removeClassAttribute("hot");
-      widget.addClassAttribute("cold");
-    }
-  } else {
+  var from = obj.key_1; //this.model.getObject(obj.key_1);
+  if (this.model.allowsFinishingTo(from)) {
     widget.removeClassAttribute("cold");
+    widget.addClassAttribute("hot");
+  } else {
     widget.removeClassAttribute("hot");
+    widget.addClassAttribute("cold");
   }
 };
 protoMO_FE.updateConn = function (id) {
@@ -888,13 +1028,6 @@ protoMO_FE.handle_created = function (msg) {
         connWidget = this.getConn(obj.id);
       }
       this.updateConnWidgetObj(connWidget, obj);
-      var from = this.model.getObject(obj.key_1);
-      var to = this.model.getObject(obj.key_2);
-      if (from.finished && to.finished === false) {
-        this.flowEditor.roll(connWidget,
-                             false, // recursivelyFlag
-                             false); // reversedFlag
-      }
     }
     fromIsChild && this.handle_changedChild(obj.key_1);
     toIsChild && this.handle_changedChild(obj.key_2);
@@ -998,21 +1131,37 @@ protoMO_FE.responsibleForChildObj = function (obj) {
 protoMO_FE.responsibleForChild = function (id) {
   return this.model.elemHasParent(id, this.parentId);
 };
+protoMO_FE.responsibleForConnObj = function (obj) {
+  return (this.responsibleForChild(obj.key_1)
+          && this.responsibleForChild(obj.key_2))
+};
+protoMO_FE.responsibleForConn = function (id) {
+  return this.responsibleForConnObj(this.model.getObject(id));
+};
 protoMO_FE.parentsOfObjChildsHere = function (obj) {
   eg.assert(obj);
   return this.model.parentsOfNChildsOf(obj.id, this.parentId);
 };
 protoMO_FE.handle_updateElem = function (msg) {
-  //eg.log("protoMO_FE.handle_updateElem");
-  //eg.log(msg);
+  eg.log("protoMO_FE.handle_updateElem", msg);
   if (this.responsibleForChild(msg.elem)) {
     this.handle_changedChild(msg.elem); // treat it as changed for rerendering
   }
 }
+protoMO_FE.handle_updateConn = function (msg) {
+  eg.log("protoMO_FE.handle_updateConn", msg);
+  var connObj = msg.connObj;
+  if (this.responsibleForConnObj(connObj)) {
+    this.updateConnWidgetObj(this.getConn(connObj.id), connObj);
+    var connWidget = this.getConn(connObj.id);
+    this.flowEditor.roll(connWidget,
+                         ! msg.allowsFinishingTo); // reversedFlag
+  }
+};
 protoMO_FE.handle_changed = function (msg) {
-  eg.log("MO_FlowEditor.prototype.handle_changed()");
-  eg.log(this);
-  eg.log(msg);
+  eg.log("protoMO_FE.handle_changed()", msg);
+  //eg.log(this);
+  //eg.log(msg);
   var obj = msg.objProps;
   if (obj._relation === 'parentChild') {
     if (msg.triggeredBy !== this.corresponding_feoId
@@ -1023,42 +1172,6 @@ protoMO_FE.handle_changed = function (msg) {
   }
   if (this.responsibleForChildObj(obj)) {
     this.handle_changedChildObj(obj);
-    ///*
-    if ("prio" in msg.newProps) {
-      var elementsConnectedToFrom = eg.filter(
-        this.model.reachablesByRelToFromId(obj.id), function(val, elem) {
-          return this.model.elemHasParent(elem, this.parentId);
-        }, this);
-      eg.forEach(elementsConnectedToFrom, function(val, elem) {
-        this.handle_changedChild(elem);
-      }, this);
-    }
-    //*/
-    //todo move to global looking model observer
-    if ("finished" in msg.newProps) {
-      eg.forEach(this.model.reachablesByRelFromToId(obj.id),
-		 function(val, elem) {
-		   this.model.send({event:'updateElem',
-				    elem:elem,
-				    reason:'predecessor finished prop changed',
-				    predecessor:obj.id, // opt possibility
-				    triggeredBy:this});
-		 }, this);
-      var connsTo = this.model.filterConnsConnectingTo(obj.id);
-      var connsFrom = this.model.filterConnsConnectingFrom(obj.id);
-      eg.forEach(connsFrom, function(connObj, id) {
-        if (this.model.elemHasParent(connObj.key_2, this.parentId)) {
-          this.updateConnWidgetObj(this.getConn(id), connObj);
-          if (msg.newProps.finished !== undefined
-              && this.model.getObject(connObj.key_2).finished !== undefined) {
-            var connWidget = this.getConn(id);
-            this.flowEditor.roll(connWidget,
-                                 false, // recursivelyFlag
-                                 ! msg.newProps.finished); // reversedFlag
-          }
-        }
-      }, this);
-    }
   }
   if (msg.newProps.hasOwnProperty("finished")) { // msg.newProps always defined here
     eg.forEach(this.parentsOfObjChildsHere(obj), function(val, id) {
@@ -1566,7 +1679,7 @@ protoApp.wire = function (flowEditor, flowId, mo_FlowEditor, feo_Model) {
   feo_Model.flowId = flowId;
   mo_FlowEditor.corresponding_feoId = feo_Model.id;
   feo_Model.corresponding_moId = mo_FlowEditor.id;
-  this.model.channel.addListener(mo_FlowEditor);
+  this.wireModelObserverFirst(mo_FlowEditor); // place it before MO_FlowEditors
   eg.assert(! flowEditor.channel);
   flowEditor.channel = new eg.BatchChannel();
   flowEditor.channel.addListener(feo_Model);
@@ -1614,6 +1727,9 @@ protoApp.createCanvasOndblclick = function (flowEditor, parentId) {
 };
 protoApp.wireModelObserver = function (observer) {
   this.model.channel.addListener(observer);
+};
+protoApp.wireModelObserverFirst = function (observer) {
+  this.model.channel.addListenerFirst(observer);
 };
 protoApp.unwireModelObserver = function (observer) {
   this.model.channel.removeListener(observer);
@@ -1985,7 +2101,10 @@ protoApp.openTaskDialog = function (argObjOrNil, callbackOK, parentId, taskIdOrN
       ''
       +'<td colspan="3" id="finishedTD">'
       +  '<input type="checkbox" id="finished" name="'+nameForFinished+'_1"'
-      +     (finished === true ? ' checked' : '')
+      +     (finished === true || (finished === undefined && finishedAllowed)
+             ? ' checked' : '')
+      +     (finished === undefined || ! finishedAllowed
+             ? ' disabled' : '')
       +  '/ >'
       +  '<span class="finishedLabel">finished'
       +     (finishedAllowed ? '' : '\u00A0(blocked)')
@@ -2004,45 +2123,54 @@ protoApp.openTaskDialog = function (argObjOrNil, callbackOK, parentId, taskIdOrN
     var finishedButtons = $(finishedButtonsStr);
     wrapper.prepend(finishedButtons);
 
-    function setNAAttributes() {
-      var finishedLabel = $dia.find(".finishedLabel");
-      if ($dia.finished === undefined) {
-        finishedNAButton.attr('checked', true);
-        finishedLabel.css("color", "#777");
-        //finishedButton.css("background-color", "#333");
-      } else {
-        finishedNAButton.attr('checked', false);
-        finishedLabel.css("color", "");
-        //finishedButton.css("background-color", "");
-      }
-    }
     // toggle logic needs extra var, since checked is always on ..
     // .. when triggering click event.
     var finishedButton = $dia.find('#finished');
     var finishedNAButton = $dia.find('#finished_NA');
-    finishedButton.click(function() {
+
+    function setNAAttributes() {
+      var finishedLabel = $dia.find(".finishedLabel");
+      var finishedNALabel = $dia.find(".naLabel");
       if ($dia.finished === undefined) {
-        $dia.finished = finishedAllowed;
-        setNAAttributes();
+        finishedNAButton.attr('checked', true);
+        finishedNALabel.text('n/a\u00A0(pass-through)'); //.button('refresh');
+        //finishedLabel.css("color", "#777");
+        //finishedButton.css("background-color", "#333");
+      } else {
+        finishedNAButton.attr('checked', false);
+        finishedNALabel.text('n/a');
+        finishedLabel.css("color", "");
+        //finishedButton.attr('checked', false);
+        //finishedButton.css("background-color", "");
       }
-      else {
-        if (! finishedAllowed) {
-          $dia.finished = false;
-        } else {
-          if (! finishingAutomated) {
-            $dia.finished = ! $dia.finished;
-          }
-        }
+    }
+    finishedButton.click(function() {
+      const isChecked = finishedButton.is(":checked");
+      eg.log("finishedButton isChecked:", isChecked);
+      if ($dia.finished === undefined){
+        eg.log("Huh?"); // button should be disabled
+        throw "Huh!";
+      }
+      if (! finishedAllowed) {
+        $dia.finished = false;
+      } else if (! finishingAutomated) {
+        $dia.finished = ! $dia.finished;
       }
       finishedButton.attr('checked', $dia.finished);
+      finishedButton.attr('disabled', ! finishedAllowed);
     });
     finishedNAButton.click(function() {
+      const isChecked = finishedNAButton.is(":checked");
+      eg.log("finishedNAButton isChecked:", isChecked);
       if ($dia.finished === undefined) {
-        $dia.finished = finishedAllowed;
-        finishedButton.attr('checked', $dia.finished);
+        $dia.finished = false;
+        finishedButton.attr('checked', false);
+        finishedButton.attr('disabled', ! finishedAllowed);
         finishedButton.focus();
       } else {
         $dia.finished = undefined;
+        finishedButton.attr('checked', finishedAllowed);
+        finishedButton.attr('disabled', true);
       }
       setNAAttributes();
     });
@@ -4432,7 +4560,8 @@ protoApp.initModelNFlowEditor = function (data) {
 
   var rootID = this.model.rootID;
   this.flowEditorNObservers = this.createFlowEditorNObservers(this.r, rootID);
-  // milestone widget //TODO: move to createMainButtons?
+  this.mo_flowEditors = new MO_FlowEditors(this);//sends updates for FlowEditors
+  // milestone widget //todo: move to createMainButtons?
   this.mw = this.r.eg.createMilestonesWidget(
     this.mainButtons.speedButtonsWidget.bottomLeft().add(eg.Point.xy(0,10)),
     this.mainButtons.speedButtonsWidget.getBBox().width, eg.Point.xy(10,10)
@@ -4461,18 +4590,21 @@ protoApp.deleteModelNFlowEditor = function() {
   this.unwireModelObserver(this.mo_Visualizer);
   var rootFlowEditor = this.flowEditorNObservers.flowEditor;
   this.unwireModelObserver(this.flowEditorNObservers.mo_flowEditor);
+  this.unwireModelObserver(this.mo_flowEditors);
   this.unwireModelActionSObserver(this.mo_MilestonesWidget);
   this.unwireModelActionSObserver(this.mo_App);
   this.model.channel = rootFlowEditor.channel = null;
   this.flowEditors.remove(rootFlowEditor);
   rootFlowEditor.removeFromGUI();
   this.mw.remove();
-  this.mw = null;
-  this.mo_Visualizer
+  this.mw
+    = this.mo_Visualizer
     = this.flowEditorNObservers
-    = this.mo_MilestonesWidget = this.mo_App
+    = this.mo_flowEditors
+    = this.mo_MilestonesWidget
+    = this.mo_App
+    = this.model
     = null;
-  this.model = null;
 };
 // helper for positioning of elems inside canvas (relative to its origin)
 protoApp.getCanvasRect = function () {

@@ -916,6 +916,11 @@ Function.prototype.bindThis = function (obj) {
       this._arr.push(e);
     }
   };
+  protoOSet.addFirst = function (e) {
+    if (! this.contains(e)) {
+      this._arr.unshift(e);
+    }
+  };
   protoOSet.remove = function (e) {
     var ix = this._arr.indexOf(e);
     if (ix >= 0) {
@@ -1022,6 +1027,10 @@ Function.prototype.bindThis = function (obj) {
       l.receiveFrom(msg, from);
       ++self._numOfReceives;
     });
+    return this;
+  };
+  protoC.addListenerFirst = function (l) {
+    this.listeners.addFirst(l);
     return this;
   };
   protoC.addListener = function (l) {

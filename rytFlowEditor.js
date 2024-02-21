@@ -34,7 +34,7 @@ var EvolGo = EvolGo || {}, RYT = RYT || {};
       isConnecting: false,
       selected: new eg.Set(), selectedConnections: new eg.Set(),
       connLeader: this.makeConnectionLeader(), connLeaderConns: [],
-      marblesRollFlag: true
+      marblesRollFlag: true // could be used
     };
     this.widgets = [];
     this.connections = [];
@@ -164,10 +164,10 @@ var EvolGo = EvolGo || {}, RYT = RYT || {};
     this.widgetDblclick = function (e) {
       e = e || window.event;
       //eg.log("widgetDblclick(), e:", e);
-      if (! e.shiftKey) {
+      if (! e.shiftKey) { //!
         return;
       }
-      self.rollFor(this, this.state.marblesRollFlag);
+      //old: self.rollFor(this, false);
       eg.stopPropagationPreventDefault(e);
     };
     // connection
@@ -891,7 +891,7 @@ var EvolGo = EvolGo || {}, RYT = RYT || {};
     widget.mouseup(  isSet ? eg.bindAsEventListener(this.widgetMouseup, widget)   : this.widgetMouseup);
     widget.mouseover(isSet ? eg.bindAsEventListener(this.widgetMouseover, widget) : this.widgetMouseover);
     widget.mouseout( isSet ? eg.bindAsEventListener(this.widgetMouseout, widget)  : this.widgetMouseout);
-    //widget.dblclick( isSet ? eg.bindAsEventListener(this.widgetDblclick, widget)  : this.widgetDblclick);
+    /*widget.dblclick( isSet ? eg.bindAsEventListener(this.widgetDblclick, widget)  : this.widgetDblclick);*/
     widget.addClassAttributes(["connectable", "movable"]);
     //widget.click(new eg.DebugEventHandler("widget.click"));
   };
@@ -911,9 +911,8 @@ var EvolGo = EvolGo || {}, RYT = RYT || {};
     marble.hide();
     return marble;
   };
-  protoFE.roll = function (conn, recursivelyFlag, reversedFlag) {
+  protoFE.roll = function (conn, reversedFlag) {
     var self = this;
-    //eg.log("[5] before ++busyCount:", this.busyCount);
     ++this.busyCount;
     var line = conn.line;
     var lineLength = line.getTotalLength();
@@ -930,27 +929,11 @@ var EvolGo = EvolGo || {}, RYT = RYT || {};
     marble.moveTo(start.x - marbleRadius, start.y - marbleRadius);
     marble.toFront().show();
     alongFunc.call(marble,
-      line, lineLength / 200 * this.animationTime, false,
-      function(){
-        marble.remove();
-        if (recursivelyFlag) {
-          self.rollFor(conn.to, true, reversedFlag);
-        }
-        //eg.log("[6] before --busyCount:", self.busyCount);
-        --self.busyCount;
-     }
-    );
-  };
-  protoFE.rollFor = function (widget, recursivelyFlag, reversedFlag) {
-    var conns =
-      (reversedFlag
-       ? this.connections.filter(function(c) {
-         return c.to === widget;
-       })
-       : this.connections.filter(function(c) {
-         return c.from === widget;
-       }));
-    conns.forEach(function(c){ this.roll(c, recursivelyFlag, reversedFlag); }, this);
+                   line, lineLength / 200 * this.animationTime, false,
+                   function(){
+                     marble.remove();
+                     --self.busyCount;
+                   });
   };
 
   // spinner

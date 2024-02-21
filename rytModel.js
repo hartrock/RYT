@@ -891,6 +891,20 @@ var EvolGo = EvolGo || {}, RYT = RYT || {};
     return res;
   };
 
+  proto.getConnIdConnectingFromTo = function(fromId, toId) {
+    var relConn_1_2_id = this.relations.conn_fromTo['1->2->id'];
+    var tmp, tmp2;
+    return ((tmp = relConn_1_2_id[fromId])
+            ? ((tmp2 = tmp[toId])
+               ? tmp2
+               : null)
+            : null);
+  };
+  proto.getConnObjConnectingFromTo = function(fromId, toId) {
+    var connId = this.getConnIdConnectingFromTo(fromId, toId);
+    return connId && this.getObject(connId);
+  };
+
   proto.filterConnsConnecting = function(connectableId) {
     return eg.filter(this.objectMap, function(obj, id, objectMap) {
       return obj.type === 'conn_fromTo'
@@ -1243,7 +1257,6 @@ var EvolGo = EvolGo || {}, RYT = RYT || {};
     return this.traverseReachesId(id2val, id, neighborsFunc);
   };
 
-
   proto.test_traverseDetectCycle = function () {
     var foobarbuz = {foo:"foo",bar:"bar",buz:"buz"};
     var foobar = {foo:"foo",bar:"bar"};
@@ -1297,53 +1310,89 @@ var EvolGo = EvolGo || {}, RYT = RYT || {};
   };
 
 
-  proto.propagateFinishedState = function (startId) {
-    var finished = this.getObject(startId).finished;
-    if (finished !== false) {
-      // finished === undefined || finished === true -> propagate nothing
-      return;
-    }
-    function actionRetNeighborsFunc(val, id) {
-      var obj = this.getObject(id);
-      if (eg.isNil(obj.finished)) {
-        return { }; // only propagate finished === false (implies via tasks)
+// Could be of interest later. ...
+  // Returns
+  //   { }                 : selected nothing;
+  //   { <key>: <val> ... }: selected some props.
+  proto.propsSelect = function (
+    id2val, pred, neighborsFunc, thisOrNil)
+  {
+    var selected = { };
+    var actionRetNeighborsFunc = function(val, elem) {
+      if (pred.call(this, val, key)) { // this here injected ..
+        selected[key] = val;
       }
-      if (obj.finished) {
-        this.change(id, { finished:false }, 'propagateFinishedState()');
+      return neighborsFunc.call(this, val, key);
+    };
+    // .. here, being thisOrNil arg from above.
+    this.traverseOmitVisitedPropsF(id2val,
+                                   actionRetNeighborsFunc,
+                                   thisOrNil);
+    return selected;
+  };
+  // Does not traverse neighbors of selected elements (after pred evaluates to
+  //   true).
+  proto.propsSelectHull = function (
+    id2val, pred, neighborsFunc, thisOrNil)
+  {
+    var selected = { };
+    var actionRetNeighborsFunc = function(val, elem) {
+      if (pred.call(this, val, key)) { // this here injected ..
+        selected[key] = val;
+        return { };
       }
-      return this.fromTo[id]; // next id2val, val unused
-    }
+      return neighborsFunc.call(this, val, key);
+    };
+    // .. here, being thisOrNil arg from above.
+    this.traverseOmitVisitedPropsF(id2val,
+                                   actionRetNeighborsFunc,
+                                   thisOrNil);
+    return selected;
+  };
+// ... Could be of interest later.
 
-    var startId2val = this.fromTo[startId];
-    this.traverseOmitVisitedPropsF(
-      startId2val, actionRetNeighborsFunc, this
-    );
+
+  // If some elem is effectively unfinished, unfinish all finished successors.
+  proto.propagateFinishedState = function (startId) {
+    eg.log("propagateFinishedState", startId);
+    if (! this.allowsFinishingTo(startId)) { // only propagate unfinishability
+      function actionRetNeighborsFunc(val, id) {
+        var obj = this.getObject(id);
+        if (obj.finished !== undefined) {
+          if (obj.finished) {
+            this.change(id, { finished:false }, 'propagateFinishedState()');
+          }
+          // no deeper traversal (already false or propagation started again ..
+          return { }; // .. by change to false)
+        }
+        return this.fromTo[id]; // propagate via undefined finished props
+      }
+      var startId2val = this.fromTo[startId];
+      this.traverseOmitVisitedPropsF(
+        startId2val, actionRetNeighborsFunc, this
+      );
+    }
   };
   proto.propagatePrio = function (startId) {
     var prio = this.getObject(startId).prio;
-    if (prio === undefined) {
-      return;
-    }
+    if (prio === undefined) { // only *changes* handled here: *visibility* ..
+      if ((prio = this.followerMaxPrioOrNull(startId)) === null) {
+        return; // .. of prio from start->to in direction of from<-start ..
+      }
+    } // .. handled in observer
     function actionReturnNeighborsFunc(val, id) {
       var obj = this.getObject(id);
-      if (obj.type == 'task' && ! eg.isNil(obj.prio)) {
-        if (obj.prio < prio) {
-          this.change(id, { prio:prio }, 'propagatePrio()');
-          return { }; // its neighbors computation triggered by change()
-        } else {
-          // update in all FEs by other means...
-          /*
-          this.send({event:'updateElem',
-		     elem:id,
-		     reason:'some successor\'s prio prop changed',
-		     succcessor:startId,
-		     triggeredBy:this});
-          */
-        }
+      if (obj.type !== 'task') {
+        return { };
       }
-      return this.toFrom[id];
+      if (! eg.isNil(obj.prio)) {
+        if (obj.prio < prio) { // change() triggers propagatePrio again, but ..
+          this.change(id, { prio:prio }, 'propagatePrio()');
+        }
+        return { }; // .. also stop at (non-nil) unchanged prio
+      }
+      return this.toFrom[id]; // skip nil prio
     }
-
     var startId2val = this.toFrom[startId];
     this.traverseOmitVisitedPropsF(
       startId2val, actionReturnNeighborsFunc, this
@@ -1374,12 +1423,13 @@ var EvolGo = EvolGo || {}, RYT = RYT || {};
     var startId2val = this.toFrom[id];
     var pred = function(val, key) {
       var obj = this.getObject(key);
-      return "finished" in obj && ! obj.finished;
+      return obj.finished === false; // obj.finished undefined to be skipped
     };
     function neighborsFunc(val, id) {
       var obj = this.getObject(id);
       if (obj.type !== 'task' // only traverse via tasks
-          || "finished" in obj) { // stop at tasks having finished state
+          || "finished" in obj) { // stop at tasks having (bool) finished state
+        eg.assert(obj.finished !== undefined);
         return { };
       }
       return this.toFrom[id]; // next id2val, val unused
@@ -1387,10 +1437,15 @@ var EvolGo = EvolGo || {}, RYT = RYT || {};
     return (this.traverseDetect(startId2val, pred, neighborsFunc, this)
             !== null);
   };
-
   proto.canBeFinished = function (id) {
     return this.canBeFinishedFromChilds(id) && ! this.hasUnfinishedPreds(id);
   };
+  proto.allowsFinishingTo = function (from) {
+    var fromObj = this.getObject(from);
+    return (fromObj.finished !== undefined
+            ? fromObj.finished
+            : ! this.hasUnfinishedPreds(from));
+  }
 
   proto.reachablesByRelFrom = function (rel, fromId) {
     var res = { };
@@ -1477,19 +1532,21 @@ var EvolGo = EvolGo || {}, RYT = RYT || {};
     }
     this.openBatch('change', from);
     proto._proto.change.call(this, id, props, from);
-    // finishing
-    if ('logic' in props || props.subtaskFinishPropagation) {
-      this.updateFinishedInParent(id); // update itself
-    }
-    if ('finished' in props) {
-      this.updateFinishedInParentsOf(id); // update its parents
-    }
-    // connections
-    if ('prio' in props) {
-      this.propagatePrio(id);
-    }
-    if ('finished' in props) {
-      this.propagateFinishedState(id);
+    if (this.getObject(id).type === 'task') {//todo check props computation
+      // finishing
+      if ('logic' in props || props.subtaskFinishPropagation) {
+        this.updateFinishedInParent(id); // update itself
+      }
+      if ('finished' in props) {
+        this.updateFinishedInParentsOf(id); // update its parents
+      }
+      // connections
+      if ('prio' in props) {
+        this.propagatePrio(id);
+      }
+      if ('finished' in props) {
+        this.propagateFinishedState(id);
+      }
     }
     this.closeBatch('change', from);
   };
