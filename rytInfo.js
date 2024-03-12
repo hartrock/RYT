@@ -130,7 +130,7 @@ var EvolGo = EvolGo || {}, RYT = RYT || {};
   };
 
   protoI.defaultPrefs = { taskColor:"green", taskFontColor:"white max",
-                          transparent_taskColor:"light green", transparent_taskFontColor:"black",
+                          transparent_taskColor:"cyan", transparent_taskFontColor:"black",
                           commentColor:"yellow", commentFontColor:"black max",
                           showInfoMessagesFlag:true,
                           fastInputFlag:false,
@@ -149,7 +149,11 @@ var EvolGo = EvolGo || {}, RYT = RYT || {};
     'white':"#ccc",
     'black':"#111",
     'white max':"#fff",
-    'black max':"#000"
+    'black max':"#000",
+    //
+    'cyan':"rgb(0, 255, 255)",
+    'magenta':"rgb(255, 0, 255)",
+    'test':"rgb(63, 136, 143)",
   };
   protoI.color2HTMLColor = function (color) {
     return this.color2HTMLColorMap[color];
@@ -178,6 +182,21 @@ var EvolGo = EvolGo || {}, RYT = RYT || {};
       "fill-opacity":0.5
     }; break;
     case "light blue": return {
+      "fill"  : this.color2HTMLColorMap[color],
+      "stroke": this.color2HTMLColorMap[color],
+      "fill-opacity":0.5
+    }; break;
+    case "cyan": return {
+      "fill"  : this.color2HTMLColorMap[color],
+      "stroke": this.color2HTMLColorMap[color],
+      "fill-opacity":0.5
+    }; break;
+    case "magenta": return {
+      "fill"  : this.color2HTMLColorMap[color],
+      "stroke": this.color2HTMLColorMap[color],
+      "fill-opacity":0.5
+    }; break;
+    case "test": return {
       "fill"  : this.color2HTMLColorMap[color],
       "stroke": this.color2HTMLColorMap[color],
       "fill-opacity":0.5

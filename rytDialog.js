@@ -596,13 +596,13 @@ Wenn Sie XHTML-Standard-konform arbeiten wollen, müssen Sie das Attribut in der
     sg.addSelectionData('taskColor',
                         ['green', 'blue', 'red', 'yellow']);
     sg.addSelectionData('transparent_taskColor',
-                        ['green', 'light green', 'light blue']);
+                        ['cyan', 'magenta', 'green', 'light green', 'light blue', 'test']);
     sg.addSelectionData('commentColor',
                         ['yellow', 'blue', 'red', 'green']);
     sg.addSelectionData('taskFontColor',
                         ['black max', 'black', 'white', 'white max']);
     sg.addSelectionData('transparent_taskFontColor',
-                        ['black max', 'black', 'white', 'white max']);
+                        ['black', 'black max', 'white', 'white max']);
     sg.addSelectionData('commentFontColor',
                         ['black max', 'black', 'white', 'white max']);
 
