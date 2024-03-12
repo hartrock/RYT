@@ -63,15 +63,19 @@ var EvolGo = EvolGo || {}, RYT = RYT || {};
     }
     this.widgetMousedown = addBlockedCheck(function (e) {
       e = e || window.event;
-      //eg.log("widgetMousedown", "e: ", e, "e.altKey: " +e.altKey);
+      eg.log("widgetMousedown", "e: ", e,
+             "e.altKey: " +e.altKey,
+             "e.metaKey: " +e.metaKey,
+             "e.ctrlKey: " +e.ctrlKey);
       if (e.button === 2) {
         return; // context menu click
       }
       self.state.mousedownPos = self.canvasMousePos(e);
       var target = eg.targetWithPosition(e);
-      if ((e.altKey || target.raphael && target.raphael.containsClassAttribute('connectArea'))
-      //... || this.containsClassAttribute('connectArea')) -> not defined for r.set()
-          && !self.state.isConnecting) {
+      if ((e.altKey
+           || (target.raphael
+               && target.raphael.containsClassAttribute('connectArea')))
+          && ! self.state.isConnecting) {
         self.addSelection(this); // this is widget here
         self.startConnect();
       } else {
@@ -324,7 +328,7 @@ var EvolGo = EvolGo || {}, RYT = RYT || {};
     function onkeydown(e) {
       e = e || window.event;
       var target = eg.targetWithPosition(e);
-      //eg.log("onkeydown:", e, "target:", target);
+      eg.log("onkeydown:", e, "target:", target);
       if (target.nodeName !== 'TEXTAREA') { // Don't handle task dialog textareas here.
         if (e.keyCode === 46 || e.ctrlKey && e.keyCode === 88) { // del or cut (ctrl-x)
           self.deleteOrCut(e.keyCode === 88);

@@ -17,6 +17,14 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+.ui-dialog-buttonset {
+}
+.ui-widget.ui-button.emphasize {
+    border-color:#F00;
+    border-width:2px;
+    /* border-style: solid !important; */
+}
+
 /* diff view */
 span.diff.insert {
     background-color:#0f0;

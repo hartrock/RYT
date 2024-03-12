@@ -582,19 +582,29 @@ Wenn Sie XHTML-Standard-konform arbeiten wollen, müssen Sie das Attribut in der
     var self = this;
     var sg = createSelectHTMLGenerator(props, ryt.info.defaultPrefs);
 
-    sg.addSelectionData('userExperience', ['beginner', 'intermediate', 'expert']);
+    sg.addSelectionData('userExperience',
+                        ['beginner', 'intermediate', 'expert']);
 
     sg.addSelectionData('showInfoMessagesFlag', [false, true], ["off", "on"]);
     sg.addSelectionData('fastInputFlag',        [false, true], ["off", "on"]);
 
-    sg.addSelectionData('rectCornerRadius',
-                        [null, 2, 5, 10, 20, 50],
-                        ["none", "very low", "low", "medium", "high", "very high"]);
+    sg.addSelectionData(
+      'rectCornerRadius',
+      [null, 2, 5, 10, 20, 50],
+      ["none", "very low", "low", "medium", "high", "very high"]);
 
-    sg.addSelectionData('taskColor',       ['green',  'blue', 'red', 'yellow']);
-    sg.addSelectionData('commentColor',    ['yellow', 'blue', 'red', 'green']);
-    sg.addSelectionData('taskFontColor',   ['black max', 'black', 'white', 'white max']);
-    sg.addSelectionData('commentFontColor',['black max', 'black', 'white', 'white max']);
+    sg.addSelectionData('taskColor',
+                        ['green', 'blue', 'red', 'yellow']);
+    sg.addSelectionData('transparent_taskColor',
+                        ['green', 'light green', 'light blue']);
+    sg.addSelectionData('commentColor',
+                        ['yellow', 'blue', 'red', 'green']);
+    sg.addSelectionData('taskFontColor',
+                        ['black max', 'black', 'white', 'white max']);
+    sg.addSelectionData('transparent_taskFontColor',
+                        ['black max', 'black', 'white', 'white max']);
+    sg.addSelectionData('commentFontColor',
+                        ['black max', 'black', 'white', 'white max']);
 
     sg.addSelectionData('showElementIDsFlag', [false, true], ["no", "yes"]);
     sg.addSelectionData('adminModeFlag',      [false, true], ["off", "on"]);
@@ -660,15 +670,23 @@ Wenn Sie XHTML-Standard-konform arbeiten wollen, müssen Sie das Attribut in der
       +  '</tr>'
 
       +  '<tr>'
-      +    '<td rowspan=2>element colors</td>'
+      +    '<td rowspan=3>element colors</td>'
       +    '<td>task</td>'
       +    '<td class="switch" align="left">'
       + sg.createSelectHTMLIdent("taskColor")
       +    '</td>'
-      +    '<td align="left" rowspan=2>'
+      +    '<td rowspan=3 align="left">'
       +      'background color switches'
       +    '</td>'
       +  '</tr>'
+    //
+      +  '<tr>'
+      +    '<td>transparent task</td>'
+      +    '<td class="switch" align="left">'
+      + sg.createSelectHTMLIdent("transparent_taskColor")
+      +    '</td>'
+      +  '</tr>'
+    //
       +  '<tr>'
       +    '<td>comment</td>'
       +    '<td class="switch" align="left">'
@@ -677,15 +695,23 @@ Wenn Sie XHTML-Standard-konform arbeiten wollen, müssen Sie das Attribut in der
       +  '</tr>'
 
       +  '<tr>'
-      +    '<td rowspan=2>element font colors</td>'
+      +    '<td rowspan=3>element font colors</td>'
       +    '<td>task</td>'
       +    '<td class="switch" align="left">'
       + sg.createSelectHTMLIdent("taskFontColor")
       +    '</td>'
-      +    '<td align="left" rowspan=2>'
+      +    '<td rowspan=3 align="left">'
       +      'font color switches'
       +    '</td>'
       +  '</tr>'
+    //
+      +  '<tr>'
+      +    '<td>transparent task</td>'
+      +    '<td class="switch" align="left">'
+      + sg.createSelectHTMLIdent("transparent_taskFontColor")
+      +    '</td>'
+      +  '</tr>'
+    //
       +  '<tr>'
       +    '<td>comment</td>'
       +    '<td class="switch" align="left">'

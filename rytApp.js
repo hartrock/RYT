@@ -54,6 +54,15 @@ function receiveFromWithLoggingNAssert(msg, from) {
   return _receiveFrom.call(this, msg, from, true, true);
 }
 
+// Task elem
+const c_er_pred_finished_prop_changed
+      = 'predecessor finished prop changed';
+const c_er_succ_prio_prop_changed
+      = 'some successor\'s prio prop changed';
+// conn
+const c_er_finished_prop_changed
+      = 'finished prop changed';
+
 
 function FlowEditorObserver(app) {
   this.app = app; // for logger
@@ -298,13 +307,22 @@ protoMO_ED.getObjectFromObjectEvent = function (msg) {
 };
 protoMO_ED.receiveFrom = function(msg, from) {
   //eg.log("" + this + " receiveFrom() triggeredBy " + msg.triggeredBy + ", event: " + msg.event);
-  if (! (msg.event === 'deleted' || msg.event === 'changed') ) {
+  if (! (msg.event === 'deleted' || msg.event === 'changed'
+         || msg.event === 'updateElem'
+        ) ) {
     return;
   }
-  if (! ( (msg.id === this.parentId && msg.event === 'deleted')
-          || msg.id === this.elementId) ) {
-    return; // not responsible
+  if (msg.event === 'updateElem') { // handle ..
+    if (! msg.elem === this.elementId) {
+      return;
+    }
+  } else { // 'deleted' or 'changed'
+    if (! ( (msg.id === this.parentId && msg.event === 'deleted')
+            || msg.id === this.elementId) ) {
+      return; // not responsible
+    }
   }
+  // .. here, if not already handled by sub
   receiveFromWithAssert.call(this, msg, from);
 };
 protoMO_ED.handle_deleted = function (msg) {
@@ -326,40 +344,31 @@ protoMO_TD.toString = function() {
 protoMO_TD.receiveFrom = function(msg, from) {
   //eg.log("" + this + " receiveFrom() triggeredBy " + msg.triggeredBy + ", event: " + msg.event);
   if (! this.isObjectEvent(msg)) {
+    if (msg.event === 'updateElem' && msg.elem === this.elementId) {
+      // handles ..
+      this.handle_updateElem(msg);//.. updatePrioButtons'n'updateFinishedButtons
+    }
     return;
   }
+  // isObjectEvent(msg)
   var obj = this.getObjectFromObjectEvent(msg);
-  var id = msg.id;
   var type = obj.type;
   if (type === 'parentChild') {
-    if (obj.key_1 === this.elementId) {
+    if (this.model.getObject(this.elementId) // (parent) elem not deleted?
+        && obj.key_1 === this.elementId) {
       this.updateFinishedButtons();
       this.updateMoreButtons();
     }
     return;
-  } else if (type === 'conn_fromTo') {
-    if (obj.key_1 === this.elementId) {
-      this.elementDialog.updatePrioButtons();
-      return;
-    }
-  } else if (msg.event === 'changed' && id !== this.elementId) {
-    if (this.model.elemHasParent(id, this.elementId)) {
-      this.handle_changedChild(msg);
-      return;
-    }
-    if ("prio" in msg.newProps
-        && id in (this.model.fromTo[this.elementId] || {})) {
-      this.elementDialog.updatePrioButtons();
-      return;
-    }
-    if ("finished" in msg.newProps
-        && id in (this.model.toFrom[this.elementId] || {})) {
-      this.updateFinishedButtons();
-    }
+  } else if (msg.event === 'changed'
+             && this.model.elemHasParent(msg.id, this.elementId)) {
+    this.handle_changedChild(msg);
+    return;
   }
   // if not handled here, try super
   this._proto._proto.receiveFrom.call(this, msg, from);
 };
+
 protoMO_TD.handle_changed = function (msg) {
   var attrs = msg.newProps;
   attrs.name && this.elementDialog.find("#name").val(attrs.name);
@@ -368,7 +377,7 @@ protoMO_TD.handle_changed = function (msg) {
     this.updateMoreButtons();
   }
   if ('finished' in attrs
-      || 'subtaskFinishPropagation' in attrs //???
+      || 'subtaskFinishPropagation' in attrs
       || 'logic' in attrs) {
     this.updateFinishedButtons();
     this.updateMoreButtons();
@@ -397,7 +406,9 @@ protoMO_TD.handle_changed = function (msg) {
     var rb = this.elementDialog.find("#"+search);
     rb.attr("checked","checked");
   }
+  this.elementDialog.emphasized_OK_button(false);
 };
+
 protoMO_TD.updateFinishedButtons = function () {
   var elementObj = this.model.getObject(this.elementId);
   this.elementDialog.updateFinishedButtons(
@@ -407,17 +418,28 @@ protoMO_TD.updateFinishedButtons = function () {
   );
 };
 protoMO_TD.updateMoreButtons = function () {
-  var elementObj = this.model.getObject(this.elementId);
-  this.elementDialog.updateExtras(elementObj);
+  this.elementDialog.updateExtras();
 };
-
+protoMO_TD.updatePrioButtons = function () {
+  this.elementDialog.updatePrioButtons();
+};
 protoMO_TD.handle_changedChild = function (msg) {
   var props = msg.newProps;
-  if (props.hasOwnProperty("finished")) {
+  if ('finished' in props) {
     this.updateFinishedButtons();
     this.updateMoreButtons();
   }
 };
+
+protoMO_TD.handle_updateElem = function (msg) {
+  eg.log("protoMO_TD.handle_updateElem", msg);
+  if (msg.reason === c_er_succ_prio_prop_changed) {
+    this.elementDialog.updatePrioButtons();
+  } else if (msg.reason === c_er_pred_finished_prop_changed) {
+    this.updateFinishedButtons();
+  }
+};
+
 function MO_CommentDialog(app, commentDialog, parentId, commentId) {
   this._proto = MO_CommentDialog.prototype;
   this.init(app, commentDialog, parentId, commentId); // uses parent init()
@@ -432,6 +454,7 @@ protoMO_CD.toString = function() {
 protoMO_CD.handle_changed = function (msg) {
   var attrs = msg.newProps;
   attrs.text && this.elementDialog.find("#text").val(attrs.text);
+  this.elementDialog.emphasized_OK_button(false);
 };
 
 
@@ -463,12 +486,13 @@ protoMO_FEs.do_prioState_updates = function(to, neighbors) {
     if (obj.type !== 'task') { // only traverse via tasks
       return { };
     }
-    this.send({event: 'updateElem',
-               elem: id,
-               reason: 'some successor\'s prio prop changed',
-               succcessor: to,
-               triggeredBy: that});
-    if (! eg.isNil(obj.prio)) {
+    if (obj.finished !== undefined // no transparent task
+        && ! eg.isNil(obj.prio)) {
+      this.send({event: 'updateElem',
+                 elem: id,
+                 reason: c_er_succ_prio_prop_changed,
+                 succcessor: to,
+                 triggeredBy: that});
       return { }; // traverse until non-nil prio hull
     }
     return this.toFrom[id]; // next id2val, val unused
@@ -489,19 +513,17 @@ protoMO_FEs.do_finishedState_updates = function(from, neighbors) {
     if (tobj.type !== 'task') { // only traverse via tasks
       return { };
     }
-    if (true) {
-      this.send({event: 'updateElem',
-                 elem: tobj.id,
-		 reason: 'predecessor finished prop changed',
-		 predecessor: fromObj.id,
-                 triggeredBy: that});
-    }
+    this.send({event: 'updateElem',
+               elem: tobj.id,
+	       reason: c_er_pred_finished_prop_changed,
+	       predecessor: fromObj.id,
+               triggeredBy: that});
     var connObj = this.getConnObjConnectingFromTo(prevId, id); // this->model
     eg.assert(connObj);
     this.send({event: 'updateConn',
                conn: connObj.id,
                connObj: connObj,
-	       reason: 'finished prop changed',
+	       reason: c_er_finished_prop_changed,
                allowsFinishingTo: allowsFinishingTo,
 	       predecessor: from,
                triggeredBy: that});
@@ -527,40 +549,10 @@ protoMO_FEs.handle_changed = function (msg) {
   var obj = msg.objProps;
   var id = obj.id;
   if ("prio" in msg.newProps) { // possible prios propagate to -> from
-    var old_propagatePrio = (typeof msg.oldProps.prio === 'number'
-                             ? msg.oldProps.prio
-                             : this.model.followerMaxPrioOrNull(id));
-    var propagatePrio = (typeof obj.prio === 'number'
-                         ? obj.prio
-                         : this.model.followerMaxPrioOrNull(id));
-    if (true) {
-      this.do_prioState_updates(id);
-    } else {
-      if (propagatePrio !== old_propagatePrio) {
-      function actionRetNeighborsFunc(val, id) {
-        var tobj = this.getObject(id); // this is model here
-        if (tobj.type !== 'task') { // only traverse via tasks
-          return { };
-        }
-        this.send({event: 'updateElem',
-                   elem: tobj.id,
-                   reason: 'some successor\'s prio prop changed',
-                   succcessor: obj.id,
-                   triggeredBy: that});
-        if (! eg.isNil(tobj.prio)) {
-          return { }; // traverse until non-nil prio hull
-        }
-        return this.toFrom[id]; // next id2val, val unused
-      }
-      this.model.traverseOmitVisitedPropsF(this.model.toFrom[id],// start id2val
-                                           actionRetNeighborsFunc,
-                                           this.model);
-      }
-    }
+    this.do_prioState_updates(id);
   }
   if ("finished" in msg.newProps) { // propagate from -> to
-      this.do_finishedState_updates(msg.objProps.id,
-                                    this.model.fromTo[msg.objProps.id]);
+    this.do_finishedState_updates(id, this.model.fromTo[id]);
   }
 };
 
@@ -574,16 +566,27 @@ protoMO_FEs.handle_created = function (msg) {
   }
 };
 
+// Has to taken into account deleted elem endpoints of conns: furher propagation
+//   not here, but by handling deletion of conns of deleted elems with the other
+//   conn endpoint being undeleted then.
 protoMO_FEs.handle_deleted = function (msg) {
   eg.log("protoMO_FEs.handle_deleted()...", msg);
   var obj = msg.oldProps;
   if (obj._relation === 'conn_fromTo') {
-    var allowsFinishingTo_from = this.model.allowsFinishingTo(obj.key_1);
-    var allowsFinishingTo_to = this.model.allowsFinishingTo(obj.key_2);
-    if (allowsFinishingTo_from !== allowsFinishingTo_to) {
+    var obj_key_1 = this.model.getObject(obj.key_1); // deleted -> undefined
+    var obj_key_2 = this.model.getObject(obj.key_2);
+    if (! // from blocker or may have been one?
+        (obj_key_1 // from (deleted one may have been blocker before) ..
+         && this.model.allowsFinishingTo(obj.key_1) // .. non-blocker?
+        )
+        && // to non-blocker?
+        (obj_key_2 // to ..
+         && this.model.allowsFinishingTo(obj.key_2)) // .. non-blocker?
+       ) {
       this.do_finishedState_updates(obj.key_2, this.model.fromTo[obj.key_2]);
-    }
-    this.do_prioState_updates(obj.key_1);
+    } // deleted obj_key_2 -> no do_finishedState_updates()
+    obj_key_1 // not deleted?
+      && this.do_prioState_updates(obj.key_1);
   }
 };
 
@@ -621,14 +624,14 @@ function elementWidgetOndblclick(app) {
   }
 };
 
-protoMO_FE.createTaskWidget = function (taskObj, parent, argObj) {
+protoMO_FE.createTaskWidget = function (taskObj, parent) {
   var r = this.flowEditor.r;
   var id = taskObj.id;
-  var attrsForTaskBg = ryt.info.attrsForTaskBg();
+  var attrsForTaskBg = ryt.info.attrsForTaskBg(taskObj);
   var taskWidget = r.eg.createTextField(
     this.app.aliasChildInfoStr(taskObj) + eg.strAscii2Unicode(taskObj.name),
     { borders: { right:10 },
-      text:ryt.info.attrsForTaskText(), bg:attrsForTaskBg
+      text:ryt.info.attrsForTaskText(taskObj), bg:attrsForTaskBg
     }
   );
   var radius = 4, circleV = eg.Point.xy(-1,-1).centerOfTouchingCircle(radius);
@@ -663,89 +666,96 @@ protoMO_FE.createTaskWidget = function (taskObj, parent, argObj) {
 
   // FPP widget
   var si = this.app.subelemsInfo(taskObj);
-  if (! (eg.isNil(taskObj.prio) && eg.isNil(taskObj.finished) && ! si.taskHasFinishedCount)) {
-  var radius = 10;
-  var radiusPoint = eg.Point.xy(radius, radius);
-  var posCircle = taskWidget.bottomLeft().sub(eg.Point.xy(0, taskWidget.extent().y/2)).sub(eg.Point.xy(radius, 0));
-  var bgCircle = r.circle(posCircle.x, posCircle.y, radius).attr(
-    {"fill":"grey", "fill-opacity": 0.25, "stroke-width":0.1}
-  );
-  bgCircle.addClassAttributes(["FPP","finishedBg"]);
-  taskWidget.push(bgCircle);
-  var bgCircleLeft = posCircle.sub(eg.Point.xy(radius, 0));
-  var bgCircleRight = posCircle.add(eg.Point.xy(radius, 0));
-  var bgCircleTop = posCircle.sub(eg.Point.xy(0, radius));
-  var bgCircleBottom = posCircle.add(eg.Point.xy(0, radius));
-  if (! eg.isNil(taskObj.prio)) {
-    const yOff_Point = eg.Point.xy(0,5);
-    const xOff_Point = eg.Point.xy(5,0);
-    var upTop, upLeft, upRight, downBottom, downLeft, downRight;
-    switch (taskObj.prio) {
-    case -1:
-      downBottom = bgCircleBottom.add(yOff_Point);
-      downLeft = bgCircleLeft.add(yOff_Point);
-      downRight = bgCircleRight.add(yOff_Point);
-      break;
-    case 0:
-      break;
-    case 1:
-      upTop = bgCircleTop.sub(yOff_Point);
-      upLeft = bgCircleLeft.sub(yOff_Point);
-      upRight = bgCircleRight.sub(yOff_Point);
-      break;
-    default:
-      eg.warn("Should not happen.");
-      break;
+  if (taskObj.finished !== undefined) { // not transparent
+    var radius = 10;
+    var radiusPoint = eg.Point.xy(radius, radius);
+    var posCircle
+        = (taskWidget.bottomLeft()
+           .sub(eg.Point.xy(0, taskWidget.extent().y/2))
+           .sub(eg.Point.xy(radius, 0)));
+    var bgCircle = r.circle(posCircle.x, posCircle.y, radius).attr(
+      {"fill":"grey", "fill-opacity": 0.25, "stroke-width":0.1}
+    );
+    bgCircle.addClassAttributes(["FPP","finishedBg"]);
+    taskWidget.push(bgCircle);
+    var bgCircleLeft = posCircle.sub(eg.Point.xy(radius, 0));
+    var bgCircleRight = posCircle.add(eg.Point.xy(radius, 0));
+    var bgCircleTop = posCircle.sub(eg.Point.xy(0, radius));
+    var bgCircleBottom = posCircle.add(eg.Point.xy(0, radius));
+    if (! eg.isNil(taskObj.prio)) {
+      const yOff_Point = eg.Point.xy(0,5);
+      const xOff_Point = eg.Point.xy(5,0);
+      var upTop, upLeft, upRight, downBottom, downLeft, downRight;
+      switch (taskObj.prio) {
+      case -1:
+        downBottom = bgCircleBottom.add(yOff_Point);
+        downLeft = bgCircleLeft.add(yOff_Point);
+        downRight = bgCircleRight.add(yOff_Point);
+        break;
+      case 0:
+        break;
+      case 1:
+        upTop = bgCircleTop.sub(yOff_Point);
+        upLeft = bgCircleLeft.sub(yOff_Point);
+        upRight = bgCircleRight.sub(yOff_Point);
+        break;
+      default:
+        eg.warn("Should not happen.");
+        break;
+      }
+      if (upTop) {
+        var upTria
+            = r.path(upTop.to_M()
+                     + upLeft.to_L()
+                     + upRight.to_L()
+                     + upTop.to_L()).attr({fill:"red", "fill-opacity": 1});
+        taskWidget.push(upTria);
+      }
+      if (downBottom) {
+        var downTria
+            = r.path(downBottom.to_M()
+                     + downLeft.to_L()
+                     + downRight.to_L()
+                     + downBottom.to_L()).attr({fill:"blue", "fill-opacity":1});
+        taskWidget.push(downTria);
+      }
+      var maxPrio = 1, minPrio = -1;
+      if (taskObj.prio < maxPrio) {
+        var upTriggerTop = bgCircleTop.sub(yOff_Point);
+        var upTrigger = r.path(
+          upTriggerTop.to_M()
+            + bgCircleTop.sub(xOff_Point).to_L()
+            + bgCircleTop.add(xOff_Point).to_L()
+            + upTriggerTop.to_L())
+            .attr({fill:"red", "fill-opacity": 1, "cursor":"pointer"});
+        var upClickFunc = eg.bindThis(function(e) {
+          this.model.change(id,
+                            { prio: Math.min(taskObj.prio + 1, maxPrio) },
+                            "GUI");
+        }, this);
+        taskWidget.push(upTrigger);
+        upTrigger.click(upClickFunc);
+      }
+      var followerMaxPrio = this.model.followerMaxPrioOrNull(id);
+      if (taskObj.prio > minPrio
+          && (followerMaxPrio === null || followerMaxPrio < taskObj.prio)) {
+        var downTriggerBottom = bgCircleBottom.add(yOff_Point);
+        var downTrigger = r.path(
+          downTriggerBottom.to_M()
+            + bgCircleBottom.sub(xOff_Point).to_L()
+            + bgCircleBottom.add(xOff_Point).to_L()
+            + downTriggerBottom.to_L())
+            .attr({fill:"blue", "fill-opacity": 1, "cursor":"pointer"});
+        var downClickFunc = eg.bindThis(function(e) {
+          this.model.change(id,
+                            { prio: Math.max(taskObj.prio - 1, minPrio) },
+                            "GUI");
+        }, this);
+        taskWidget.push(downTrigger);
+        downTrigger.click(downClickFunc);
+      }
     }
-    if (upTop) {
-      var upTria
-          = r.path(upTop.to_M()
-                   + upLeft.to_L()
-                   + upRight.to_L()
-                   + upTop.to_L()).attr({fill:"red", "fill-opacity": 1});
-      taskWidget.push(upTria);
-    }
-    if (downBottom) {
-      var downTria
-          = r.path(downBottom.to_M()
-                   + downLeft.to_L()
-                   + downRight.to_L()
-                   + downBottom.to_L()).attr({fill:"blue", "fill-opacity": 1});
-      taskWidget.push(downTria);
-    }
-    var maxPrio = 1, minPrio = -1;
-    if (taskObj.prio < maxPrio) {
-      var upTriggerTop = bgCircleTop.sub(yOff_Point);
-      var upTrigger = r.path(
-        upTriggerTop.to_M()
-          + bgCircleTop.sub(xOff_Point).to_L()
-          + bgCircleTop.add(xOff_Point).to_L()
-          + upTriggerTop.to_L())
-          .attr({fill:"red", "fill-opacity": 1, "cursor":"pointer"});
-      var upClickFunc = eg.bindThis(function(e) {
-        this.model.change(id, { prio: Math.min(taskObj.prio + 1, maxPrio) }, "GUI");
-      }, this);
-      taskWidget.push(upTrigger);
-      upTrigger.click(upClickFunc);
-    }
-    var followerMaxPrio = this.model.followerMaxPrioOrNull(id);
-    if (taskObj.prio > minPrio
-        && (followerMaxPrio === null || followerMaxPrio < taskObj.prio)) {
-      var downTriggerBottom = bgCircleBottom.add(yOff_Point);
-      var downTrigger = r.path(
-        downTriggerBottom.to_M()
-          + bgCircleBottom.sub(xOff_Point).to_L()
-          + bgCircleBottom.add(xOff_Point).to_L()
-          + downTriggerBottom.to_L())
-        .attr({fill:"blue", "fill-opacity": 1, "cursor":"pointer"});
-      var downClickFunc = eg.bindThis(function(e) {
-        this.model.change(id, { prio: Math.max(taskObj.prio - 1, minPrio) }, "GUI");
-      }, this);
-      taskWidget.push(downTrigger);
-      downTrigger.click(downClickFunc);
-    }
-  }
-  var fgCircle, crosslines, crosslinesSubelems;
+    var fgCircle, crosslines, crosslinesSubelems;
     function distanceFinished(si) {
       if (! si.taskHasFinishedCount) {
         return 0; // finishable after each logic
@@ -789,93 +799,89 @@ protoMO_FE.createTaskWidget = function (taskObj, parent, argObj) {
         si.taskHasFinishedCount
       );
     }
-  var fractionFinished = percentageFinishedSI(si);
-  if (fractionFinished) {
-    var fractionArea = Math.PI * radius * radius * fractionFinished;
-    var fractionRadius =
-      fractionFinished * radius * 0.9
-      + radius * 0.1; // increases small sizes
-    //var fractionRadius = fractionFinished * radius;
-    //var fractionRadius = Math.sqrt(fractionArea / Math.PI);
-    fgCircle = r.circle(
-      //posCircle.x, posCircle.y, fractionRadius).attr(
-      posCircle.x, posCircle.y, fractionRadius).attr(
-        {"fill":"white", "fill-opacity": 0.25, "stroke-width":0.0}
-      );
-    fgCircle.addClassAttributes(["FPP", "finishedFg"]);
-    taskWidget.push(fgCircle);
-  }
-  var rOff = 4; // radius of dot
-  if (si.taskHasFinishedCount) {
-    if (eg.isNil(taskObj.finished)) {
-      crosslinesSubelems = r.path(
-        bgCircleLeft.to_M()
-          + bgCircleRight.to_L()
-          + bgCircleTop.to_M()
-          + bgCircleBottom.to_L()
-      ).attr({"stroke-dasharray":"-"});
-    } else {
-      crosslinesSubelems = r.path(
-        bgCircleLeft.to_M()
-          + posCircle.sub(eg.Point.xy(rOff,0)).to_L()
-          + posCircle.add(eg.Point.xy(rOff,0)).to_M()
-          + bgCircleRight.to_L()
-          + bgCircleTop.to_M()
-          + posCircle.sub(eg.Point.xy(0, rOff)).to_L()
-          + posCircle.add(eg.Point.xy(0, rOff)).to_M()
-          + bgCircleBottom.to_L()
-      ).attr({"stroke-dasharray":"-"});
+    var fractionFinished = percentageFinishedSI(si);
+    if (fractionFinished) {
+      var fractionArea = Math.PI * radius * radius * fractionFinished;
+      var fractionRadius =
+          fractionFinished * radius * 0.9
+          + radius * 0.1; // increases small sizes
+      fgCircle = r.circle(
+        posCircle.x, posCircle.y, fractionRadius).attr(
+          {"fill":"white", "fill-opacity": 0.25, "stroke-width":0.0}
+        );
+      fgCircle.addClassAttributes(["FPP", "finishedFg"]);
+      taskWidget.push(fgCircle);
     }
-    crosslinesSubelems.addClassAttributes(["crosslines", "subelems"]);
-    taskWidget.push(crosslinesSubelems);
-  }
-  if (! eg.isNil(taskObj.finished)) {
-    var dot = null;
-    if (taskObj.finished) {
-      var bbox = bgCircle.getBBox();
-        crosslines = r.path(bgCircle.topLeft().to_M()
-          + bgCircle.bottomRight().to_L()
-          + bgCircle.topRight().to_M()
-          + bgCircle.bottomLeft().to_L()
-      );
-      // .attr({"title":"done"}); -> gives extra node with toFront() problems
-      crosslines.addClassAttributes(["crosslines", "done"]);
-      taskWidget.push(crosslines);
-    } else {
-      var blockedByPreds = this.model.hasUnfinishedPreds(id);
-      var attrs, classes;
-      if (fractionFinished === 1) {
-        attrs = { "fill": blockedByPreds ? "red" : "white",
-                  "stroke-width":0.0 };
-        classes = ["FPP", "finishedDot"];
+    var rOff = 4; // radius of dot
+    if (si.taskHasFinishedCount) {
+      if (eg.isNil(taskObj.finished)) {
+        crosslinesSubelems = r.path(
+          bgCircleLeft.to_M()
+            + bgCircleRight.to_L()
+            + bgCircleTop.to_M()
+            + bgCircleBottom.to_L()
+        ).attr({"stroke-dasharray":"-"});
       } else {
-        attrs = { "stroke":"#222",
-                  "stroke-width":1 };
-        classes = ["FPP", "finishedDot", "disabled"];
+        crosslinesSubelems = r.path(
+          bgCircleLeft.to_M()
+            + posCircle.sub(eg.Point.xy(rOff,0)).to_L()
+            + posCircle.add(eg.Point.xy(rOff,0)).to_M()
+            + bgCircleRight.to_L()
+            + bgCircleTop.to_M()
+            + posCircle.sub(eg.Point.xy(0, rOff)).to_L()
+            + posCircle.add(eg.Point.xy(0, rOff)).to_M()
+            + bgCircleBottom.to_L()
+        ).attr({"stroke-dasharray":"-"});
       }
-      dot = r.circle(posCircle.x, posCircle.y, rOff).attr(attrs);
-      dot.addClassAttributes(classes);
-      taskWidget.push(dot);
+      crosslinesSubelems.addClassAttributes(["crosslines", "subelems"]);
+      taskWidget.push(crosslinesSubelems);
     }
-    if (fractionFinished === 1) { // can be changed
-      var clickFunc = eg.bindThis(function(e) {
-        if (taskObj.subtaskFinishPropagation) {
-          return; // will be made automatically
+    if (! eg.isNil(taskObj.finished)) {
+      var dot = null;
+      if (taskObj.finished) {
+        var bbox = bgCircle.getBBox();
+        crosslines = r.path(bgCircle.topLeft().to_M()
+                            + bgCircle.bottomRight().to_L()
+                            + bgCircle.topRight().to_M()
+                            + bgCircle.bottomLeft().to_L()
+                           );
+        crosslines.addClassAttributes(["crosslines", "done"]);
+        taskWidget.push(crosslines);
+      } else {
+        var blockedByPreds = this.model.hasUnfinishedPreds(id);
+        var attrs, classes;
+        if (fractionFinished === 1) {
+          attrs = { "fill": blockedByPreds ? "red" : "white",
+                    "stroke-width":0.0 };
+          classes = ["FPP", "finishedDot"];
+        } else {
+          attrs = { "stroke":"#222",
+                    "stroke-width":1 };
+          classes = ["FPP", "finishedDot", "disabled"];
         }
-        if (taskObj.finished
-            || ! taskObj.finished && ! this.model.hasUnfinishedPreds(id)) {
-          this.model.change(id, {
-            finished: ! taskObj.finished
-          }, "GUI click");
-        }
-      }, this);
-      dot && dot.click(clickFunc);
-      fgCircle && fgCircle.click(clickFunc);
-      crosslinesSubelems && crosslinesSubelems.click(clickFunc);
-      crosslines && crosslines.click(clickFunc);
+        dot = r.circle(posCircle.x, posCircle.y, rOff).attr(attrs);
+        dot.addClassAttributes(classes);
+        taskWidget.push(dot);
+      }
+      if (fractionFinished === 1) { // can be changed
+        var clickFunc = eg.bindThis(function(e) {
+          if (taskObj.subtaskFinishPropagation) {
+            return; // will be made automatically
+          }
+          if (taskObj.finished
+              || ! taskObj.finished && ! this.model.hasUnfinishedPreds(id)) {
+            this.model.change(id, {
+              finished: ! taskObj.finished
+            }, "GUI click");
+          }
+        }, this);
+        dot && dot.click(clickFunc);
+        fgCircle && fgCircle.click(clickFunc);
+        crosslinesSubelems && crosslinesSubelems.click(clickFunc);
+        crosslines && crosslines.click(clickFunc);
+      }
     }
-  }
-  } // FPP widget
+  } // not transparent (FPP widget)
   taskWidget.moveToP(this.model.positionOfChildInParent(id, parent));
   return taskWidget;
 };
@@ -1552,7 +1558,10 @@ protoMO_V.triggerWindowsBeforeTransaction = function () {
     dia.dialog( "moveToTop" );
   } else {
     var taskObj = this.model.getObject(nearestFlow);
-    this.app.openElementDialog(nearestFlow, null, { pos: ryt.info.undoRedo.openFlowWinPosition, position: 'left' });
+    this.app.openElementDialog(nearestFlow,
+                               null,
+                               { pos: ryt.info.undoRedo.openFlowWinPosition,
+                                 position: 'left' });
   }
 }; // triggerWindowsBeforeTransaction()
 protoMO_V.triggerWindowsAfterTransaction = function () {
@@ -1791,12 +1800,14 @@ protoApp.taskDialogHelpText = function (showExpertInfo) {
   ;
   return basicHelp + (showExpertInfo ? moreHelp : moreHint);
 };
+//
 protoApp.openTaskDialog = function (argObjOrNil, callbackOK, parentId, taskIdOrNil, diaArgObjOrNil) {
-  var topOff = 50;
+  const newTask_flag = ! argObjOrNil;
+  const dialogTitle = newTask_flag && 'Create Task' || 'Edit Task';
+  const topOff = 50;
+  const dims = eg.Point.xy(600,200);
   var argObj = argObjOrNil || {};
   var diaArgObj = diaArgObjOrNil || { };
-  var dims = eg.Point.xy(600,200);
-  var dialogTitle = (argObjOrNil && 'Edit Task') || 'Create Task';
   var name = argObj.name || this.initialTaskName;
   var description = argObj.description || "";
   var finished = argObjOrNil ? argObj.finished : false; // may be undefined, default false
@@ -1812,7 +1823,6 @@ protoApp.openTaskDialog = function (argObjOrNil, callbackOK, parentId, taskIdOrN
   var nameForPrios = "prio_" + diaCount;
   var nameForFinished = "finished_" + diaCount;
   var colspan = 'colspan="9"';
-  var justBeenCreated = ! taskIdOrNil;
   var $dia = $(
     '<div id="' + taskDialogId +'" title="'+dialogTitle+'">'
 
@@ -1824,10 +1834,11 @@ protoApp.openTaskDialog = function (argObjOrNil, callbackOK, parentId, taskIdOrN
       +'<tr>'
       + '<td style="text-align:center;">name</td>'
       + '<td '+colspan+'>'
-      +  '<textarea name="name" id="name" rows="1" '
+      +  '<textarea name="name" id="name" rows="1"'
+      + 'cols="240"' // cols too low, does not maximize text field
     //+     'tabindex=1 '
-      +     'style="width:100%;" cols="240">' // cols too low, does not maximize text ..
-    //+    name                               // .. field for large task dia.
+      +     'style="resize:vertical; width:100%;">'
+    //+    name
       +  '</textarea>'
       + '</td>'
       +'</tr>'
@@ -1836,9 +1847,9 @@ protoApp.openTaskDialog = function (argObjOrNil, callbackOK, parentId, taskIdOrN
       + '<td style="text-align:center;">description</td>'
       + '<td '+colspan+'>'
       +  '<textarea name="description" id="description" '
-      +     'rows="' + (justBeenCreated || description ? 3 : 1) +'" '
+      +     'rows="' + (newTask_flag || description ? 3 : 1) +'" '
     //+     'tabindex=2 '
-      +     'style="width:100%; font-family:Courier;">'
+      +     'style="resize:vertical; width:100%; font-family:Courier;">'
     //+    description
       +  '</textarea>'
       + '</td>'
@@ -1848,15 +1859,17 @@ protoApp.openTaskDialog = function (argObjOrNil, callbackOK, parentId, taskIdOrN
       +'</tr>'
 
       +'<tr id="trPrioSection">'
-      + '<td style="text-align:center;">prio</td>'
-      + '<td>'
+      + '<td id="l_prioLabel" class="switch_prio_on" style="text-align:center;">prio</td>'
+      + '<td id="l_prioButtons" class="switch_prio_on">'
       +  '<table>'
       +   '<tr id ="prioButtonsWrapper">'
       +   '</tr>'
       +  '</table>'
       + '</td>'
-
-      +'<td id="actionButtonsWrapper" rowspan="1">'
+    //
+      +'<td class="switch_prio_off" colspan=1"></td>'
+    //
+      +'<td id="actionButtonsWrapper" colspan="4" align="center">'
       +'</td>'
 
       +'</tr>'
@@ -1872,49 +1885,107 @@ protoApp.openTaskDialog = function (argObjOrNil, callbackOK, parentId, taskIdOrN
 
       +'</div>'
   );
+  $dia.currObj = argObj; // may change with updates
+  function curr_isTransparent () {
+    return $dia.currObj.finished === undefined;
+  };
+
   $dia.find("#name").val(name);
   $dia.find("#description").val(description);
 
-  $dia.showMoreButton
-    = ! argObj.logic
-    && ! argObj.subtaskFinishPropagation
-    && ryt.info.inExpertMode();
-  $dia.moreFlag = argObj.logic || argObj.subtaskFinishPropagation;
+  $dia.find(".switch_prio_off").hide();
+
+  $dia.hidePrioSection = function () {
+    $dia.find(".switch_prio_off").show();
+    $dia.find(".switch_prio_on").hide();
+  };
+  $dia.showPrioSection = function () {
+    $dia.find(".switch_prio_off").hide();
+    $dia.find(".switch_prio_on").show();
+  };
+  //
+  $dia.hideMoreButton = function () {
+    $dia.find("#"+$dia.moreButtonId).hide();
+  };
+  $dia.hideMoreSection = function () {
+    $dia.find("#finishingExtras").hide();
+    $dia.hideMoreButton();
+  };
+  $dia.showMoreButton = function () {
+    $dia.find("#"+$dia.moreButtonId).show();
+  };
+  $dia.showMoreSection = function () {
+    $dia.find("#finishingExtras").show();
+    $dia.showMoreButton();
+  };
+
+  $dia.forceMore_flag = argObj.logic || argObj.subtaskFinishPropagation;
+  $dia.curr_hasMore = function () {
+    return this.currObj.logic || this.currObj.subtaskFinishPropagation;
+  };
+  //
+  $dia.curr_showMore = function () {
+    return ((this.currObj.finished !== undefined
+             && this.curr_hasMore())
+           );
+  };
+  $dia.q_showMoreButton = function () {
+    return ((newTask_flag
+             || (this.currObj.finished !== undefined // not transparent
+                 && ! this.curr_hasMore()
+                ))
+            && ryt.info.inExpertMode());
+  };
 
   insertActionButtons();
 
   $dia.updatePrioButtons = function () {
+    if (! newTask_flag) {
+      prio = model.getObject(taskIdOrNil).prio;
+    }
+    // taskIdOrNil: null possible arg here
+    var followerMaxPrio = model.followerMaxPrioOrNull(taskIdOrNil);
     // remove existing prio buttons
     var wrapper = this.find('#prioButtonsWrapper');
     var contents = wrapper.contents(); // children() is not enough
     contents.remove();
-    var followerMaxPrio = model.followerMaxPrioOrNull(taskIdOrNil);
     var prioButtons = $(
       ''
         +'<td>'
         + '<input type="radio" id="prio_na" name="'+nameForPrios+'" value="nil"'
-        +   (prio === undefined ? ' checked' : '')
+        +   (prio === undefined
+             ? ' checked' : '')
         + '>'
         + 'n/a\u00A0\u00A0\u00A0'
         +'</td>'
         +'<td id="prioLabels">' // prioButtons[1]
         + (followerMaxPrio === null || followerMaxPrio <= 1
            ? ('<input type="radio" id="prio_high" name="'+nameForPrios+'" value="1"'
-              + (prio === 1 ? ' checked' : '')
+              + (prio === 1
+                 || (followerMaxPrio === 1
+                     && prio !== undefined && prio < followerMaxPrio)
+                 ? ' checked' : '')
               +'/ >high<br>')
            :'')
         + (followerMaxPrio === null || followerMaxPrio <= 0
            ? ('<input type="radio" id="prio_normal" name="'+nameForPrios+'" value="0"'
-              + (prio === 0 ? ' checked' : '')
+              + (prio === 0
+                 || (followerMaxPrio === 0
+                     && prio !== undefined && prio < followerMaxPrio)
+                 ? ' checked' : '')
               +'/ >normal<br>')
            :'')
         + (followerMaxPrio === null || followerMaxPrio <= -1
            ? ('<input type="radio" id="prio_low" name="'+nameForPrios+'" value="-1"'
-              + (prio === -1 ? ' checked' : '')
+              + (prio === -1
+                 || (followerMaxPrio === -1
+                     && prio !== undefined && prio < followerMaxPrio)
+                 ? ' checked' : '')
               +'/ >low')
            :'')
         +'</td>'
     );
+
     function setNAForPrioButtons(naFlag) {
       var prioLabelArea = $(prioButtons[1]);//wrapper.find("#prioLabels");
       var ttt = $(prioButtons[1]);
@@ -1931,28 +2002,31 @@ protoApp.openTaskDialog = function (argObjOrNil, callbackOK, parentId, taskIdOrN
       setNAForPrioButtons(e.target.value === 'nil');
     });
     setNAForPrioButtons(prio === undefined);
+    if ($dia.currObj.finished === undefined) {
+      $dia.hidePrioSection();
+    }
     wrapper.prepend(prioButtons);
-  };
+  }; // updatePrioButtons
   $dia.updatePrioButtons();
+  $dia.taskDialogId = taskDialogId;
+  $dia.moreButtonId = taskDialogId + '_button_0';
 
   function insertActionButtons() {
    var actionButtonsStr = ''
       +'<div class="ui-dialog-buttonset">'
     ;
-    if ($dia.showMoreButton) {
-      actionButtonsStr +=
-      ''
-      // Shamelessly reuse jquery-ui dialog buttons... They look nice!
-        +'<button id="'+taskDialogId+'_button_0" type="button" '
-      //+  'tabindex=3 '
-        +  'class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" role="button" aria-disabled="false">'
-        +  '<span class="ui-button-text">More</span>'
-        +'</button>'
-        + eg.strMultiplied('\u00A0', 4)
-      ;
-    }
     actionButtonsStr +=
-    ''
+      ''
+    // Shamelessly reuse jquery-ui dialog buttons... They look nice!
+      +'<button id="'+taskDialogId+'_button_0" type="button" '
+    //+  'tabindex=3 '
+      +  'class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" role="button" aria-disabled="false">'
+      +  '<span class="ui-button-text">More</span>'
+      +'</button>'
+      + eg.strMultiplied('\u00A0', 4)
+    ;
+    actionButtonsStr +=
+      ''
       +'<button id="'+taskDialogId+'_button_1" type="button" '
     //+  'tabindex=3 '
       +  'class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" role="button" aria-disabled="false">'
@@ -1987,17 +2061,17 @@ protoApp.openTaskDialog = function (argObjOrNil, callbackOK, parentId, taskIdOrN
       .focusout(function() {
         $(this).removeClass('ui-state-focus');
       });
-    if ($dia.showMoreButton) {
-      $(diaButtons[0]).click(function() {
-        if (! $dia.moreFlag) {
-          $dia.moreFlag = true;
-          $dia.updateExtras(argObj);
-          $(diaButtons[0]).attr('disabled', true);
-          $(diaButtons[0]).addClass('ui-state-disabled');
-        }
-      });
-    }
-    var buttonOKOff = $dia.showMoreButton ? 1 : 0;
+    $(diaButtons[0]).click(function() {
+      const isChecked = $(diaButtons[0]).is(":checked");
+      eg.log("$(diaButtons[0]) isChecked:", isChecked);
+      if (! $dia.forceMore_flag) {
+        $dia.forceMore_flag = true;
+        $dia.updateExtras();
+        $(diaButtons[0]).attr('disabled', true);
+        $(diaButtons[0]).addClass('ui-state-disabled');
+      }
+    });
+    var buttonOKOff = 1; // more button always there, but ..
     $(diaButtons[buttonOKOff + 0]).click(function() {
       $dia.closeFromOK = true;
       $dia.dialog('close');
@@ -2007,12 +2081,31 @@ protoApp.openTaskDialog = function (argObjOrNil, callbackOK, parentId, taskIdOrN
     });
     $(diaButtons[buttonOKOff + 2]).click(function() {
       ryt.helpDialog(dialogTitle,
-                     self.taskDialogHelpText($dia.moreFlag
-                                             || $dia.showMoreButton
+                     self.taskDialogHelpText($dia.forceMore_flag
+                                             || $dia.q_showMoreButton()
                                             )
                     );
     });
+    if ($dia.currObj.finished === undefined) { // transparent task
+      $dia.hideMoreButton(); // .. hidden, if not needed
+    }
   } // insertActionButtons()
+
+  $dia.emphasized_OK_button = function (flag) {
+    var button = this.find('#'+taskDialogId+'_button_1');
+    if (flag) {
+      button.addClass('emphasize');
+    } else {
+      button.removeClass('emphasize');
+    }
+  }
+  var timerid;
+  $dia.find("#task-form").on("input", function(e) {
+    clearTimeout(timerid); // avoid multiple pending calls in case of ..
+    timerid = setTimeout(function() { // .. stakkato input events; ..
+      $dia.emphasized_OK_button(true); // .. and wait a few seconds ..
+    }, 5000); // .. to avoid calling func very often
+  });
 
   function insertExtras(argObj) {
     var defaults = { subtaskFinishPropagation:false, logic:"and" };
@@ -2022,7 +2115,8 @@ protoApp.openTaskDialog = function (argObjOrNil, callbackOK, parentId, taskIdOrN
     var sg = ryt.createSelectHTMLGenerator(props, defaults);
     $dia.sg = sg; // keep for prop extraction later
     sg.addSelectionData("subtaskFinishPropagation",
-                        [false, true], ["off", "on"]);
+                        [false, true],
+                        ["off", "on"]);
     sg.addSelectionData("logic",
                         ['and', 'or', 'xor', 'nand', 'nor'],
                         ["and (all)", "or (any)", "xor (or and nand)", "nand (not all)", "nor (none)"]);
@@ -2064,25 +2158,19 @@ protoApp.openTaskDialog = function (argObjOrNil, callbackOK, parentId, taskIdOrN
     subtaskFinishPropagationArea.change(changeFun);
   } // insertExtras()
 
-  function updateExtras(argObj) {
-    $dia.moreFlag = $dia.moreFlag
-      || (argObj
-          && (argObj.logic || argObj.subtaskFinishPropagation));
-    var finishingExtrasSearch = $dia.find("#finishingExtras");
-    if (! finishingExtrasSearch.length) {
-      if ($dia.moreFlag) {
-        insertExtras(argObj);
-      } else {
-        // nothing to do
-      }
-    } else { // update brute force by recreation
-      finishingExtrasSearch.remove();
-      if ($dia.moreFlag) {
-        insertExtras(argObj);
-      }
+  $dia.updateExtras = function () {
+    if (! newTask_flag) {
+      this.currObj = model.getObject(taskIdOrNil);
     }
-  } // updateExtras()
-  $dia.updateExtras = updateExtras;
+    var finishingExtrasSearch = this.find("#finishingExtras");
+    if (finishingExtrasSearch.length) {
+      finishingExtrasSearch.remove();
+    }
+    insertExtras(this.currObj);
+    if (! this.curr_showMore() && ! this.forceMore_flag) {
+      this.find("#finishingExtras").hide();
+    }
+  } // $dia.updateExtras()
 
   function extractExtraProps() {
     var form = $dia.find("#task-form")[0];
@@ -2099,7 +2187,7 @@ protoApp.openTaskDialog = function (argObjOrNil, callbackOK, parentId, taskIdOrN
 
     var finishedButtonsStr =
       ''
-      +'<td colspan="3" id="finishedTD">'
+      +'<td colspan="5" id="finishedTD">'
       +  '<input type="checkbox" id="finished" name="'+nameForFinished+'_1"'
       +     (finished === true || (finished === undefined && finishedAllowed)
              ? ' checked' : '')
@@ -2123,8 +2211,6 @@ protoApp.openTaskDialog = function (argObjOrNil, callbackOK, parentId, taskIdOrN
     var finishedButtons = $(finishedButtonsStr);
     wrapper.prepend(finishedButtons);
 
-    // toggle logic needs extra var, since checked is always on ..
-    // .. when triggering click event.
     var finishedButton = $dia.find('#finished');
     var finishedNAButton = $dia.find('#finished_NA');
 
@@ -2161,8 +2247,17 @@ protoApp.openTaskDialog = function (argObjOrNil, callbackOK, parentId, taskIdOrN
     });
     finishedNAButton.click(function() {
       const isChecked = finishedNAButton.is(":checked");
-      eg.log("finishedNAButton isChecked:", isChecked);
+      if (isChecked) {
+        $dia.hidePrioSection();
+        $dia.hideMoreSection();
+      } else {
+        $dia.showPrioSection();
+        $dia.updateExtras();
+        $dia.showMoreButton();
+      }
       if ($dia.finished === undefined) {
+        //eg.log("$dia.finished === undefined; finishedNAButton isChecked:",
+        //       isChecked);
         $dia.finished = false;
         finishedButton.attr('checked', false);
         finishedButton.attr('disabled', ! finishedAllowed);
@@ -2174,6 +2269,9 @@ protoApp.openTaskDialog = function (argObjOrNil, callbackOK, parentId, taskIdOrN
       }
       setNAAttributes();
     });
+    if ($dia.currObj.finished === undefined) {
+      $dia.hideMoreButton();
+    }
     setNAAttributes();
   }; // updateFinishedButtons()
 
@@ -2199,25 +2297,21 @@ protoApp.openTaskDialog = function (argObjOrNil, callbackOK, parentId, taskIdOrN
         prio = Math.max(prio, followerMaxPrio);
       }
     }
-
     var moreProps = { };
-    if ($dia.moreFlag) {
-      var form = $dia.find("#task-form")[0];
-      moreProps = $dia.sg.getPropsFromForm(form);
-    }
-
+    var form = $dia.find("#task-form")[0];
+    moreProps = $dia.sg.getPropsFromForm(form);
     $dia.props = {
-      name:nameArea.val(), description:descriptionArea.val(),
+      name:nameArea.val(),
+      description:descriptionArea.val(),
       finished:$dia.finished,
       prio:prio,
       logic: moreProps.logic === 'and' ? undefined : moreProps.logic,
-      subtaskFinishPropagation: (moreProps.subtaskFinishPropagation
-                                 ? true : undefined)
+      subtaskFinishPropagation: moreProps.subtaskFinishPropagation || undefined
     };
     //eg.log($dia.props);
   };
   $dia.updateFinishedButtons(finished, finishedAllowed, finishingAutomated);
-  $dia.updateExtras(argObj);
+  $dia.updateExtras();
   $dia.dialog({
     position: diaArgObj.pos ? [diaArgObj.pos.x, diaArgObj.pos.y] : diaArgObj.position ? [diaArgObj.position, topOff] : 'center',
     autoOpen: true, modal: false,
@@ -2306,9 +2400,7 @@ protoApp.openTaskDialog = function (argObjOrNil, callbackOK, parentId, taskIdOrN
       eg.stopPropagationPreventDefault(e);
     }
   };
-  if (true) {//ryt.info.prefs.fastInputFlag) {
-    $dia.find("textarea#name").keydown(diaRetInNameFieldFunc);
-  };
+  $dia.find("textarea#name").keydown(diaRetInNameFieldFunc);
 
   // trying to stop propagation for $dia.parent() or similar has failed.
   /* $dia.parent().keydown(eg.stopPropagationPreventDefault); // avoid flow elem ops (copy/alias/paste)
@@ -2457,7 +2549,7 @@ protoApp.openCommentDialog = function (argObj, callbackOK, parentId, commentIdOr
       $dia.closeFromOK && callbackOK && callbackOK($dia.props);
     },
     beforeClose: self.createElemDialogBeforeCloseFunc($dia, dialogTitle, commentIdOrNil),
-    buttons: { 
+    buttons: {
       "OK": function() {
         $dia.closeFromOK = true;
         $dia.dialog('close');
@@ -2472,8 +2564,26 @@ protoApp.openCommentDialog = function (argObj, callbackOK, parentId, commentIdOr
   });
   $dia.forcedClose = self.createElemDialogForcedCloseFunc($dia);
   this.registerDialog(commentIdOrNil, $dia);
-//this.openDialogs.add($dia);
   $dia.parent().keydown(eg.stopPropagation); // avoid flow elem ops (copy/alias/paste)
+
+  // emphasize OK button, if ..
+  $dia.emphasized_OK_button = function (flag) {
+    var button = this.parent().find('.ui-button').first(); // first is OK button
+    if (flag) {
+      button.addClass('emphasize');
+    } else {
+      button.removeClass('emphasize');
+    }
+  }
+  // .. something has been input'ed
+  var timerid;
+  $dia.find("#text").on("input", function(e) {
+    clearTimeout(timerid);
+    timerid = setTimeout(function() {
+      $dia.emphasized_OK_button(true);
+    }, 5000);
+  });
+
 }; // protoApp.openCommentDialog()
 protoApp.openCommentDialog.diaCount = 0;
 
@@ -2623,22 +2733,30 @@ protoApp.creationNModificationInfoString = function (flowElem, withoutBorderOrNi
   return line + '\n' + text + "\n" + line;
 };
   protoApp.showElementClickHelpStr = "doubleclick for edit";
-  protoApp.spanStyleFor = function (elemType) {
-   return ''
+  protoApp.spanStyleFor = function (elemType_, elemAttributeOrNil) {
+    var elemAttrType = ((elemAttributeOrNil
+                     ? elemAttributeOrNil + '_'
+                     : '')
+                    + elemType_);
+    return ''
       +'style="'
-      +  'background-color:' + ryt.info.color2HTMLColor(ryt.info.prefs[elemType+'Color']) + '; '
-      +  'color:' + ryt.info.color2HTMLColor(ryt.info.prefs[elemType+'FontColor']) + '; '
+      +  'background-color:'
+      + ryt.info.color2HTMLColor(ryt.info.prefs[elemAttrType+'Color']) +'; '
+      +  'color:'
+      + ryt.info.color2HTMLColor(ryt.info.prefs[elemAttrType+'FontColor']) +'; '
       +'" ';
   };
   protoApp.elementLinkSpanStr = function (obj, text) {
     return '<span id="' + obj.id + '" '
       +'class="' + obj.type + ' elementLink" '
-      + this.spanStyleFor(obj.type)
+      + this.spanStyleFor(obj.type,
+                          (obj.type === 'task' && obj.finished === undefined
+                           ? 'transparent' : null))
       + (ryt.info.showDoubleclickForEditHelp()
          ? 'title="' + this.showElementClickHelpStr + '" '
          : '')
       +'>'
-      + '\u00A0' + this.aliasChildInfoStr(obj) + eg.str2HTMLBasic(text) + '\u00A0'
+      + '\u00A0'+ this.aliasChildInfoStr(obj) + eg.str2HTMLBasic(text) +'\u00A0'
       + '</span>';
   };
   protoApp.nameForElementLink = function (obj) {
@@ -2671,14 +2789,21 @@ protoApp.creationNModificationInfoString = function (flowElem, withoutBorderOrNi
       + '</h3>@@@';
   };
   protoApp.preTaskNameStr = function (taskObj) {
-    return "("
-      + ('finished' in taskObj ? (taskObj.finished ? "X" : " ") : "-")
-      + ")";
+    return (taskObj.finished === undefined // transparent
+            ? ""
+            : ("("
+               + (taskObj.finished ? "X" : " ")
+               + ")"
+              )
+           );
   };
   protoApp.postTaskNameStr = function (taskObj) {
     var res = "";
+    if (taskObj.finished === undefined) {
+      res += "<transparent>"
+    }
     if ('prio' in taskObj || 'logic' in taskObj || 'subtaskFinishPropagation' in taskObj) {
-      res = "|";
+      res += "|";
     }
     if (taskObj.prio !== undefined) {
       res += "prio: " + this.prio2str[taskObj.prio] + "|"
@@ -4521,8 +4646,8 @@ protoApp.createFlowEditorNObservers = function (r, flowId) {
   var flowEditor = new RYT.FlowEditor(r);
   var res = {
     flowEditor: flowEditor,
-    mo_flowEditor: new MO_FlowEditor(this, flowEditor, flowId),
-    feo_Model: new FlowEditorObserver(this)
+    mo_flowEditor: new MO_FlowEditor(this, flowEditor, flowId), // MO for FE ..
+    feo_Model: new FlowEditorObserver(this) // .. observer of FE
   };
   this.wire(res.flowEditor, flowId, res.mo_flowEditor, res.feo_Model);
   this.setCanvasSizeFor(r);
@@ -4567,10 +4692,8 @@ protoApp.initModelNFlowEditor = function (data) {
     this.mainButtons.speedButtonsWidget.getBBox().width, eg.Point.xy(10,10)
   );
   ryt.info.infoWinTopOffset = this.mw.bottom();
-  if (true) {//ryt.info.experimental) {
-    this.mo_MilestonesWidget = new MO_MilestonesWidget(this, this.mw); // inits MW
-    this.wireModelActionSObserver(this.mo_MilestonesWidget);
-  }
+  this.mo_MilestonesWidget = new MO_MilestonesWidget(this, this.mw); // inits MW
+  this.wireModelActionSObserver(this.mo_MilestonesWidget);
   this.mo_App = new MO_App(this);
   this.wireModelActionSObserver(this.mo_App);
 };

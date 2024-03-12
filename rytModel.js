@@ -1385,7 +1385,8 @@ var EvolGo = EvolGo || {}, RYT = RYT || {};
       if (obj.type !== 'task') {
         return { };
       }
-      if (! eg.isNil(obj.prio)) {
+      if (obj.finished !== undefined // no transparent task
+          && ! eg.isNil(obj.prio)) {
         if (obj.prio < prio) { // change() triggers propagatePrio again, but ..
           this.change(id, { prio:prio }, 'propagatePrio()');
         }
@@ -1407,7 +1408,8 @@ var EvolGo = EvolGo || {}, RYT = RYT || {};
       if (obj.type !== 'task') { // only traverse via tasks
         return { };
       }
-      if (! eg.isNil(obj.prio)) {
+      if (obj.finished !== undefined // no transparent task
+          && ! eg.isNil(obj.prio)) {
         prio = prio === null ? obj.prio : Math.max(prio, obj.prio);
         return { }; // only traverse to first found prio
       }

@@ -129,8 +129,9 @@ var EvolGo = EvolGo || {}, RYT = RYT || {};
       && this.showHoverInfoClickForStayCount < 3;
   };
 
-  protoI.defaultPrefs = { taskColor:"green", commentColor:"yellow",
-                          taskFontColor:"white", commentFontColor:"black max",
+  protoI.defaultPrefs = { taskColor:"green", taskFontColor:"white max",
+                          transparent_taskColor:"light green", transparent_taskFontColor:"black",
+                          commentColor:"yellow", commentFontColor:"black max",
                           showInfoMessagesFlag:true,
                           fastInputFlag:false,
                           userExperience:'beginner',
@@ -140,9 +141,11 @@ var EvolGo = EvolGo || {}, RYT = RYT || {};
                         };
   protoI.color2HTMLColorMap = {
     'green':"rgb(0, 127, 0)",
+    'light green':"rgb(127, 255, 127)",
     'yellow':"#bfac00",
     'red':"red",
     'blue':"blue",
+    'light blue':"rgb(127,127,255)",
     'white':"#ccc",
     'black':"#111",
     'white max':"#fff",
@@ -155,7 +158,12 @@ var EvolGo = EvolGo || {}, RYT = RYT || {};
     switch (color) {
     case "green": return {
       "fill":"rgb(0, 255, 0)", "stroke": this.color2HTMLColorMap[color],
-      "fill-opacity":0.25
+      "fill-opacity":0.5
+    }; break;
+    case "light green": return {
+      "fill"  : this.color2HTMLColorMap[color],
+      "stroke": this.color2HTMLColorMap[color],
+      "fill-opacity":0.5
     }; break;
     case "yellow": return {
       "fill":"#bfac00", "stroke": this.color2HTMLColorMap[color],
@@ -167,6 +175,11 @@ var EvolGo = EvolGo || {}, RYT = RYT || {};
     }; break;
     case "blue": return {
       "fill":"blue", "stroke": this.color2HTMLColorMap[color],
+      "fill-opacity":0.5
+    }; break;
+    case "light blue": return {
+      "fill"  : this.color2HTMLColorMap[color],
+      "stroke": this.color2HTMLColorMap[color],
       "fill-opacity":0.5
     }; break;
     default: throw "implementation error";
@@ -193,20 +206,24 @@ var EvolGo = EvolGo || {}, RYT = RYT || {};
     case "black max": return {
       "fill":"#000",
       "stroke":"#000",
-      "stroke-width":0.2
+      "stroke-width":0.1
     }; break;
     default: throw "implementation error";
       break;
     }
   };
-  protoI.attrsForTaskBg = function () {
-    return this.attrsForBg(this.prefs.taskColor);
+  protoI.attrsForTaskBg = function (taskObj) {
+    return this.attrsForBg(taskObj && taskObj.finished === undefined
+                           ? this.prefs.transparent_taskColor
+                           : this.prefs.taskColor);
   };
   protoI.attrsForCommentBg = function () {
     return this.attrsForBg(this.prefs.commentColor);
   };
-  protoI.attrsForTaskText = function () {
-    return this.attrsForText(this.prefs.taskFontColor);
+  protoI.attrsForTaskText = function (taskObj) {
+    return this.attrsForText(taskObj && taskObj.finished === undefined
+                           ? this.prefs.transparent_taskFontColor
+                           : this.prefs.taskFontColor);
   };
   protoI.attrsForCommentText = function () {
     return this.attrsForText(this.prefs.commentFontColor);
