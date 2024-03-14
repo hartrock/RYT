@@ -472,8 +472,8 @@ protoMO_FEs.toString = function() {
 protoMO_FEs.receiveFrom = receiveFrom;
 
 
-// elem'n'conn updates
-// Visualization updates after model modifications.
+// Elem'n'conn updates:
+//   visualization updates after model modifications.
 
 protoMO_FEs.do_prioState_updates = function(to, neighbors) {
   var that = this;
@@ -502,46 +502,47 @@ protoMO_FEs.do_prioState_updates = function(to, neighbors) {
                                        this.model);
 };
 
-// Somewhat hackish is using rel vals for storing previously traversed elems:
-//   alt (and more generic) would be additional traversal funcs.
-protoMO_FEs.do_finishedState_updates = function(from, neighbors) {
+// We are looking forward to neighbors, for handling multiple conns to them
+//   (needing from'n'to).
+protoMO_FEs.do_finishedState_updates = function(from, startNeighborsOrNil) {
   var that = this;
   var fromObj = this.model.getObject(from);
   var allowsFinishingTo = this.model.allowsFinishingTo(from);
-  function actionRetNeighborsFunc(prevId, id) {
-    var tobj = this.getObject(id); // this is model here
-    if (tobj.type !== 'task') { // only traverse via tasks
-      return { };
+  var startNeighbors = startNeighborsOrNil;//very first (single entry by conn ..
+  function actionRetNeighborsFunc(valIgnored, id) {
+    const neighbors = startNeighbors || this.fromTo[id]; // .. creation) ..
+    startNeighbors = null; // .. but just once: fromTo[] thereafter
+    var next = { };
+    var dstId;
+    for (dstId in neighbors) {
+      var tobj = this.getObject(dstId); // this is model here
+      if (tobj.type === 'task') { // only update ..
+        this.send({event: 'updateElem', // .. task widgets ..
+                   elem: tobj.id,
+	           reason: c_er_pred_finished_prop_changed,
+	           predecessor: from,
+                   triggeredBy: that});
+        var connObj = this.getConnObjConnectingFromTo(id, dstId); // this->model
+        eg.assert(connObj);
+        this.send({event: 'updateConn', // .. and conns to them
+                   conn: connObj.id,
+                   connObj: connObj,
+	           reason: c_er_finished_prop_changed,
+                   allowsFinishingTo: allowsFinishingTo,
+	           predecessor: from,
+                   triggeredBy: that});
+        if (tobj.finished === undefined) {// transparent: traverse further ..
+          next[dstId] = dstId; // .. (until non-nil finished hull)
+        }
+      }
     }
-    this.send({event: 'updateElem',
-               elem: tobj.id,
-	       reason: c_er_pred_finished_prop_changed,
-	       predecessor: fromObj.id,
-               triggeredBy: that});
-    var connObj = this.getConnObjConnectingFromTo(prevId, id); // this->model
-    eg.assert(connObj);
-    this.send({event: 'updateConn',
-               conn: connObj.id,
-               connObj: connObj,
-	       reason: c_er_finished_prop_changed,
-               allowsFinishingTo: allowsFinishingTo,
-	       predecessor: from,
-               triggeredBy: that});
-    if (! eg.isNil(tobj.finished)) {
-      return { };  // traverse until non-nil finished hull
-    }
-    // Prepare next id2prevId, prevId used! Avoid changing global rel vals.
-    //   May work without cloneProps: but avoid violating forgotten preconds...
-    var neighbors = eg.cloneProps(this.fromTo[id]);// keep global (src) rel vals
-    for (var n in neighbors) { neighbors[n] = id; } // store prev elem as val
-    return neighbors;
+    return next;
   }
-  var start_neighbors = { };
-  for (var n in neighbors) { start_neighbors[n] = from; }
-  this.model.traverseOmitVisitedPropsF(start_neighbors, // id2prevId
+  var start_from2val = { }; start_from2val[from] = from;
+  this.model.traverseOmitVisitedPropsF(start_from2val, // single id2id entry
                                        actionRetNeighborsFunc,
                                        this.model);
-};
+  };
 
 protoMO_FEs.handle_changed = function (msg) {
   eg.log("protoMO_FEs.handle_changed()...", msg);
@@ -552,14 +553,17 @@ protoMO_FEs.handle_changed = function (msg) {
     this.do_prioState_updates(id);
   }
   if ("finished" in msg.newProps) { // propagate from -> to
-    this.do_finishedState_updates(id, this.model.fromTo[id]);
+    this.do_finishedState_updates(id);
   }
 };
 
 protoMO_FEs.handle_created = function (msg) {
   eg.log("protoMO_FEs.handle_created()...", msg);
   var obj = msg.newProps;
-  if (obj._relation === 'conn_fromTo') {
+  if (obj._relation === 'conn_fromTo'
+      && this.model.isTask(obj.key_1)
+      && this.model.isTask(obj.key_2)
+     ) {
     var neighbors = { }; neighbors[obj.key_2] = obj.key_2;
     this.do_finishedState_updates(obj.key_1, neighbors);
     this.do_prioState_updates(obj.key_2);
@@ -575,6 +579,10 @@ protoMO_FEs.handle_deleted = function (msg) {
   if (obj._relation === 'conn_fromTo') {
     var obj_key_1 = this.model.getObject(obj.key_1); // deleted -> undefined
     var obj_key_2 = this.model.getObject(obj.key_2);
+    if (obj_key_1 && obj_key_1.type !== 'task'
+        || obj_key_2 && obj_key_2.type !== 'task') {
+      return; // no updates if one conn end is no task (nothing to propagate)
+    }
     if (! // from blocker or may have been one?
         (obj_key_1 // from (deleted one may have been blocker before) ..
          && this.model.allowsFinishingTo(obj.key_1) // .. non-blocker?
@@ -583,7 +591,7 @@ protoMO_FEs.handle_deleted = function (msg) {
         (obj_key_2 // to ..
          && this.model.allowsFinishingTo(obj.key_2)) // .. non-blocker?
        ) {
-      this.do_finishedState_updates(obj.key_2, this.model.fromTo[obj.key_2]);
+      this.do_finishedState_updates(obj.key_2);
     } // deleted obj_key_2 -> no do_finishedState_updates()
     obj_key_1 // not deleted?
       && this.do_prioState_updates(obj.key_1);
@@ -970,15 +978,18 @@ protoMO_FE.getOrCreateConn = function (id) {
 protoMO_FE.updateConnWidgetObj = function (widget, obj) {
   var toObj = this.model.getObject(obj.key_2);
   if (toObj.type !== 'task') {
-    return; // no triggering via comments
+    return; // no triggering to non-tasks
   }
-  var from = obj.key_1; //this.model.getObject(obj.key_1);
-  if (this.model.allowsFinishingTo(from)) {
-    widget.removeClassAttribute("cold");
-    widget.addClassAttribute("hot");
-  } else {
-    widget.removeClassAttribute("hot");
-    widget.addClassAttribute("cold");
+  var from = obj.key_1;
+  var fromObj = this.model.getObject(from);
+  if (fromObj.type === 'task') { // only triggering from tasks
+    if (this.model.allowsFinishingTo(from)) {
+      widget.removeClassAttribute("cold");
+      widget.addClassAttribute("hot");
+    } else {
+      widget.removeClassAttribute("hot");
+      widget.addClassAttribute("cold");
+    }
   }
 };
 protoMO_FE.updateConn = function (id) {

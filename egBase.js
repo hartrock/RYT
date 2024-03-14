@@ -226,6 +226,7 @@ Function.prototype.bindThis = function (obj) {
     return res;
   }
 
+
   function numOfProps_slow(obj) {
     var num = 0;
     forEach(obj, function() {
@@ -546,6 +547,15 @@ Function.prototype.bindThis = function (obj) {
         if (val_2 !== val_1) {
           throw "Error propsSub(): val conflict";
         }
+        return false;
+      } else {
+        return true;
+      }
+    });
+  }
+  function propsSubKeys(props_1, props_2) {
+    return filter2props(props_1, function(val_1, key) {
+      if (key in props_2) {
         return false;
       } else {
         return true;
@@ -1904,6 +1914,7 @@ Function.prototype.bindThis = function (obj) {
   }
 
 
+  //
   // Exports
   //
 
@@ -1917,8 +1928,18 @@ Function.prototype.bindThis = function (obj) {
   eg.returnTrueFunc = returnTrueFunc;
   eg.returnFalseFunc = returnFalseFunc;
 
-  // props
+
   //
+  // Array functions
+
+  eg.arrDetect = arrDetect;
+  eg.arrContains = arrContains;
+  eg.arrVals2ObjKeysNVals = arrVals2ObjKeysNVals;
+
+
+  //
+  // props
+
   eg.numOfProps = numOfProps_fast;
   eg.numOfProps_alt = numOfProps_slow;
   eg.numOfOwnProps = numOfOwnProps_fast;
@@ -1936,22 +1957,24 @@ Function.prototype.bindThis = function (obj) {
   eg.propsSameDeep = propsSameDeep;
   //
   eg.selectPropsByKeysArr = selectPropsByKeysArr;
-  // there may be val conflicts...
+
+  // set ops
+
+  // val conflicts detected
   eg.propsUnion = propsUnion;
   eg.propsIntersection = propsIntersection;
   eg.propsSub = propsSub;
+  // no val conflicts (difference in vals ignored)
+  eg.propsSubKeys = propsSubKeys;
+
   // prop modification (inclusive delete of props)
+
   eg.propOfObjByPath = propOfObjByPath;
   eg.modifyProps = modifyProps;
   eg.modifyPropsByPath = modifyPropsByPath;
 
-  // Array functions
-  eg.arrDetect = arrDetect;
-  eg.arrContains = arrContains;
-  eg.arrVals2ObjKeysNVals = arrVals2ObjKeysNVals;
+  // array-like object functions
 
-  // Array-like object functions
-  //
   eg.forEach = forEach;
   eg.forEachOwn = forEachOwn;
   //

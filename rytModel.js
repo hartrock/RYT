@@ -277,6 +277,17 @@ var EvolGo = EvolGo || {}, RYT = RYT || {};
   proto.getObject = function (id) {
     return this.objectMap[id];
   };
+  proto.isTask = function (id) {
+    const obj = this.getObject(id);
+    return obj && obj.type === 'task';
+  };
+  proto.isConnFromTaskToTask = function (id) {
+    const obj = this.getObject(id);
+    return (obj
+            && obj._relation === 'connn_fromTo'
+            && this.isTask(obj.key_1)
+            && this.isTask(obj.key_2));
+  };
   proto.getId = function (obj) {
     var id = obj.id;
     if (id && id in this.objectMap) {
@@ -1144,23 +1155,24 @@ var EvolGo = EvolGo || {}, RYT = RYT || {};
     while (eg.hasProps(id2val)) {
       var next = { };
       eg.forEach(id2val, function(val, elem) {
-        alreadyVisited[elem] = val;
+        alreadyVisited[elem] = null; // only keys ..
         next = eg.propsUnion(next,
                              actionRetNeighborsFunc.call(thisOrNil, val, elem));
       });
-      id2val = eg.propsSub(next, alreadyVisited); // unvisited next
+      id2val = eg.propsSubKeys(next, alreadyVisited); // .. to sub here
     }
   };
   //
   proto.h_traverseOmitVisitedPropsF_depth = function (
     id2val, actionRetNeighborsFunc, thisOrNil, alreadyVisited)
   {
+    const that = this;
     var next, unvisitedNext;
     eg.forEach(id2val, function(val, elem) {
-      alreadyVisited[elem] = val;
+      alreadyVisited[elem] = null; // only keys ..
       next = actionRetNeighborsFunc.call(thisOrNil, val, elem);
-      unvisitedNext = eg.propsSub(next, alreadyVisited);
-      this.h_traverseOmitVisitedPropsF_depth(
+      unvisitedNext = eg.propsSubKeys(next, alreadyVisited); // .. to sub here
+      that.h_traverseOmitVisitedPropsF_depth(
         unvisitedNext, actionRetNeighborsFunc, thisOrNil, alreadyVisited
       );
     });
@@ -1168,10 +1180,11 @@ var EvolGo = EvolGo || {}, RYT = RYT || {};
   proto.traverseOmitVisitedPropsF_depth = function (
     id2val, actionRetNeighborsFunc, thisOrNil)
   {
-    h_traverseOmitVisitedPropsF_depth(
-      nextElems, actionRetNeighborsFunc, thisOrNil, { });
-  }
+    this.h_traverseOmitVisitedPropsF_depth(
+      id2val, actionRetNeighborsFunc, thisOrNil, { });
+  };
   proto.traverseOmitVisitedPropsF = proto.traverseOmitVisitedPropsF_breadth;
+  //proto.traverseOmitVisitedPropsF = proto.traverseOmitVisitedPropsF_depth;
 
   proto.traverseDetect = function (
     id2val, pred, neighborsFunc, thisOrNil)
@@ -1558,8 +1571,11 @@ var EvolGo = EvolGo || {}, RYT = RYT || {};
       { type:'conn_fromTo', key_1:fromId, key_2: toId },
       from
     );
-    this.propagatePrio(toId);
-    this.propagateFinishedState(fromId);
+    if (this.isTask(fromId)
+        && this.isTask(toId)) {
+      this.propagatePrio(toId);
+      this.propagateFinishedState(fromId);
+    }
     this.closeBatch('createConn', from);
     return relation;
   };
