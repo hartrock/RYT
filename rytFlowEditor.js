@@ -72,17 +72,17 @@ var EvolGo = EvolGo || {}, RYT = RYT || {};
       }
       self.state.mousedownPos = self.canvasMousePos(e);
       var target = eg.targetWithPosition(e);
-      if ((e.altKey
+      if ((e.ctrlKey
            || (target.raphael
                && target.raphael.containsClassAttribute('connectArea')))
           && ! self.state.isConnecting) {
         self.addSelection(this); // this is widget here
-        self.startConnect();
+        self.startConnect(e.shiftKey); // reversed with shift-key
       } else {
         if (e.metaKey) {
           self.switchSelection(this);
         } else if (e.shiftKey) {
-          self.addSelection(this);
+          self.switchSelection(this);
         } else {
           if (! self.state.selected.contains(this)) {
             self.unselectAll();
@@ -218,7 +218,8 @@ var EvolGo = EvolGo || {}, RYT = RYT || {};
         return;
       }
       self.state.mousedownPos = self.canvasMousePos(e);
-      if (e.altKey && ! self.state.isConnecting) {
+      if (e.ctrlKey
+          && ! self.state.isConnecting) {
         self.startConnect(true);
       }
       eg.stopPropagationPreventDefault(e); // avoid marker rects
@@ -305,11 +306,7 @@ var EvolGo = EvolGo || {}, RYT = RYT || {};
           var wRect = w.egRect();
           var is = wRect.intersection(selectRect);
           if (is) {
-            self[e.metaKey ? "switchSelection" : "addSelection"](w);
-          } else if (! e.shiftKey) {
-            if (self.state.selected.contains(w)) {
-              self.removeSelection(w);
-            }
+            self.switchSelection(w);
           }
         });
         self.state.rectSelect.remove();

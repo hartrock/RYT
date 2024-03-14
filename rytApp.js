@@ -2655,7 +2655,7 @@ protoApp.createEntriesForPopupMenu = function (parentOrNil) {
       }
     },
     { //key:'comment <span style="float:right;">(shift-double-click)</span>',
-      key:'comment (shift-double-click)',
+      key:'comment (shift+double-click)',
       val:function() {
         if (self.blockedCheck()) {
           return;
@@ -3956,9 +3956,6 @@ protoApp.popupMenuForWidget.count = 0;
 
 protoApp.popupMenuForFlowEditor = function (flowEditor, flowId) {
   var entries = [
-    { key:"select all (ctrl-a)", val: function() {
-      flowEditor.selectAll();
-    } },
     { key:"copy (ctrl-c)", val: function() {
       flowEditor.sendCopyEvent();
     } },
@@ -3968,8 +3965,12 @@ protoApp.popupMenuForFlowEditor = function (flowEditor, flowId) {
     { key:"paste (ctrl-v)", val: function() {
       flowEditor.sendPasteEvent();
     } },
-    { key:"alias (ctrl-shift-V)", val: function() {
+    { key:"alias (ctrl-shift-v)", val: function() {
       flowEditor.sendAliasEvent();
+    } },
+    //{ /* sep */ },
+    { key:"select all (ctrl-a)", val: function() {
+      flowEditor.selectAll();
     } },
     { /* sep */ },
     { key:"transfer between projects", val: [
@@ -4104,47 +4105,54 @@ protoApp.createActionButtons = function () {
       +"An\n"
       +'- element is one of '
       +   "@@@<span " + self.spanStyleFor('task')    + ">task</span>@@@, "
-      +   "@@@<span " + self.spanStyleFor('comment') + ">comment</span>@@@;\n"
+      +   "@@@<span " + self.spanStyleFor('comment') + ">comment</span>@@@, "
+      +   "@@@<span " + self.spanStyleFor('task','transparent') + ">transparent task</span>@@@;\n"
       +"- element *link* appears in element info in same color as its corresponding element widget.\n"
       +"\n"
+
       +"Mouse bindings\n"
       +"==============\n"
-      +"hover                element[link] -> show element info\n"
-      +"click                element info  -> change to win\n"
+      +"      hover         element[link] -> show element info temporarily\n"
+      +"      click         element info  -> change to fixed window\n"
       +"\n"
-      +"double-click         canvas        -> create task (at clicked position)\n"
-      +"shift-double-click   canvas        -> create comment (at clicked position)\n"
-      +"double-click         element[link] -> edit element\n"
+      +"      double-click  canvas        -> create task (at clicked position)\n"
+      +"shift+double-click  canvas        -> create comment (at clicked position)\n"
+      +"      double-click  element[link] -> edit element\n"
       +"\n"
-      +"right-click          canvas        -> context menu\n"
+      +"      right-click   canvas        -> context menu\n"
       +"\n"
-      +"click-move           element       -> move element\n"
-      +"click-move selected  element       -> move selected element(s)\n"
+      +"      click-move    element       -> move element\n"
+      +"      click-move    selected      -> move selected element(s)\n"
+
       +"\n"
-      +"shift-click          element       -> add element in addition to already selected (for multiple selects)\n"
-      +"meta(win)-click      element       -> toggle selection of element\n"
-      +"click-move           canvas        -> select elements by a rectangle\n"
-      +"shift-click-move     canvas        -> add rectangle selection of elements to already selected\n"
-      +"meta(win)-click-move canvas        -> toggle rectangle selection of elements\n"
       +"\n"
-      +"click-del            element       -> delete element\n"
+
+      +"shift+click         element       -> switch selection of element (for multiple selects)\n"
+      +"      click-move    canvas        -> switch selection of elements by spanning a rectangle\n"
+
       +"\n"
-      +"click-move connector point         -> start connection    *from* element\n"
-      +"alt-click            element       -> start connection(s) *from* selected element(s)\n"
-      +"alt-click            canvas        -> start connection    *to*   selected element(s)\n"
+      +"      click-del     element       -> delete element\n"
+
       +"\n"
+      +"      click-move  connector point -> start connection(s) *from* element and selected ones\n"
+      +"shift+click-move  connector point -> start connection(s) *to*   element and selected ones\n"
+      +"\n"
+      +" ctrl+click          element      -> start connection(s) *from* selected element(s)\n"
+      +" ctrl+click          canvas       -> start connection    *to*   selected element(s)\n"
+      +"\n"
+
       +"Key bindings\n"
       +"============\n"
-      +"ctrl-a       -> select all (in current flow)\n"
-      +"\n"
       +"del          -> delete selected\n"
       +"ctrl-c       -> copy selected\n"
-      +"ctrl-alt-c   -> copy'n'export selected (for import into another project)\n"
       +"ctrl-x       -> cut selected\n"
       +"ctrl-v       -> paste cutted/copied as copy (creating new element(s))\n"
+      +"ctrl-shift-v -> paste cutted/copied as *alias* (referencing them without creating new ones)\n"
+      +"\n"
+      +"ctrl-alt-c   -> copy'n'export selected (for import into another project)\n"
       +"ctrl-alt-v   -> import'n'paste (after export from another project)\n"
       +"\n"
-      +"ctrl-shift-V -> paste cutted/copied as *alias* (referencing them without creating new ones)\n"
+      +"ctrl-a       -> select all (in current flow)\n"
     ;
     ryt.helpDialog("Mouse'n'Key Bindings", text, 'auto');
   }; // mouseNKeyBindingsFunc()
