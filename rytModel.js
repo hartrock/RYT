@@ -1365,27 +1365,36 @@ var EvolGo = EvolGo || {}, RYT = RYT || {};
 // ... Could be of interest later.
 
 
-  // If some elem is effectively unfinished, unfinish all finished successors.
   proto.propagateFinishedState = function (startId) {
     eg.log("propagateFinishedState", startId);
-    if (! this.allowsFinishingTo(startId)) { // only propagate unfinishability
-      function actionRetNeighborsFunc(val, id) {
-        var obj = this.getObject(id);
-        if (obj.finished !== undefined) {
-          if (obj.finished) {
+    const myFinishTrigger = this.allowsFinishingTo(startId);
+    function actionRetNeighborsFunc(val, id) {
+      var obj = this.getObject(id);
+      if (obj.finished !== undefined) {
+        if (! myFinishTrigger) {
+          // effectively unfinished -> unfinish all successors which are ..
+          if (obj.finished) { // .. finished
             this.change(id, { finished:false }, 'propagateFinishedState()');
           }
-          // no deeper traversal (already false or propagation started again ..
-          return { }; // .. by change to false)
+        } else { // myFinishTrigger === true
+          // effectively finished -> finish all successors which are ..
+          if (! obj.finished                  // .. unfinished ..
+              && obj.subtaskFinishPropagation // .. auto finishing ..
+              && this.canBeFinished(id)) {    // .. finishable
+            this.change(id, { finished:true }, 'propagateFinishedState()');
+          }
         }
-        return this.fromTo[id]; // propagate via undefined finished props
+        // no deeper traversal (fin already set or propagation starting again ..
+        return { }; // .. by change to different val)
       }
-      var startId2val = this.fromTo[startId];
-      this.traverseOmitVisitedPropsF(
-        startId2val, actionRetNeighborsFunc, this
-      );
+      return this.fromTo[id]; // propagate via undefined finished props
     }
+    var startId2val = this.fromTo[startId];
+    this.traverseOmitVisitedPropsF(
+      startId2val, actionRetNeighborsFunc, this
+    );
   };
+
   proto.propagatePrio = function (startId) {
     var prio = this.getObject(startId).prio;
     if (prio === undefined) { // only *changes* handled here: *visibility* ..
