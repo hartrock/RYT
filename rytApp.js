@@ -413,7 +413,8 @@ protoMO_TD.updateFinishedButtons = function () {
   var elementObj = this.model.getObject(this.elementId);
   this.elementDialog.updateFinishedButtons(
     elementObj.finished,
-    this.model.canBeFinished(this.elementId),
+    this.model.canBeFinishedFromPreds(this.elementId),
+    this.model.canBeFinishedFromChilds(this.elementId),
     elementObj.subtaskFinishPropagation
   );
 };
@@ -1822,10 +1823,16 @@ protoApp.openTaskDialog = function (argObjOrNil, callbackOK, parentId, taskIdOrN
   var name = argObj.name || this.initialTaskName;
   var description = argObj.description || "";
   var finished = argObjOrNil ? argObj.finished : false; // may be undefined, default false
-  var finishedAllowed = taskIdOrNil
-    ? this.model.canBeFinished(taskIdOrNil)
-    : true;
-  var finishingAutomated = argObj.subtaskFinishPropagation; // may be nil
+  var finAllowed = taskIdOrNil
+      ? this.model.canBeFinished(taskIdOrNil)
+      : true;
+  var finAllowedFromPreds = taskIdOrNil
+      ? this.model.canBeFinishedFromPreds(taskIdOrNil)
+      : true;
+  var finAllowedFromChilds = taskIdOrNil
+      ? this.model.canBeFinishedFromChilds(taskIdOrNil)
+      : true;
+  var finAutomated = argObj.subtaskFinishPropagation; // may be nil
   var prio = argObj.prio;
   var model = this.model;
   var diaCount = ++this.openTaskDialog.diaCount;
@@ -2154,14 +2161,15 @@ protoApp.openTaskDialog = function (argObjOrNil, callbackOK, parentId, taskIdOrN
     var subtaskFinishPropagationArea = appendNode.find("#subtaskFinishPropagation");
     var changeFun = function(){
       var extraProps = extractExtraProps();
-      var canBeFinished = model.canBeFinishedFromChildsAfterLogic(
+      var canBeFinishedFromChilds = model.canBeFinishedFromChildsAfterLogic(
         model.parent2Childs[taskIdOrNil], extraProps.logic
       );
       $dia.updateFinishedButtons(
         extraProps.subtaskFinishPropagation
-          ? canBeFinished
-          : (canBeFinished ? $dia.finished : false),
-        canBeFinished,
+          ? canBeFinishedFromChilds
+          : (canBeFinishedFromChilds ? $dia.finished : false),
+        model.canBeFinishedFromPreds(taskIdOrNil),
+        canBeFinishedFromChilds,
         extraProps.subtaskFinishPropagation
       );
     };
@@ -2188,7 +2196,11 @@ protoApp.openTaskDialog = function (argObjOrNil, callbackOK, parentId, taskIdOrN
     return $dia.sg.getPropsFromForm(form);
   }
 
-  $dia.updateFinishedButtons = function (finished, finishedAllowed, finishingAutomated) {
+  $dia.updateFinishedButtons = function (finished,
+                                         finAllowedFromPreds,
+                                         finAllowedFromChilds,
+                                         finAutomated) {
+    var finAllowed = finAllowedFromPreds && finAllowedFromChilds;
     this.finished = finished;
     // remove existing finished buttons
     var wrapper = this.find('#finishedButtonsWrapper');
@@ -2200,14 +2212,20 @@ protoApp.openTaskDialog = function (argObjOrNil, callbackOK, parentId, taskIdOrN
       ''
       +'<td colspan="5" id="finishedTD">'
       +  '<input type="checkbox" id="finished" name="'+nameForFinished+'_1"'
-      +     (finished === true || (finished === undefined && finishedAllowed)
+      +     (finished === true || (finished === undefined && finAllowed)
              ? ' checked' : '')
-      +     (finished === undefined || ! finishedAllowed
+      +     (finished === undefined || ! finAllowed
              ? ' disabled' : '')
       +  '/ >'
       +  '<span class="finishedLabel">finished'
-      +     (finishedAllowed ? '' : '\u00A0(blocked)')
-      +     (finishingAutomated ? '\u00A0(auto)' : '')
+      +     (finAllowed
+             ? ''
+             : ('\u00A0(blocked by '
+                + (finAllowedFromChilds ? '' : 'childs')
+                + '|'
+                + (finAllowedFromPreds ? '' : 'preds')
+                + ')'))
+      +     (finAutomated ? '\u00A0(auto)' : '')
       +     '\u00A0\u00A0'
       +  '</span>'
       +  '<input type="checkbox" id="finished_NA" name="'+nameForFinished+'_2"'
@@ -2248,13 +2266,13 @@ protoApp.openTaskDialog = function (argObjOrNil, callbackOK, parentId, taskIdOrN
         eg.log("Huh?"); // button should be disabled
         throw "Huh!";
       }
-      if (! finishedAllowed) {
+      if (! finAllowed) {
         $dia.finished = false;
-      } else if (! finishingAutomated) {
+      } else if (! finAutomated) {
         $dia.finished = ! $dia.finished;
       }
       finishedButton.attr('checked', $dia.finished);
-      finishedButton.attr('disabled', ! finishedAllowed);
+      finishedButton.attr('disabled', ! finAllowed);
     });
     finishedNAButton.click(function() {
       const isChecked = finishedNAButton.is(":checked");
@@ -2271,11 +2289,11 @@ protoApp.openTaskDialog = function (argObjOrNil, callbackOK, parentId, taskIdOrN
         //       isChecked);
         $dia.finished = false;
         finishedButton.attr('checked', false);
-        finishedButton.attr('disabled', ! finishedAllowed);
+        finishedButton.attr('disabled', ! finAllowed);
         finishedButton.focus();
       } else {
         $dia.finished = undefined;
-        finishedButton.attr('checked', finishedAllowed);
+        finishedButton.attr('checked', finAllowed);
         finishedButton.attr('disabled', true);
       }
       setNAAttributes();
@@ -2321,7 +2339,7 @@ protoApp.openTaskDialog = function (argObjOrNil, callbackOK, parentId, taskIdOrN
     };
     //eg.log($dia.props);
   };
-  $dia.updateFinishedButtons(finished, finishedAllowed, finishingAutomated);
+  $dia.updateFinishedButtons(finished, finAllowedFromPreds, finAllowedFromChilds, finAutomated);
   $dia.updateExtras();
   $dia.dialog({
     position: diaArgObj.pos ? [diaArgObj.pos.x, diaArgObj.pos.y] : diaArgObj.position ? [diaArgObj.position, topOff] : 'center',

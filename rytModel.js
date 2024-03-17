@@ -1461,6 +1461,9 @@ var EvolGo = EvolGo || {}, RYT = RYT || {};
     return (this.traverseDetect(startId2val, pred, neighborsFunc, this)
             !== null);
   };
+  proto.canBeFinishedFromPreds = function (id) {
+    return ! this.hasUnfinishedPreds(id);
+  };
   proto.canBeFinished = function (id) {
     return this.canBeFinishedFromChilds(id) && ! this.hasUnfinishedPreds(id);
   };
