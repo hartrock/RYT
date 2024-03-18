@@ -550,11 +550,17 @@ protoMO_FEs.handle_changed = function (msg) {
   var that = this;
   var obj = msg.objProps;
   var id = obj.id;
-  if ("prio" in msg.newProps) { // possible prios propagate to -> from
-    this.do_prioState_updates(id);
+  var prioStateUpdate_flag = false;
+  if ("finished" in msg.newProps) {
+    this.do_finishedState_updates(id); // propagate from -> to
+    if (msg.oldProps.finished === undefined // one of both undefined signals ..
+        || msg.newProps.finished === undefined) { // .. changed transparency ..
+      prioStateUpdate_flag = true; // .. so preds may see other prio now
+    }
   }
-  if ("finished" in msg.newProps) { // propagate from -> to
-    this.do_finishedState_updates(id);
+  if (prioStateUpdate_flag
+      || "prio" in msg.newProps) { // preds may see other prio now
+    this.do_prioState_updates(id); // propagate to -> from
   }
 };
 
