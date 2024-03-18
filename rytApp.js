@@ -479,7 +479,7 @@ protoMO_FEs.receiveFrom = receiveFrom;
 protoMO_FEs.do_prioState_updates = function(to, neighbors) {
   var that = this;
   var toObj = this.model.getObject(to);
-  var propagatePrio = (typeof toObj.prio === 'number'
+  var propagatePrio = (typeof toObj.prio !== undefined
                        ? toObj.prio
                        : this.model.followerMaxPrioOrNull(to));
   function actionRetNeighborsFunc(val, id) {
@@ -2222,24 +2222,32 @@ protoApp.openTaskDialog = function (argObjOrNil, callbackOK, parentId, taskIdOrN
              ? ' checked' : '')
       +     (finished === undefined || ! finAllowed
              ? ' disabled' : '')
-      +  '/ >'
-      +  '<span class="finishedLabel">finished'
-      +     (finAllowed
-             ? ''
-             : ('\u00A0(blocked by '
-                + (finAllowedFromChilds ? '' : 'childs')
-                + '|'
-                + (finAllowedFromPreds ? '' : 'preds')
-                + ')'))
+/* DNW: styling this by class with css
+        + (finished === undefined
+           ? ' class="transparent"' : '')
+*/
+      +  '>'
+      + '<span class="finishedLabel'
+      + (finished === undefined
+         ? ' transparent' : '')
+      + '"'
+      + '>finished'
+      +  (finAllowed
+          ? ''
+          : ('\u00A0(blocked by '
+             + (finAllowedFromChilds ? '' : 'childs')
+             + '|'
+             + (finAllowedFromPreds ? '' : 'preds')
+             + ')'))
       +     (finAutomated ? '\u00A0(auto)' : '')
       +     '\u00A0\u00A0'
       +  '</span>'
       +  '<input type="checkbox" id="finished_NA" name="'+nameForFinished+'_2"'
       +     (finished === undefined ? ' checked' : '')
-      +  '/ >'
+      +  '>'
       +  '<span class="naLabel">'
       +     'n/a'
-      +  '<span>'
+      +  '</span>'
       +'</td>'
     ;
 

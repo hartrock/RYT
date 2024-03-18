@@ -17,8 +17,23 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/* DNW for jquery checkboxes */
+/*
+input:disabled
+{
+    background-color: white;
+    color: white;
+}
+*/
+/* greyed-out non-active transparent task parts */
+span.finishedLabel.transparent {
+    color:#666;
+}
+
+/*
 .ui-dialog-buttonset {
 }
+*/
 .ui-widget.ui-button.emphasize {
     border-color:#F00;
     border-width:2px;
