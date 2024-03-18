@@ -32,11 +32,11 @@ endif
 
 SCRIPT_DIR := Scripts
 
-#
-
-# [to be included from config.src]..
-
-# set vars now
+# check for config.src
+ifeq (,$(wildcard ./config.src))
+    $(error ./config.src missing!)
+endif
+# OK: set vars now
 include config.src
 
 # fallback for unset vars
