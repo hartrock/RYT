@@ -1683,12 +1683,26 @@ Function.prototype.bindThis = function (obj) {
     }
     return res;
   }
+  // Replaces <script> tags with warnings at odd strArr positions.
+  //   Mechanism to be refined, if later there should be allowed <script>s
+  //   created by special user commands.
+  function oddRemove_scriptTags(strArr) {
+    const regex = /<[\s]*script[\s>]/;
+    const warningHTML
+          = '<span class="warning">&lt;script&gt;ing forbidden!</span>';
+    for (let i = 1; i < strArr.length; i += 2) {
+      if (strArr[i].search(regex) !== -1) {
+        strArr[i] = warningHTML;
+      }
+    }
+  }
   function str2HTML_step_2(str, argObj, stateObj) {
     if (argObj.noEmbeddedHtmlFlag) {
       return str2HTML_step_3(str, argObj, stateObj);
     }
     var splitArr = str.split(/@@@(?!['"])/g);
     //eg.log(str, splitArr);
+    oddRemove_scriptTags(splitArr); // security measure
     return textHtmlArr2HTML(splitArr, str2HTML_step_3, argObj, stateObj);
   }
   // looks for lists; if they exist, they will be extracted and
