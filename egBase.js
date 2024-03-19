@@ -1690,7 +1690,8 @@ Function.prototype.bindThis = function (obj) {
     const regex = /<[\s]*script[\s>]/;
     const warningHTML
           = '<span class="warning">&lt;script&gt;ing forbidden!</span>';
-    for (let i = 1; i < strArr.length; i += 2) {
+    var i;
+    for (i = 1; i < strArr.length; i += 2) {
       if (strArr[i].search(regex) !== -1) {
         strArr[i] = warningHTML;
       }
