@@ -8,23 +8,24 @@ mv ryt_server.crt /etc/ssl/certs/
 mv ryt_server.key /etc/ssl/private/
 
 # create ryt-ssl
-cp /etc/apache2/sites-available/default-ssl \
-   /etc/apache2/sites-available/ryt-ssl
+cp /etc/apache2/sites-available/default-ssl.conf \
+   /etc/apache2/sites-available/ryt-ssl.conf
 # change in ryt-ssl:
 	SSLCertificateFile    /etc/ssl/certs/ryt_server.crt
 	SSLCertificateKeyFile /etc/ssl/private/ryt_server.key
-cd /etc/apache2/sites-enabled
-ln -s ../sites-available/ryt-ssl
 
-# mods
-cd /etc/apache2/mods-enabled
-ln -s ../mods-available/ssl.load 
-ln -s ../mods-available/ssl.conf
-# rewrite engine
-ln -s ../mods-available/rewrite.load
+a2ensite ryt-ssl
+a2enmod ssl
+
+systemctl restart apache2 # better than 'apachectl restart' (one PID left!)
 
 
-# rewrites
+
+#####################################
+
+# What's the usecase here?
+#
+# rewrites (omitted after www.evolgo.de)
 #
 
 # create /etc/apache2/config.d/rewrite_SSL_NOSSL
@@ -39,13 +40,7 @@ RewriteEngine On
 RewriteOptions Inherit 
 +++
 
+# mod
+a2enmod rewrite
 
-apachectl restart
-
-
-
-#####################################
-
-# not needed (and read comments there!):
-  # add to <IfModule mod_ssl.c> in /etc/apache2/ports.conf
-      NameVirtualHost *:443
+systemctl restart apache2
