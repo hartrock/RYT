@@ -354,7 +354,9 @@ var EvolGo = EvolGo || {}, RYT = RYT || {};
       successCBOrNil ? successCBOrNil(dataObj) : alert("GET successful!");
     }
     jsonHttpGET(createURLParams(credentials.key, id),
-                [["Accept", "application/json"], ["Cache-Control","no-cache"]],
+                [["Accept", "application/json"]
+                 //, ["Cache-Control","no-cache"]
+                ],
                 callbackFN,
                 failCBOrNil
                 || function(xhr){ eg.error(xhr);

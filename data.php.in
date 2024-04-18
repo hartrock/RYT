@@ -110,6 +110,7 @@ $filePath = $dirPath."/".$ident.'.json';
 
 if ($_SERVER['REQUEST_METHOD'] == 'GET') {
   header('Content-Type: application/json; charset=UTF-8');
+  header('Cache-Control: no-cache');
   if (! $ident) {
     // no ident -> list dir
     try304_file($dirPath); // may exit
