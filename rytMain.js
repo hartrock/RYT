@@ -195,14 +195,14 @@ function window_onload () {
 
   // default: show only if not seen before
   ryt.showNews = function(forceFlag) {
-    var ident = 'RYTv2.2.7';
+    var ident = 'RYTv2.3';
     // content
     var topic = ""
-      + "[new] HTTPS for RYT service";
+      + "[new] transparent tasks";
     var text = ""
       + ident +": " + topic + "\n"
       +"========\n"
-      +"There is an https://www.evolgo.de/RYT/app.html'HTTPS version of RYT' now: if used, all data will be transferred encrypted between browser and server."
+      +"*Transparent* *tasks* are ignoring finished'n'prio states: these are propagated by *transparent tasks* inbetween predecessor|successor tasks."
 /*
       +"\n"
       +"Older News\n"
