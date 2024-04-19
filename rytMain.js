@@ -26,7 +26,7 @@ var EvolGo = EvolGo || {}, RYT = RYT || {};
 (function (eg, ryt) {
 function window_onload () {
 
-  var version = "RYTv2.3.1.2 (2024-04-19)"; // programmatically updated from upgradeVersion
+  var version = "RYTv2.3.1.2.1 (2024-04-19)"; // programmatically updated from upgradeVersion
 
   var eg = EvolGo, ryt = RYT; // shortcuts
 
@@ -202,7 +202,7 @@ function window_onload () {
     var text = ""
       + ident +": " + topic + "\n"
       +"========\n"
-      +"*Transparent* *tasks* are ignoring finished'n'prio states: these are propagated by *transparent tasks* inbetween predecessor|successor tasks."
+      +"*Transparent* *tasks* are ignoring finished'n'prio states: these are propagated by *transparent* *tasks* inbetween predecessor|successor tasks."
 /*
       +"\n"
       +"Older News\n"
