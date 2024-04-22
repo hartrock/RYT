@@ -195,32 +195,34 @@ function window_onload () {
 
   // default: show only if not seen before
   ryt.showNews = function(forceFlag) {
-    var ident = 'RYTv2.3';
+    var ident = 'RYTv2.4';
     // content
     var topic = ""
-      + "[new] transparent tasks";
+      + "[new] *global* tasks";
     var text = ""
       + ident +": " + topic + "\n"
       +"========\n"
-      +"*Transparent* *tasks* are ignoring finished'n'prio states: these are propagated by *transparent* *tasks* inbetween predecessor|successor tasks."
-/*
-      +"\n"
+      +"*Global* tasks: always to be copied as aliases."
+    //
+      +"\n\n"
       +"Older News\n"
       +"==========\n"
       +"\n"
-      +"RYTv1.6.5: [imp] top offset for info windows\n"
+      +"RYTv2.3: [new] transparent tasks\n"
       +"---------\n"
-      +"Info windows not covering buttons at top anymore.\n"
-      +"\n"
-      +"RYTv1.6.4: [new] unminified version\n"
-      +"---------\n"
-*/
+      +"*Transparent* *tasks* are ignoring finished'n'prio states: these are propagated by *transparent* *tasks* inbetween predecessor|successor tasks.\n"
     ;
 
     if (ryt.info.newsSeen === ident && ! forceFlag) {
       return; // don't show it twice, only if forced
     }
+    // special (hackish, but good enough)
+    if (ident === 'RYTv2.4') { // task green changed, so black font is ..
+      ryt.info.prefs.taskFontColor = "black max"; // .. better as white one
+      ryt.info.setLocally("prefs", ryt.info.prefs);
+    }
     ryt.info.setLocally('newsSeen', ident);
+
     if (! text) {
       return;
     }

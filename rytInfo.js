@@ -129,7 +129,7 @@ var EvolGo = EvolGo || {}, RYT = RYT || {};
       && this.showHoverInfoClickForStayCount < 3;
   };
 
-  protoI.defaultPrefs = { taskColor:"green", taskFontColor:"white max",
+  protoI.defaultPrefs = { taskColor:"green", taskFontColor:"black max",
                           transparent_taskColor:"cyan", transparent_taskFontColor:"black",
                           commentColor:"yellow", commentFontColor:"black max",
                           showInfoMessagesFlag:true,
@@ -140,9 +140,11 @@ var EvolGo = EvolGo || {}, RYT = RYT || {};
                           showElementIDsFlag:false
                         };
   protoI.color2HTMLColorMap = {
-    'green':"rgb(0, 127, 0)",
+    //'green':"rgb(0, 127, 0)",
+    'green':"rgb(0, 255, 0)",
     'light green':"rgb(127, 255, 127)",
-    'yellow':"#bfac00",
+    //'yellow':"#bfac00",
+    'yellow':"#ffff00",
     'red':"red",
     'blue':"blue",
     'light blue':"rgb(127,127,255)",

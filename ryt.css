@@ -559,3 +559,6 @@ svg {
   stroke: #bfac00;
 }
 */
+rect.task.widget.global {
+    stroke-width: 4;
+}

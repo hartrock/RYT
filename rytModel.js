@@ -1686,6 +1686,7 @@ var EvolGo = EvolGo || {}, RYT = RYT || {};
   //  cloning
   //
 
+  // obj in, id out
   proto.basicCloneElem = function (elemObj) {
     var keysToBeRemoved = { // only keys are of interest here
       id:null, creationTime:null, createdBy:null,
@@ -1696,7 +1697,7 @@ var EvolGo = EvolGo || {}, RYT = RYT || {};
       return ! (key in keysToBeRemoved);
     });
     var newElem = this.create(filteredProps);
-    return newElem;
+    return newElem; // id
   };
 
   //  paste, alias
@@ -1706,16 +1707,20 @@ var EvolGo = EvolGo || {}, RYT = RYT || {};
     child2pos, parent, old2new,
     elemMap, parent2childs) {
     eg.forEach(child2pos, function(pos, id) {
-      var elemObj = elemMap[id];
       var newElem;
       if (id in old2new) {
-        newElem = old2new[id]; // already cloned
+        newElem = old2new[id]; // already cloned locally -> alias
       } else {
-        newElem = this.basicCloneElem(elemObj);
-        old2new[id] = newElem;
-        var child2pos = parent2childs[id] || { };
-        this.pasteChilds_elemMap_parent2childs(child2pos, newElem, old2new,
-                                               elemMap, parent2childs);        
+        var elemObj = elemMap[id];
+        if (elemObj.globalFlag) {
+          newElem = id; // global -> alias
+        } else { // clone elem and its subs
+          newElem = this.basicCloneElem(elemObj);
+          old2new[id] = newElem;
+          var child2pos = parent2childs[id] || { };
+          this.pasteChilds_elemMap_parent2childs(child2pos, newElem, old2new,
+                                                 elemMap, parent2childs);
+        }
       }
       this.addChildParentRelation(newElem, parent, pos, 'paste');
     }, this);
@@ -1767,10 +1772,21 @@ var EvolGo = EvolGo || {}, RYT = RYT || {};
     this.send({ event:'pasted', into:flow, elems:eg.vals(old2new), triggeredBy:from });
     return numChild2pos;
   }; // proto.pasteInto_child2pos_elemMap_relMap_parent2childs()
-  proto.pasteInto = function (flow, offset, from) {
+  proto.pasteInto = function (flow, offset, info, from) {
+    //...global -> check for alias conflict as in aliasInto()
+    if (! this.hasSelected()) {
+      return 0; // nothing todo case
+    }
+    var selected = this.getSelected();
+    var selectedGlobals = eg.filter(selected, function (val, id) {
+      return this.getObject(id).globalFlag;
+    }, this);
+    if (this.check_invalidAlias(selectedGlobals, flow, info) === null) {
+      return null; // error case
+    }
     return this.pasteInto_child2pos_elemMap_relMap_parent2childs(
       flow, offset, from,
-      this.getSelected(), this.objectMap, this.objectMap, this.parent2Childs
+      selected, this.objectMap, this.objectMap, this.parent2Childs
     );
   };
   proto.collectChilds = function (child2pos, collected) {
@@ -1855,11 +1871,31 @@ var EvolGo = EvolGo || {}, RYT = RYT || {};
       numRelations: eg.numOfProps(obj.relMap)
     };
   }; // importFromObj()
+  proto.check_invalidAlias = function (selected, targetFlow, info) {
+    info.alreadyInTarget = [];
+    info.wouldGenerateCycle = [];
+    for (id in selected) {
+      if (this.child2Parents[id][targetFlow]) {
+        info.alreadyInTarget.push(id);
+      }
+      if (id === targetFlow // would become direct parent of itself
+          || this.elemHasParentRecursive(targetFlow, id) /* would become indirect parent of itself */) {
+        info.wouldGenerateCycle.push(id);
+      }
+    };
+    if (info.alreadyInTarget.length || info.wouldGenerateCycle.length) {
+      return null; // error case
+    }
+  };
   proto.aliasInto = function (flow, offset, info, from) {
     if (! this.hasSelected()) {
-      return 0;
+      return 0; // nothing todo case
     }
     var selected = this.getSelected();
+    if (this.check_invalidAlias(selected, flow, info) === null) {
+      return null; // error case
+    }
+/*
     info.alreadyInTarget = [];
     info.wouldGenerateCycle = [];
     for (id in selected) {
@@ -1867,13 +1903,14 @@ var EvolGo = EvolGo || {}, RYT = RYT || {};
         info.alreadyInTarget.push(id);
       }
       if (id === flow // would become direct parent of itself
-          || this.elemHasParentRecursive(flow, id) /* would become indirect parent of itself */) {
+          || this.elemHasParentRecursive(flow, id)) {
         info.wouldGenerateCycle.push(id);
       }
     };
     if (info.alreadyInTarget.length || info.wouldGenerateCycle.length) {
       return null; // error case
     }
+*/
     var minPoint = this.computeMinPoint(selected);
     var aliased = [];
     this.openBatch('aliasInto', from);
@@ -1885,7 +1922,7 @@ var EvolGo = EvolGo || {}, RYT = RYT || {};
     }, this);
     this.closeBatch('aliasInto', from);
     this.send({ event:'aliased', into:flow, elems:aliased, triggeredBy:from });
-    return aliased.length;
+    return aliased.length; // something done case
   }; // aliasInto()
 
   // &&& semantics could be: no elem added after initing without data

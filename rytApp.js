@@ -203,18 +203,38 @@ protoFEO.handle_deleteOrCut = function (msg) {
 };
 */
 
-protoFEO.handle_paste = function (msg) {
-  var numPasted = this.model.pasteInto(this.flowId, msg.pos, this.toString());
-  if (numPasted) {
-    this.app.logger.info(numPasted + " elements pasted.");
-  } else {
-    this.app.logger.warn("Nothing to paste.");
+protoFEO.showAliasError = function (info) {
+  var commandIgnoredStr = "\n-> Command ignored.";
+  if (info.alreadyInTarget.length) {
+    this.app.logger.problem(
+      "Cannot create alias: element(s) " + info.alreadyInTarget + " already in target." + commandIgnoredStr
+    );
   }
+  if (info.wouldGenerateCycle.length) {
+    this.app.logger.problem(
+      "Cannot create alias for element(s) " + info.wouldGenerateCycle + ": this would generate cycle(s)." + commandIgnoredStr
+    );
+  }
+};
+protoFEO.handle_paste = function (msg) {
+  var info = { };
+  var res = this.model.pasteInto(this.flowId, msg.pos, info,this.toString());
+  if (res === null) {
+    this.showAliasError(info);
+    return;
+  }
+  if (res === 0) {
+    this.app.logger.warn("Nothing to paste.");
+    return;
+  }
+  this.app.logger.info(res + " elements pasted.");
 };
 protoFEO.handle_alias = function (msg) {
   var info = { };
   var res = this.model.aliasInto(this.flowId, msg.pos, info, this.toString());
   if (res === null) {
+    this.showAliasError(info);
+/*
     var commandIgnoredStr = "\n-> Command ignored.";
     if (info.alreadyInTarget.length) {
       this.app.logger.problem(
@@ -226,6 +246,7 @@ protoFEO.handle_alias = function (msg) {
         "Cannot create alias for element(s) " + info.wouldGenerateCycle + ": this would generate cycle(s)." + commandIgnoredStr
       );
     }
+*/
     return;
   }
   if (res === 0) {
@@ -381,6 +402,8 @@ protoMO_TD.handle_changed = function (msg) {
       || 'logic' in attrs) {
     this.updateFinishedButtons();
     this.updateMoreButtons();
+  } else if ('globalFlag' in attrs) { // may implicitely be handled before
+    this.updateFinishedButtons(); // globalFlag checkbox added there
   }
   if (attrs.hasOwnProperty("prio")) {
     var search;
@@ -415,7 +438,8 @@ protoMO_TD.updateFinishedButtons = function () {
     elementObj.finished,
     this.model.canBeFinishedFromPreds(this.elementId),
     this.model.canBeFinishedFromChilds(this.elementId),
-    elementObj.subtaskFinishPropagation
+    elementObj.subtaskFinishPropagation,
+    elementObj.globalFlag
   );
 };
 protoMO_TD.updateMoreButtons = function () {
@@ -433,7 +457,7 @@ protoMO_TD.handle_changedChild = function (msg) {
 };
 
 protoMO_TD.handle_updateElem = function (msg) {
-  eg.log("protoMO_TD.handle_updateElem", msg);
+  //eg.log("protoMO_TD.handle_updateElem", msg);
   if (msg.reason === c_er_succ_prio_prop_changed) {
     this.elementDialog.updatePrioButtons();
   } else if (msg.reason === c_er_pred_finished_prop_changed) {
@@ -546,7 +570,7 @@ protoMO_FEs.do_finishedState_updates = function(from, startNeighborsOrNil) {
   };
 
 protoMO_FEs.handle_changed = function (msg) {
-  eg.log("protoMO_FEs.handle_changed()...", msg);
+  //eg.log("protoMO_FEs.handle_changed()...", msg);
   var that = this;
   var obj = msg.objProps;
   var id = obj.id;
@@ -565,7 +589,7 @@ protoMO_FEs.handle_changed = function (msg) {
 };
 
 protoMO_FEs.handle_created = function (msg) {
-  eg.log("protoMO_FEs.handle_created()...", msg);
+  //eg.log("protoMO_FEs.handle_created()...", msg);
   var obj = msg.newProps;
   if (obj._relation === 'conn_fromTo'
       && this.model.isTask(obj.key_1)
@@ -581,7 +605,7 @@ protoMO_FEs.handle_created = function (msg) {
 //   not here, but by handling deletion of conns of deleted elems with the other
 //   conn endpoint being undeleted then.
 protoMO_FEs.handle_deleted = function (msg) {
-  eg.log("protoMO_FEs.handle_deleted()...", msg);
+  //eg.log("protoMO_FEs.handle_deleted()...", msg);
   var obj = msg.oldProps;
   if (obj._relation === 'conn_fromTo') {
     var obj_key_1 = this.model.getObject(obj.key_1); // deleted -> undefined
@@ -673,6 +697,9 @@ protoMO_FE.createTaskWidget = function (taskObj, parent) {
   taskWidget.dblclick(eg.bindAsEventListener(elementWidgetOndblclick(this.app), taskWidget));
   connectArea.addClassAttribute('connectArea');
   taskWidget.addClassAttribute('task');
+  if (taskObj.globalFlag) {
+    taskWidget.addClassAttribute('global');
+  }
   taskWidget.data = id; // for getting task in model via widget
   taskWidget.parentId = parent;
   var callback = this.app.elementObjInfoStrCB(taskObj, parent);
@@ -1167,7 +1194,7 @@ protoMO_FE.parentsOfObjChildsHere = function (obj) {
   return this.model.parentsOfNChildsOf(obj.id, this.parentId);
 };
 protoMO_FE.handle_updateElem = function (msg) {
-  eg.log("protoMO_FE.handle_updateElem", msg);
+  //eg.log("protoMO_FE.handle_updateElem", msg);
   if (this.responsibleForChild(msg.elem)) {
     this.handle_changedChild(msg.elem); // treat it as changed for rerendering
   }
@@ -1183,9 +1210,7 @@ protoMO_FE.handle_updateConn = function (msg) {
   }
 };
 protoMO_FE.handle_changed = function (msg) {
-  eg.log("protoMO_FE.handle_changed()", msg);
-  //eg.log(this);
-  //eg.log(msg);
+  //eg.log("protoMO_FE.handle_changed()", msg);
   var obj = msg.objProps;
   if (obj._relation === 'parentChild') {
     if (msg.triggeredBy !== this.corresponding_feoId
@@ -2087,7 +2112,7 @@ protoApp.openTaskDialog = function (argObjOrNil, callbackOK, parentId, taskIdOrN
       });
     $(diaButtons[0]).click(function() {
       const isChecked = $(diaButtons[0]).is(":checked");
-      eg.log("$(diaButtons[0]) isChecked:", isChecked);
+      //eg.log("$(diaButtons[0]) isChecked:", isChecked);
       if (! $dia.forceMore_flag) {
         $dia.forceMore_flag = true;
         $dia.updateExtras();
@@ -2176,7 +2201,8 @@ protoApp.openTaskDialog = function (argObjOrNil, callbackOK, parentId, taskIdOrN
           : (canBeFinishedFromChilds ? $dia.finished : false),
         model.canBeFinishedFromPreds(taskIdOrNil),
         canBeFinishedFromChilds,
-        extraProps.subtaskFinishPropagation
+        extraProps.subtaskFinishPropagation,
+        argObj.globalFlag
       );
     };
     logicSelectArea.change(changeFun);
@@ -2205,7 +2231,8 @@ protoApp.openTaskDialog = function (argObjOrNil, callbackOK, parentId, taskIdOrN
   $dia.updateFinishedButtons = function (finished,
                                          finAllowedFromPreds,
                                          finAllowedFromChilds,
-                                         finAutomated) {
+                                         finAutomated,
+                                         globalFlag) {
     var finAllowed = finAllowedFromPreds && finAllowedFromChilds;
     this.finished = finished;
     // remove existing finished buttons
@@ -2249,6 +2276,17 @@ protoApp.openTaskDialog = function (argObjOrNil, callbackOK, parentId, taskIdOrN
       +     'n/a'
       +  '</span>'
       +'</td>'
+
+      + (globalFlag || ryt.info.inExpertMode()
+         ? ('<td colspan="4">'
+            +  '<input type="checkbox" id="globalFlag" name="'+nameForFinished+'_3"'
+            +     (globalFlag ? ' checked' : '')
+            +  '>'
+            +  '<span class="globalLabel">'
+            +     'global (copy as alias)'
+            +  '</span>'
+            +'</td>')
+         : '')
     ;
 
     var finishedButtons = $(finishedButtonsStr);
@@ -2275,7 +2313,7 @@ protoApp.openTaskDialog = function (argObjOrNil, callbackOK, parentId, taskIdOrN
     }
     finishedButton.click(function() {
       const isChecked = finishedButton.is(":checked");
-      eg.log("finishedButton isChecked:", isChecked);
+      //eg.log("finishedButton isChecked:", isChecked);
       if ($dia.finished === undefined){
         eg.log("Huh?"); // button should be disabled
         throw "Huh!";
@@ -2343,17 +2381,23 @@ protoApp.openTaskDialog = function (argObjOrNil, callbackOK, parentId, taskIdOrN
     var moreProps = { };
     var form = $dia.find("#task-form")[0];
     moreProps = $dia.sg.getPropsFromForm(form);
+    var globalFlagCheckbox = $dia.find("#globalFlag");
+    var globalFlag = globalFlagCheckbox[0] && globalFlagCheckbox[0].checked;
     $dia.props = {
       name:nameArea.val(),
       description:descriptionArea.val(),
       finished:$dia.finished,
       prio:prio,
       logic: moreProps.logic === 'and' ? undefined : moreProps.logic,
-      subtaskFinishPropagation: moreProps.subtaskFinishPropagation || undefined
+      subtaskFinishPropagation: moreProps.subtaskFinishPropagation || undefined,
+      globalFlag: globalFlag || undefined
     };
     //eg.log($dia.props);
   };
-  $dia.updateFinishedButtons(finished, finAllowedFromPreds, finAllowedFromChilds, finAutomated);
+  $dia.updateFinishedButtons(
+    finished, finAllowedFromPreds, finAllowedFromChilds, finAutomated,
+    argObj.globalFlag
+  );
   $dia.updateExtras();
   $dia.dialog({
     position: diaArgObj.pos ? [diaArgObj.pos.x, diaArgObj.pos.y] : diaArgObj.position ? [diaArgObj.position, topOff] : 'center',
@@ -2842,6 +2886,9 @@ protoApp.creationNModificationInfoString = function (flowElem, withoutBorderOrNi
   };
   protoApp.postTaskNameStr = function (taskObj) {
     var res = "";
+    if (taskObj.globalFlag) {
+      res += "<global>"
+    }
     if (taskObj.finished === undefined) {
       res += "<transparent>"
     }
@@ -4477,16 +4524,16 @@ protoApp.createActionButtons = function () {
       ryt.importProjectList(
         credentials,
         function(listing) {
-          eg.log(listing);
+          //eg.log(listing);
           ryt.openMaintenanceDialog(
             listing, credentials.key, function(toBeDeleted, deleteFlag) {
               if (! deleteFlag || ! toBeDeleted.length) {
                 return;
               }
               if (confirm("Really delete project(s) " + toBeDeleted.join(', ') + "?")) {
-                eg.log(toBeDeleted);
+                //eg.log(toBeDeleted);
                 toBeDeleted.forEach(function(projectId) {
-                  eg.log(projectId);
+                  //eg.log(projectId);
                   ryt.deleteProject(
                     projectId,
                     self.createCredentials(projectId, false, true),
@@ -4718,7 +4765,7 @@ protoApp.initModelNFlowEditor = function (data) {
   this.model = RYT.createModel(this.logger, this.selectedStore, data);
   if (! ryt.info.user) {
     var callback = function() {
-      eg.log("user info", data);
+      //eg.log("user info", data);
       self.setUserInModel();
     };
     this.openUserInfoDialogNeedValidInput(
