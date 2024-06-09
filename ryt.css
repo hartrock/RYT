@@ -250,6 +250,8 @@ body {
 svg {
     background: #333; /* element dialog */
     color: #fff;
+    display: block; /* for filling div exactly,
+                         https://stackoverflow.com/a/39716426 */
 }
 
 .ui-widget-overlay {

@@ -924,8 +924,8 @@ R_fn.currentViewDims = function () {
   var parentNode = this.canvas.parentNode;
   return eg.Point.xy(parentNode.clientWidth, parentNode.clientHeight);
 };
-R_fn.updateCanvasSize = function () {
-  var currentDims = this.currentViewDims();
+R_fn.updateCanvasSize = function () { // set to at least dims of ..
+  var currentDims = this.currentViewDims(); // .. div around
   var neededDims = this.neededViewDims();
   var newDims = currentDims.max(neededDims);
   this.setSize(newDims.x, newDims.y);
