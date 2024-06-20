@@ -1844,6 +1844,15 @@ protoApp.taskDialogHelpText = function (showExpertInfo) {
   return basicHelp + (showExpertInfo ? moreHelp : moreHint);
 };
 //
+protoApp.canvasDivString = function (canvasId) {
+  return (
+    '<div id="'+canvasId+'" class="canvas" '
+      +'tabindex=-1 '
+    // https://stackoverflow.com/a/22666723
+    //   +'style="width:auto; ' -> default // +'style="width:100%; ' -> problems
+      +'"></div>'
+  );
+};
 protoApp.openTaskDialog = function (argObjOrNil, callbackOK, parentId, taskIdOrNil, diaArgObjOrNil) {
   const newTask_flag = ! argObjOrNil;
   const dialogTitle = newTask_flag && 'Create Task' || 'Edit Task';
@@ -1927,10 +1936,9 @@ protoApp.openTaskDialog = function (argObjOrNil, callbackOK, parentId, taskIdOrN
 
       +'</form>' // task-form
 
-      +'<div id="'+canvasId+'" class="canvas" '
-      +'tabindex=-1 '
-      +'style="width:100%; '
-      +'"></div>'
+      + (taskIdOrNil
+         ? this.canvasDivString(canvasId)
+         : "")
 
       +'</div>'
   );
@@ -4840,16 +4848,16 @@ protoApp.setCanvasSize = function () {
   this.setCanvasSizeFor(this.r);
 };
 // for changing keyboard focus to a div without scrolling to its top
-protoApp.createInputDummy = function (elementID) {
+protoApp.createInputDummy = function (divID) {
   var dummy = $(
-    '<input id="inputDummy_'+ elementID +'" '
+    '<input id="inputDummy_'+ divID +'" '
       + 'name="usedForFocusSwitch" '
       + 'style="'
       +   'width:0; height:0; top:0; left:0; position:fixed; '
       +   'z-index:-1; opacity:0; '
       +'">'
   );
-  dummy.appendTo($('#'+elementID));
+  dummy.appendTo($('#'+divID));
   //dummy[0].onkeydown = function(e) { eg.log("dummy e:", e); };
   //$(dummy).keydown(function(e) { eg.log("dummy e:", e); });
 };
