@@ -2407,7 +2407,8 @@ protoApp.openTaskDialog = function (argObjOrNil, callbackOK, parentId, taskIdOrN
     argObj.globalFlag
   );
   $dia.updateExtras();
-  $dia.dialog({
+
+  var ao = {
     position: diaArgObj.pos ? [diaArgObj.pos.x, diaArgObj.pos.y] : diaArgObj.position ? [diaArgObj.position, topOff] : 'center',
     autoOpen: true, modal: false,
     //show: 'scale',
@@ -2415,13 +2416,10 @@ protoApp.openTaskDialog = function (argObjOrNil, callbackOK, parentId, taskIdOrN
     width: dims.x + 100,
     beforeClose: self.createElemDialogBeforeCloseFunc($dia, dialogTitle, taskIdOrNil),
     close: function(event, ui) {
-      self.unwireModelObserver(mo_TaskDialog);
-      if (flowEditorNObservers) {
-        self.unwireModelObserver(flowEditorNObservers.mo_flowEditor);
-        self.flowEditors.remove(flowEditorNObservers.flowEditor);
-        var cm = $("#" + flowEditorNObservers.flowEditor.contextMenuID);
-        cm.remove();
+      if (ao.closeCanvasHook) { /* for FE canvas */
+        ao.closeCanvasHook();
       }
+      self.unwireModelObserver(mo_TaskDialog);
       $dia.remove();
       self.unregisterDialog(taskIdOrNil, $dia);
       if ($dia.closeFromOK || $dia.closeFromRet) {
@@ -2437,6 +2435,9 @@ protoApp.openTaskDialog = function (argObjOrNil, callbackOK, parentId, taskIdOrN
       }
     },
     open: function() {
+      if (ao.openCanvasHook) { /* for FE canvas */
+        ao.openCanvasHook();
+      }
       setTimeout(function(){
         var nameArea = $dia.find("#name");
         if (self.initialTaskName.length && nameArea.val() === self.initialTaskName) {
@@ -2453,24 +2454,12 @@ protoApp.openTaskDialog = function (argObjOrNil, callbackOK, parentId, taskIdOrN
         // self.setCanvasSizeFor(r);
       }, 500);
 
-    },
-    // compute dia height once, after it has been opened
-    resizeStart: function (event, ui) {
-      if (r && ! originalHeight) {
-        originalHeight = parseFloat($dia.css('height'));
-        originalHeightCanvasDiv
-          = parseFloat($dia.find("#"+canvasId).css('height'));
-      }
-    },
-    resizeStop: function(event, ui) { // size of canvas oriented at dia size
-      if (! r) { return; }
-      var diaHeight = parseFloat($dia.css('height'));
-      var newHeightDiv = Math.max(originalHeightCanvasDiv + diaHeight - originalHeight, 0);
-      $dia.find("#"+canvasId).css('height', newHeightDiv);
-      self.setCanvasSizeFor(r);
-      return;
     }
-  });
+  }; // ao
+  if (taskIdOrNil) {
+    this.extendDialogWithCanvas(ao, $dia, taskIdOrNil, canvasId);
+  }
+  $dia.dialog(ao);
   if (! taskIdOrNil) { // pos of creation dialog different from edit one
     var off = eg.Point.xy(40, 40);
     var centerPos = $dia.parent().position(); // center pos of dialog
@@ -2509,13 +2498,47 @@ protoApp.openTaskDialog = function (argObjOrNil, callbackOK, parentId, taskIdOrN
     // do something
   });
   */
-  if (taskIdOrNil) {
-    this.createInputDummy(canvasId);
+}; // protoApp.openTaskDialog()
+
+// for installing FE canvas
+protoApp.extendDialogWithCanvas = function (ao, dia, taskId, canvasId) {
+  var self = this;
+  var r, originalHeight, originalHeightCanvasDiv;
+  var flowEditorNObservers;
+  // compute dia height once, after it has been opened
+  ao.resizeStart = function (event, ui) {
+    eg.assert(r);
+    if (! originalHeight) {
+      originalHeight = parseFloat(dia.css('height'));
+      originalHeightCanvasDiv
+        = parseFloat(dia.find("#"+canvasId).css('height'));
+    }
+  };
+  ao.resizeStop = function(event, ui) { // size of canvas oriented at dia size
+    eg.assert(r);
+    var diaHeight = parseFloat(dia.css('height'));
+    var newHeightDiv = Math.max(originalHeightCanvasDiv + diaHeight - originalHeight, 0);
+    dia.find("#"+canvasId).css('height', newHeightDiv);
+    self.setCanvasSizeFor(r);
+    return;
+  };
+  ao.closeCanvasHook = function() {
+    //eg.log("closeCanvasHook");
+    self.unwireModelObserver(flowEditorNObservers.mo_flowEditor);
+    self.flowEditors.remove(flowEditorNObservers.flowEditor);
+    var cm = $("#" + flowEditorNObservers.flowEditor.contextMenuID);
+    cm.remove();
+    ao = null; // cannot hurt: ease GC
+  };
+  ao.openCanvasHook = function() {
+    //eg.log("openCanvasHook");
+    const dims = eg.Point.xy(600,200);
+    self.createInputDummy(canvasId);
     r = Raphael(canvasId, dims.x, dims.y).installExtensions();
     r.canvas.canvasId = "sub";
-    flowEditorNObservers = this.createFlowEditorNObservers(r, taskIdOrNil);
-  }
-}; // protoApp.openTaskDialog()
+    flowEditorNObservers = self.createFlowEditorNObservers(r, taskId);
+  };
+};
 protoApp.openTaskDialog.diaCount = 0;
 
 protoApp.unsavedChangesPropsCheck = function (idOrNil, props, topic, yesCB) {
