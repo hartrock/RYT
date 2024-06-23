@@ -63,7 +63,7 @@ var EvolGo = EvolGo || {}, RYT = RYT || {};
     }
     this.widgetMousedown = addBlockedCheck(function (e) {
       e = e || window.event;
-      eg.log("widgetMousedown", "e: ", e,
+      eg._log("widgetMousedown", "e: ", e,
              "e.altKey: " +e.altKey,
              "e.metaKey: " +e.metaKey,
              "e.ctrlKey: " +e.ctrlKey);
@@ -325,7 +325,7 @@ var EvolGo = EvolGo || {}, RYT = RYT || {};
     function onkeydown(e) {
       e = e || window.event;
       var target = eg.targetWithPosition(e);
-      eg.log("onkeydown:", e, "target:", target);
+      eg._log("onkeydown:", e, "target:", target);
       if (target.nodeName !== 'TEXTAREA') { // Don't handle task dialog textareas here.
         if (e.keyCode === 46 || e.ctrlKey && e.keyCode === 88) { // del or cut (ctrl-x)
           self.deleteOrCut(e.keyCode === 88);
