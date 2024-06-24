@@ -954,9 +954,15 @@ Wenn Sie XHTML-Standard-konform arbeiten wollen, müssen Sie das Attribut in der
 
     var hoverHintStr = (ryt.info.inBeginnerMode()
                         && argObj.hoverFlag && ryt.info.hoverHintCount++ < 3)
-      ? '<p style="text-align:center;">[hint] hover for hold, click for window.</p>'
-      : '';
-    return divBeginStr + hoverHintStr + html + '</div>';
+        ? '<p style="text-align:center;">[hint] hover for hold, click for window.</p>'
+        : '';
+
+    var canvasDivOrEmptyStr = (argObj.hoverFlag
+                               ? ''
+                               : ryt.app.canvasDivString(argObj.canvasId));
+    return (divBeginStr + hoverHintStr + html
+            + canvasDivOrEmptyStr
+            + '</div>');
   } // computeDiv()
   function computeDivNode(text, argObj) {
     var html = text2HTML(text);
@@ -967,20 +973,26 @@ Wenn Sie XHTML-Standard-konform arbeiten wollen, müssen Sie das Attribut in der
     links.click(linkProps.followLinkClickFunction);
     return divNode;
   }
-  function computeDivNodeFor(infoStrCB, hoverFlag) {
-    var text = infoStrCB(! hoverFlag);
+  function computeDivNodeFor(infoStrCB, hoverFlag, canvasId) {
+    var text = infoStrCB(! hoverFlag, // ! parent info
+                         hoverFlag);  // childs info
     var argObj = { hoverFlag: hoverFlag,
-                   classString: hoverFlag ? 'showHoverInfo' : 'showInfo'
+                   classString: hoverFlag ? 'showHoverInfo' : 'showInfo',
+                   canvasId: canvasId
                  };
     return computeDivNode(text, argObj);
   }
+  var canvasSpecialCount = 0;
   function computeInfoNode(infoStrCB, hoverFlag) {
     var maxWidth = ryt.info.develMode || ryt.info.prefs.showElementIDsFlag
       ? 800
       : 600;
-    var infoNode = computeDivNodeFor(infoStrCB, hoverFlag);
-    infoNode.css('display', 'none');
+
+    var canvasId = "canvasSpecial_" + ++canvasSpecialCount;
+    var infoNode = computeDivNodeFor(infoStrCB, hoverFlag, canvasId);
+    infoNode.canvasId = canvasId;
     infoNode.appendTo($("body"));
+
     // from here on width has been computed by rendering
     if (infoNode.width() > maxWidth) {
       infoNode.width(maxWidth);
@@ -1009,9 +1021,11 @@ Wenn Sie XHTML-Standard-konform arbeiten wollen, müssen Sie das Attribut in der
       ? 800
       : 600;
     var dialogBorderMargin = 26; // extra width for dialog decoration
-    var dia = computeInfoNode(infoStrCB, false);
+    var dia = computeInfoNode(infoStrCB,
+                              false); // hoverFlag
     // dialog() sets width of dia infoNode to auto
-    dia.dialog({
+
+    var ao = {
       title: computeTitle(infoStrCB),
       autoOpen: true, modal: false, //show: 'scale', hide: 'scale',
       width: argObj.width || dia.width() + dialogBorderMargin, // auto would go to div
@@ -1020,10 +1034,18 @@ Wenn Sie XHTML-Standard-konform arbeiten wollen, müssen Sie das Attribut in der
       //minWidth:?, // default is OK
       position: argObj.pos && [argObj.pos.x, argObj.pos.y]
         || 'auto',
-      close: argObj.close || function(event, ui) {
+      //close: argObj.close || function(event, ui) {
+      //},
+      close: function(event, ui) {
+        if (ao.closeCanvasHook) {
+          ao.closeCanvasHook();
+        }
         dia.remove();
       },
       open: function(event, ui) {
+        if (ao.openCanvasHook) {
+          ao.openCanvasHook();
+        }
         if (! eg.isNil(argObj.topOff)) {
           dia.parent().css("top", argObj.topOff + "px");
         }
@@ -1035,7 +1057,9 @@ Wenn Sie XHTML-Standard-konform arbeiten wollen, müssen Sie das Attribut in der
           dia.parent().css("top", ryt.info.infoWinTopOffset + "px");
         }
       }
-    });
+    };
+    ryt.app.extendDialogWithCanvas(ao, dia, infoStrCB.elementId, dia.canvasId);
+    dia.dialog(ao);
     if (infoStrCB.elementId) {
       installElementLinkBehavior(dia, infoStrCB);
     }

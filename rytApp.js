@@ -3121,7 +3121,8 @@ protoApp.subelemsInfoStr = function (taskObj) {
   // Goes directly via obj; which is possible, because an obj ptr stays for its lifetime.
   protoApp.elementObjInfoStrCB = function (elementObj, parent) {
     var self = this;
-    var fun = function (showCurrentParentFlag) { // this to be bound to elemObj
+    var fun = function (showCurrentParentFlag, // this to be bound ..
+                        showSubElemsFlag) {    // .. to elemObj
       var parentsInfoStr =
         self.parentsInfoStr(elementObj,
                             self.model.getObject(parent) || null,
@@ -3144,7 +3145,9 @@ protoApp.subelemsInfoStr = function (taskObj) {
           + self.creationNModificationInfoString(elementObj)
           + "\n"
           + (elementObj.description ? elementObj.description + "\n|----|\n" : "")
-          + self.subelemsInfoStr(elementObj);
+          + (showSubElemsFlag
+             ? self.subelemsInfoStr(elementObj)
+             : "");
         break;
       default:
         return "No info for element with type '" + elementObj.type + "'.";
