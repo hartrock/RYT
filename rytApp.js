@@ -1853,12 +1853,16 @@ protoApp.canvasDivString = function (canvasId) {
       +'"></div>'
   );
 };
-protoApp.openTaskDialog = function (argObjOrNil, callbackOK, parentId, taskIdOrNil, diaArgObjOrNil) {
+protoApp.openTaskDialog = function (argObjOrNil, callbackOK, parentId,
+                                    taskIdOrNil,
+                                    diaArgObjOrNil) { // dia props
   const newTask_flag = ! argObjOrNil;
   const dialogTitle = newTask_flag && 'Create Task' || 'Edit Task';
   const topOff = 50;
   const dims = eg.Point.xy(600,200);
-  var argObj = argObjOrNil || {};
+  var argObj = (argObjOrNil // shared obj, if task exists (taskIdOrNil non-nil)
+                || {} // new task
+               );
   var diaArgObj = diaArgObjOrNil || { };
   var name = argObj.name || this.initialTaskName;
   var description = argObj.description || "";
@@ -1998,9 +2002,9 @@ protoApp.openTaskDialog = function (argObjOrNil, callbackOK, parentId, taskIdOrN
 
   $dia.updatePrioButtons = function () {
     if (! newTask_flag) {
-      prio = model.getObject(taskIdOrNil).prio;
+      var obj = model.getObject(taskIdOrNil);
+      prio = obj.prio; // var def above outside func
     }
-    // taskIdOrNil: null possible arg here
     var followerMaxPrio = model.followerMaxPrioOrNull(taskIdOrNil);
     // remove existing prio buttons
     var wrapper = this.find('#prioButtonsWrapper');
@@ -2164,7 +2168,7 @@ protoApp.openTaskDialog = function (argObjOrNil, callbackOK, parentId, taskIdOrN
     }, 5000); // .. to avoid calling func very often
   });
 
-  function insertExtras(argObj) {
+  function insertExtras() { // var argObj defined above
     var defaults = { subtaskFinishPropagation:false, logic:"and" };
     var props = { subtaskFinishPropagation: argObj.subtaskFinishPropagation,
                   logic: argObj.logic };
@@ -2198,25 +2202,31 @@ protoApp.openTaskDialog = function (argObjOrNil, callbackOK, parentId, taskIdOrN
     appendNode && appendNode.append($(moreStr));
     var logicSelectArea = appendNode.find("#logic");
     var subtaskFinishPropagationArea = appendNode.find("#subtaskFinishPropagation");
-    var changeFun = function(){
-      var extraProps = extractExtraProps();
-      var canBeFinishedFromChilds = model.canBeFinishedFromChildsAfterLogic(
-        model.parent2Childs[taskIdOrNil], extraProps.logic
-      );
-      $dia.updateFinishedButtons(
-        extraProps.subtaskFinishPropagation
-          ? canBeFinishedFromChilds
-          : (canBeFinishedFromChilds ? $dia.finished : false),
-        model.canBeFinishedFromPreds(taskIdOrNil),
-        canBeFinishedFromChilds,
-        extraProps.subtaskFinishPropagation,
-        argObj.globalFlag
-      );
-    };
     logicSelectArea.change(changeFun);
     subtaskFinishPropagationArea.change(changeFun);
   } // insertExtras()
 
+  function updateFinishedButtonsAfterChildLogic(transparentFromDiaFlag) {
+    var extraProps = extractExtraProps();
+    var canBeFinishedFromChilds = model.canBeFinishedFromChildsAfterLogic(
+      model.parent2Childs[taskIdOrNil], extraProps.logic
+    );
+    //eg.log("globalFlag: ", argObj.globalFlag);
+    $dia.updateFinishedButtons(
+      transparentFromDiaFlag
+        ? undefined
+        : (extraProps.subtaskFinishPropagation
+           ? canBeFinishedFromChilds
+           : (canBeFinishedFromChilds ? $dia.finished : false)),
+      model.canBeFinishedFromPreds(taskIdOrNil),
+      canBeFinishedFromChilds,
+      extraProps.subtaskFinishPropagation,
+      argObj.globalFlag // shared obj, if task exists
+    );
+  }
+  function changeFun (ev_ignored) {
+    updateFinishedButtonsAfterChildLogic();
+  }
   $dia.updateExtras = function () {
     if (! newTask_flag) {
       this.currObj = model.getObject(taskIdOrNil);
@@ -2340,6 +2350,12 @@ protoApp.openTaskDialog = function (argObjOrNil, callbackOK, parentId, taskIdOrN
         $dia.hidePrioSection();
         $dia.hideMoreSection();
       } else {
+        /*-
+          $dia.updateFinishedButtons(
+          true, finAllowedFromPreds, finAllowedFromChilds, finAutomated,
+          argObj.globalFlag
+          );
+        */
         $dia.showPrioSection();
         $dia.updateExtras();
         $dia.showMoreButton();
@@ -2348,11 +2364,13 @@ protoApp.openTaskDialog = function (argObjOrNil, callbackOK, parentId, taskIdOrN
         //eg.log("$dia.finished === undefined; finishedNAButton isChecked:",
         //       isChecked);
         $dia.finished = false;
+        updateFinishedButtonsAfterChildLogic();
         finishedButton.attr('checked', false);
         finishedButton.attr('disabled', ! finAllowed);
         finishedButton.focus();
       } else {
         $dia.finished = undefined;
+        updateFinishedButtonsAfterChildLogic(true);
         finishedButton.attr('checked', finAllowed);
         finishedButton.attr('disabled', true);
       }
@@ -2377,29 +2395,29 @@ protoApp.openTaskDialog = function (argObjOrNil, callbackOK, parentId, taskIdOrN
   $dia.extractProps = function() {
     var nameArea = $dia.find("#name");
     var descriptionArea = $dia.find("#description");
-    var prioArea = $dia.find("input:radio:checked[name='"+nameForPrios+"']");
-    var prioStr = prioArea.val();
-    var prio = prioStr === "nil" ? undefined : parseInt(prioStr);
-    if (prio !== undefined && taskIdOrNil) {
-      var followerMaxPrio = self.model.followerMaxPrioOrNull(taskIdOrNil);
-      if (followerMaxPrio !== null && prio < followerMaxPrio) {
-        prio = Math.max(prio, followerMaxPrio);
-      }
-    }
-    var moreProps = { };
     var form = $dia.find("#task-form")[0];
-    moreProps = $dia.sg.getPropsFromForm(form);
+    var moreProps = $dia.sg.getPropsFromForm(form);
     var globalFlagCheckbox = $dia.find("#globalFlag");
     var globalFlag = globalFlagCheckbox[0] && globalFlagCheckbox[0].checked;
-    $dia.props = {
+    let props = {
       name:nameArea.val(),
       description:descriptionArea.val(),
       finished:$dia.finished,
-      prio:prio,
-      logic: moreProps.logic === 'and' ? undefined : moreProps.logic,
-      subtaskFinishPropagation: moreProps.subtaskFinishPropagation || undefined,
+      logic: (moreProps.logic === 'and'
+              ? undefined
+              : moreProps.logic),
+      subtaskFinishPropagation: (moreProps.subtaskFinishPropagation
+                                 || undefined),
       globalFlag: globalFlag || undefined
     };
+    // Only change prio, if *not* set transparent.
+    if ($dia.finished !== undefined) {
+      var prioArea = $dia.find("input:radio:checked[name='"+nameForPrios+"']");
+      var prioStr = prioArea.val();
+      var prio = prioStr === "nil" ? undefined : parseInt(prioStr);
+      props.prio = prio;
+    }
+    $dia.props = props;
     //eg.log($dia.props);
   };
   $dia.updateFinishedButtons(
