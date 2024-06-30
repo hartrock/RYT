@@ -1997,8 +1997,6 @@ protoApp.openTaskDialog = function (argObjOrNil, callbackOK, parentId,
             && ryt.info.inExpertMode());
   };
 
-  insertActionButtons();
-
   $dia.updatePrioButtons = function () {
     if (! newTask_flag) {
       var obj = model.getObject(taskIdOrNil);
@@ -2068,6 +2066,7 @@ protoApp.openTaskDialog = function (argObjOrNil, callbackOK, parentId,
     wrapper.prepend(prioButtons);
   }; // updatePrioButtons
   $dia.updatePrioButtons();
+
   $dia.taskDialogId = taskDialogId;
   $dia.moreButtonId = taskDialogId + '_button_0';
 
@@ -2146,10 +2145,11 @@ protoApp.openTaskDialog = function (argObjOrNil, callbackOK, parentId,
                                             )
                     );
     });
-    if (argObj.finished === undefined) { // transparent task
+    if (! $dia.q_showMoreButton()) {
       $dia.hideMoreButton(); // .. hidden, if not needed
     }
   } // insertActionButtons()
+  insertActionButtons();
 
   $dia.emphasized_OK_button = function (flag) {
     var button = this.find('#'+taskDialogId+'_button_1');
@@ -2375,6 +2375,7 @@ protoApp.openTaskDialog = function (argObjOrNil, callbackOK, parentId,
       }
       setNAAttributes();
     });
+    // for external changes
     if (argObj.finished === undefined) {
       $dia.hideMoreButton();
     }
