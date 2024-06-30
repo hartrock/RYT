@@ -1946,9 +1946,8 @@ protoApp.openTaskDialog = function (argObjOrNil, callbackOK, parentId,
 
       +'</div>'
   );
-  $dia.currObj = argObj; // may change with updates
-  function curr_isTransparent () {
-    return $dia.currObj.finished === undefined;
+  function task_isTransparent () {
+    return argObj.finished === undefined;
   };
 
   $dia.find("#name").val(name);
@@ -1981,19 +1980,19 @@ protoApp.openTaskDialog = function (argObjOrNil, callbackOK, parentId,
   };
 
   $dia.forceMore_flag = argObj.logic || argObj.subtaskFinishPropagation;
-  $dia.curr_hasMore = function () {
-    return this.currObj.logic || this.currObj.subtaskFinishPropagation;
+  $dia.task_hasMore = function () {
+    return argObj.logic || argObj.subtaskFinishPropagation;
   };
   //
-  $dia.curr_showMore = function () {
-    return ((this.currObj.finished !== undefined
-             && this.curr_hasMore())
+  $dia.task_showMore = function () {
+    return ((argObj.finished !== undefined
+             && this.task_hasMore())
            );
   };
   $dia.q_showMoreButton = function () {
     return ((newTask_flag
-             || (this.currObj.finished !== undefined // not transparent
-                 && ! this.curr_hasMore()
+             || (argObj.finished !== undefined // not transparent
+                 && ! this.task_hasMore()
                 ))
             && ryt.info.inExpertMode());
   };
@@ -2063,7 +2062,7 @@ protoApp.openTaskDialog = function (argObjOrNil, callbackOK, parentId,
       setNAForPrioButtons(e.target.value === 'nil');
     });
     setNAForPrioButtons(prio === undefined);
-    if ($dia.currObj.finished === undefined) {
+    if (argObj.finished === undefined) {
       $dia.hidePrioSection();
     }
     wrapper.prepend(prioButtons);
@@ -2147,7 +2146,7 @@ protoApp.openTaskDialog = function (argObjOrNil, callbackOK, parentId,
                                             )
                     );
     });
-    if ($dia.currObj.finished === undefined) { // transparent task
+    if (argObj.finished === undefined) { // transparent task
       $dia.hideMoreButton(); // .. hidden, if not needed
     }
   } // insertActionButtons()
@@ -2235,8 +2234,8 @@ protoApp.openTaskDialog = function (argObjOrNil, callbackOK, parentId,
     if (finishingExtrasSearch.length) {
       finishingExtrasSearch.remove();
     }
-    insertExtras(this.currObj);
-    if (! this.curr_showMore() && ! this.forceMore_flag) {
+    insertExtras();
+    if (! this.task_showMore() && ! this.forceMore_flag) {
       this.find("#finishingExtras").hide();
     }
   } // $dia.updateExtras()
@@ -2376,7 +2375,7 @@ protoApp.openTaskDialog = function (argObjOrNil, callbackOK, parentId,
       }
       setNAAttributes();
     });
-    if ($dia.currObj.finished === undefined) {
+    if (argObj.finished === undefined) {
       $dia.hideMoreButton();
     }
     setNAAttributes();
