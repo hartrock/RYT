@@ -2363,17 +2363,18 @@ protoApp.openTaskDialog = function (argObjOrNil, callbackOK, parentId,
         //eg.log("$dia.finished === undefined; finishedNAButton isChecked:",
         //       isChecked);
         $dia.finished = false;
-        updateFinishedButtonsAfterChildLogic();
+        updateFinishedButtonsAfterChildLogic(); // 'brute force' update here ..
         finishedButton.attr('checked', false);
         finishedButton.attr('disabled', ! finAllowed);
         finishedButton.focus();
       } else {
         $dia.finished = undefined;
-        updateFinishedButtonsAfterChildLogic(true);
+        updateFinishedButtonsAfterChildLogic(true); // .. and here cancels ..
         finishedButton.attr('checked', finAllowed);
         finishedButton.attr('disabled', true);
       }
       setNAAttributes();
+      $dia.emphasized_OK_button(true);// .. input event: trigger its action here
     });
     // for external changes
     if (argObj.finished === undefined) {
