@@ -189,11 +189,11 @@ Wenn Sie XHTML-Standard-konform arbeiten wollen, müssen Sie das Attribut in der
   }
   function helpDialog(topic, text, widthOrNil) {
     var topOff = 50;
-    var dia = computeDivNode(
-      text,
+    var dia = computeDivNodeForText(
       { id: 'helpDialog_' + ++helpDialog.count,
         classString: 'helpDialog',
-        title: '[Help] ' + topic }
+        title: '[Help] ' + topic },
+      text
     );
     installElementLinkBehavior(dia, null);
     dia.dialog({
@@ -930,15 +930,12 @@ Wenn Sie XHTML-Standard-konform arbeiten wollen, müssen Sie das Attribut in der
     lessFormatting && (str+='</pre>');
     return str;
   }
-  function computeDiv(html, argObj) {
-    var divBeginStr = ''
-      +'<div'
-      +' class="' + argObj.classString +'"'
+
+  function divString(argObj, contentStr) {
+    let divBeginStr = ''
+      + '<div'
       + (argObj.title ? ' title="' + argObj.title + '"' : '')
       +' style="'
-      +   'opacity:0.9; background-color: rgb(15, 15, 15); '
-      +   'color:rgb(255, 255, 255); '
-      +   'font-family:monospace; font-size:9pt; '
       + (argObj.hoverFlag
          ? 'position:absolute; z-index:2000; '
          : ''
@@ -949,48 +946,110 @@ Wenn Sie XHTML-Standard-konform arbeiten wollen, müssen Sie das Attribut in der
       + (argObj.maxWidth
          ? 'max-width:'+ argObj.maxWidth + 'px;'
          : '')
+      +   'font-family:monospace; font-size:9pt; ' // keep layout of simple text
       + '"'
-      +'>';
-
-    var hoverHintStr = (ryt.info.inBeginnerMode()
+      + '>'
+    return (divBeginStr
+            + contentStr
+            + '</div>');
+  } // divString()
+  function infoDivString(argObj, contentStr) {
+    let divBeginStr = ''
+      + '<div'
+      + (argObj.infoId
+         ? ' id="' + argObj.infoId + '"'
+         : '')
+      + ' class="' + argObj.classString + '"'
+      + (argObj.title ? ' title="' + argObj.title + '"' : '')
+      +' style="'
+      + (argObj.hoverFlag
+         ? 'position:absolute; z-index:2000; '
+         : ''
+        )
+      +   'opacity:0.9; background-color: rgb(15, 15, 15); '
+      +   'color:rgb(255, 255, 255); '
+      +   'font-family:monospace; font-size:9pt; '
+      + '"'
+      + '>';
+    let hoverHintStr = (ryt.info.inBeginnerMode()
                         && argObj.hoverFlag && ryt.info.hoverHintCount++ < 3)
         ? '<p style="text-align:center;">[hint] hover for hold, click for window.</p>'
         : '';
+    return divBeginStr + hoverHintStr + contentStr + '</div>';
+  } // infoDivString()
 
-    var canvasDivOrEmptyStr = (argObj.hoverFlag
-                               ? ''
-                               : ryt.app.canvasDivString(argObj.canvasId));
-    return (divBeginStr + hoverHintStr + html
-            + canvasDivOrEmptyStr
-            + '</div>');
-  } // computeDiv()
-  function computeDivNode(text, argObj) {
-    var html = text2HTML(text);
-    var divStr = computeDiv(html, argObj);
-    var divNode = $(divStr);
-    divNode.containsPreFlag = html.match(/<pre>/g) !== null;
-    var links = divNode.find("." + linkProps.followLinkClassString);
+  function enrichDivNode(divNode, contentStr) {
+    divNode.containsPreFlag = contentStr.match(/<pre>/g) !== null;
+    let links = divNode.find("." + linkProps.followLinkClassString);
     links.click(linkProps.followLinkClickFunction);
+  }
+
+  function computeDivNode(argObj, contentStr) {
+    var divStr = divString(argObj, contentStr);
+    var divNode = $(divStr);
+    enrichDivNode(divNode, contentStr);
     return divNode;
   }
-  function computeDivNodeFor(infoStrCB, hoverFlag, canvasId) {
-    var text = infoStrCB(! hoverFlag, // ! parent info
-                         hoverFlag);  // childs info
-    var argObj = { hoverFlag: hoverFlag,
-                   classString: hoverFlag ? 'showHoverInfo' : 'showInfo',
-                   canvasId: canvasId
-                 };
-    return computeDivNode(text, argObj);
+  function computeDivNodeForText(argObj, text) {
+    return computeDivNode(argObj, text2HTML(text));
   }
-  var canvasSpecialCount = 0;
+
+  function computeInfoDivNode(argObj, contentStr) {
+    let divStr = infoDivString(argObj, contentStr);
+    let infoDivNode = $(divStr);
+    enrichDivNode(infoDivNode, contentStr);
+    return infoDivNode;
+  }
+  /*
+  function computeInfoCanvasDivNode(argObj, contentStr) {
+    let infoDivStr   = infoDivString(argObj, contentStr);
+    let canvasDivStr = ryt.app.canvasDivString(argObj.canvasId);
+    let node         = computeDivNode(argObj, infoDivStr + canvasDivStr);
+    return node;
+  }
+  */
+  // no enrichDivNode() for canvasDivNode or its parent
+  function computeInfoCanvasDivNode(argObj, contentStr) {
+    let infoDivNode   = computeInfoDivNode(argObj, contentStr);
+    let canvasDivStr  = ryt.app.canvasDivString(argObj.canvasId);
+    let canvasDivNode = $(canvasDivStr);
+    let node          = $('<div></div>');//computeDivNode(argObj, '');
+    node.append(infoDivNode, canvasDivNode);
+    return node;
+  }
+
+  var infoCount = 0;
+  function computeDivNodeFor(infoStrCB, hoverFlag) {
+    let text = infoStrCB(! hoverFlag, // ? -> show parent info
+                         hoverFlag);  // ? -> show childs info
+    let html = text2HTML(text);
+    let argObj;
+    let infoNode;
+    if (! hoverFlag) {
+      let infoId   = "info-HTML_" + ++infoCount;
+      let canvasId = "info-canvas_" + infoCount;
+      argObj = { hoverFlag: hoverFlag,
+                 classString: 'showInfo',
+                 infoId: infoId,
+                 canvasId: canvasId
+               };
+      infoNode = computeInfoCanvasDivNode(argObj, html);
+      infoNode.infoId = infoId;
+      infoNode.canvasId = canvasId;
+    } else {
+      argObj = { hoverFlag: hoverFlag,
+                 classString: 'showHoverInfo',
+               };
+      infoNode = computeInfoDivNode(argObj, html);
+    }
+    return infoNode;
+  }
   function computeInfoNode(infoStrCB, hoverFlag) {
     var maxWidth = ryt.info.develMode || ryt.info.prefs.showElementIDsFlag
       ? 800
       : 600;
 
-    var canvasId = "canvasSpecial_" + ++canvasSpecialCount;
-    var infoNode = computeDivNodeFor(infoStrCB, hoverFlag, canvasId);
-    infoNode.canvasId = canvasId;
+    var infoNode = computeDivNodeFor(infoStrCB, hoverFlag);
     infoNode.appendTo($("body"));
 
     // from here on width has been computed by rendering
