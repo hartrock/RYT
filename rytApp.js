@@ -347,7 +347,8 @@ protoMO_ED.receiveFrom = function(msg, from) {
   receiveFromWithAssert.call(this, msg, from);
 };
 protoMO_ED.handle_deleted = function (msg) {
-  // usually forcedClose() will be called in receiveBatchFrom() above, but cannot hurt here
+  // Formerly forcedClose() has been called in receiveBatchFrom() above, but it
+  //   has been moved to here.
   this.elementDialog.forcedClose();
 };
 

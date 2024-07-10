@@ -1050,6 +1050,20 @@ Wenn Sie XHTML-Standard-konform arbeiten wollen, müssen Sie das Attribut in der
       : 600;
 
     var infoNode = computeDivNodeFor(infoStrCB, hoverFlag);
+    installElementLinkBehavior(infoNode, infoStrCB);
+    if (! hoverFlag) {
+      infoNode.rerender_info = function () { // brute-force
+        let oldInfo = this.find('#'+this.infoId);
+        let text = infoStrCB(true, false);
+        let html = text2HTML(text);
+        let argObj = { infoId: this.infoId };
+        let newInfo = computeInfoDivNode(argObj, html);
+        installElementLinkBehavior(newInfo, infoStrCB);
+        $('#'+this.infoId).remove(); //oldInfo);
+        this.prepend(newInfo);
+      };
+      ryt.TTT || (ryt.TTT = infoNode); // once
+    }
     infoNode.appendTo($("body"));
 
     // from here on width has been computed by rendering
@@ -1119,9 +1133,6 @@ Wenn Sie XHTML-Standard-konform arbeiten wollen, müssen Sie das Attribut in der
     };
     ryt.app.extendDialogWithCanvas(ao, dia, infoStrCB.elementId, dia.canvasId);
     dia.dialog(ao);
-    if (infoStrCB.elementId) {
-      installElementLinkBehavior(dia, infoStrCB);
-    }
     if (argObj.closeOnClick) {
       dia.click(function(e) {
         dia.dialog('close');
