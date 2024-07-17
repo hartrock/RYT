@@ -1204,13 +1204,16 @@ protoMO_FE.handle_updateElem = function (msg) {
   }
 }
 protoMO_FE.handle_updateConn = function (msg) {
-  eg.log("protoMO_FE.handle_updateConn", msg);
+  //eg.log("protoMO_FE.handle_updateConn", msg);
   var connObj = msg.connObj;
   if (this.responsibleForConnObj(connObj)) {
-    this.updateConnWidgetObj(this.getConn(connObj.id), connObj);
     var connWidget = this.getConn(connObj.id);
-    this.flowEditor.roll(connWidget,
-                         ! msg.allowsFinishingTo); // reversedFlag
+    // ! connWidget && eg.log("[devel] connWidget missing...");
+    if (connWidget) { // condition needed: sometimes missing... (undo del ..
+      this.updateConnWidgetObj(connWidget, connObj); // .. transparent task)
+      this.flowEditor.roll(connWidget,
+                           ! msg.allowsFinishingTo); // reversedFlag
+    }
   }
 };
 protoMO_FE.handle_changed = function (msg) {
