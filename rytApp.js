@@ -352,6 +352,51 @@ protoMO_ED.handle_deleted = function (msg) {
   this.elementDialog.forcedClose();
 };
 
+  function MO_InfoDialog(app, elementDialog, parentId, elementId) {
+    this._proto = MO_InfoDialog.prototype;
+    this.init(app, elementDialog, parentId, elementId); // uses parent init()
+  }
+  // prototype chain
+  var protoMO_ID = MO_InfoDialog.prototype = new MO_ElementDialog();
+  protoMO_ID.constructor = MO_InfoDialog;
+  //
+  protoMO_ID.toString = function() {
+    return "MO_InfoDialog";
+  };
+  protoMO_ID.receiveFrom = function(msg, from) {
+    //eg.log("" + this + " receiveFrom() triggeredBy " + msg.triggeredBy + ", event: " + msg.event);
+    if (! this.isObjectEvent(msg)) {
+      return;
+    }
+    // isObjectEvent(msg)
+    var obj = this.getObjectFromObjectEvent(msg);
+    var type = obj.type;
+    if (type === 'parentChild') {
+      if (this.model.getObject(this.elementId) // elem not deleted?
+          && (obj.key_1 === this.elementId // parent
+              || obj.key_2 === this.elementId)) { // child
+        this.rerenderInfo();
+      }
+      return;
+    } else if (obj._relation === 'conn_fromTo'
+               && (obj.key_1 === this.elementId
+                   || obj.key_2 === this.elementId)) {
+      this.rerenderInfo();
+      return;
+    }
+    // if not handled here, try super
+    this._proto._proto.receiveFrom.call(this, msg, from);
+  };
+  protoMO_ID.handle_changed = function (msg) {
+    this.rerenderInfo();
+  };
+  protoMO_ID.handle_updateElem = function (msg) { // no propagated state ..
+    eg.log("protoMO_ID.handle_updateElem(): do nothing"); //.. info to render(?)
+  };
+  protoMO_ID.rerenderInfo = function () {
+    this.elementDialog.rerender_info();
+  };
+
 function MO_TaskDialog(app, taskDialog, parentId, taskId) {
   this._proto = MO_TaskDialog.prototype;
   this.init(app, taskDialog, parentId, taskId); // uses parent init()
@@ -552,7 +597,6 @@ protoMO_FEs.do_finishedState_updates = function(from, startNeighborsOrNil) {
 	           predecessor: from,
                    triggeredBy: that});
         var connObj = this.getConnObjConnectingFromTo(id, dstId); // this->model
-        eg.assert(connObj);
         this.send({event: 'updateConn', // .. and conns to them
                    conn: connObj.id,
                    connObj: connObj,
@@ -1208,9 +1252,9 @@ protoMO_FE.handle_updateConn = function (msg) {
   var connObj = msg.connObj;
   if (this.responsibleForConnObj(connObj)) {
     var connWidget = this.getConn(connObj.id);
-    // ! connWidget && eg.log("[devel] connWidget missing...");
-    if (connWidget) { // condition needed: sometimes missing... (undo del ..
-      this.updateConnWidgetObj(connWidget, connObj); // .. transparent task)
+    // protoMO_FEs.handle_created() leads to update events of conn widgets ..
+    if (connWidget) { // .. created later
+      this.updateConnWidgetObj(connWidget, connObj);
       this.flowEditor.roll(connWidget,
                            ! msg.allowsFinishingTo); // reversedFlag
     }
@@ -3146,6 +3190,11 @@ protoApp.subelemsInfoStr = function (taskObj) {
   protoApp.prio2str = { '-1':"low", '0':"normal", '1':"high" };
   // Goes directly via obj; which is possible, because an obj ptr stays for its lifetime.
   protoApp.elementObjInfoStrCB = function (elementObj, parent) {
+    if (! elementObj) {
+      return function () {
+        return "Element deleted."
+      };
+    }
     var self = this;
     var fun = function (showCurrentParentFlag, // this to be bound ..
                         showSubElemsFlag) {    // .. to elemObj
@@ -5016,5 +5065,6 @@ protoApp.unsavedChangesCheck = function (prefixOrNil) {
 
   // exports
   ryt.App = App;
+  ryt.MO_InfoDialog = MO_InfoDialog;
 
 }(EvolGo, RYT));

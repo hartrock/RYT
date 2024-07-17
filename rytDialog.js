@@ -1098,6 +1098,11 @@ Wenn Sie XHTML-Standard-konform arbeiten wollen, müssen Sie das Attribut in der
                               false); // hoverFlag
     // dialog() sets width of dia infoNode to auto
 
+    var mo_InfoDialog = new ryt.MO_InfoDialog(ryt.app, dia,
+                                              infoStrCB.parentId,
+                                              infoStrCB.elementId);
+    ryt.app.wireModelObserver(mo_InfoDialog);
+
     var ao = {
       title: computeTitle(infoStrCB),
       autoOpen: true, modal: false, //show: 'scale', hide: 'scale',
@@ -1113,9 +1118,12 @@ Wenn Sie XHTML-Standard-konform arbeiten wollen, müssen Sie das Attribut in der
         if (ao.closeCanvasHook) {
           ao.closeCanvasHook();
         }
+        ryt.app.unwireModelObserver(mo_InfoDialog);
         dia.remove();
+        ryt.app.unregisterDialog(infoStrCB.elementId, dia);
       },
       open: function(event, ui) {
+        ryt.app.registerDialog(infoStrCB.elementId, dia);
         if (ao.openCanvasHook) {
           ao.openCanvasHook();
         }
@@ -1132,6 +1140,9 @@ Wenn Sie XHTML-Standard-konform arbeiten wollen, müssen Sie das Attribut in der
       }
     };
     ryt.app.extendDialogWithCanvas(ao, dia, infoStrCB.elementId, dia.canvasId);
+    dia.forcedClose = function () {
+      dia.dialog("close");
+    };
     dia.dialog(ao);
     if (argObj.closeOnClick) {
       dia.click(function(e) {
@@ -1139,6 +1150,7 @@ Wenn Sie XHTML-Standard-konform arbeiten wollen, müssen Sie das Attribut in der
         eg.stopPropagation(e);
       })
     }
+
   } // showInfo()
 
   function create_click_XOR_dblclick(clickAction, dblclickAction) {
