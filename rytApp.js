@@ -393,8 +393,11 @@ protoMO_TD.receiveFrom = function(msg, from) {
 
 protoMO_TD.handle_changed = function (msg) {
   var attrs = msg.newProps;
-  attrs.name && this.elementDialog.find("#name").val(attrs.name);
-  attrs.description && this.elementDialog.find("#description").val(attrs.description);
+  // empty string "" evaluates to false...
+  attrs.name !== undefined
+    && this.elementDialog.find("#name").val(attrs.name);
+  attrs.description !== undefined
+    && this.elementDialog.find("#description").val(attrs.description);
   if ('subtaskFinishPropagation' in attrs || 'logic' in attrs) {
     this.updateMoreButtons();
   }
