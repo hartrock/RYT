@@ -1286,9 +1286,9 @@ Wenn Sie XHTML-Standard-konform arbeiten wollen, müssen Sie das Attribut in der
               var element = e.currentTarget.id;
               var parent =
                 (infoStrCB
-                 ? (element !== infoStrCB.elementId
-                    ? infoStrCB.elementId // subelem
-                    : infoStrCB.parentId) // elem itself
+                 ? (element == infoStrCB.elementId
+                    ? infoStrCB.parentId // elem itself
+                    : null) // sub or succ or pred or parent
                  : null
                 );
               cb = app.elementInfoStrCB(element, parent);

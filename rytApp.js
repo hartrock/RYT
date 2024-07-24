@@ -3084,7 +3084,7 @@ protoApp.elemInfoStrShort = function (elemObj) {
         + prefix + self.relationIndentStr
         + "@@@&uarr;@@@ " + self.elemInfoStrShort(self.model.getObject(parentId));
     }
-    // add curr parent first, if is given and wished
+    // add curr parent first, if it's given and wished
     if (currParentId && showCurrentParentFlag) {
       addToStr(currParentId);
     }
