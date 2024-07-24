@@ -1019,9 +1019,9 @@ Wenn Sie XHTML-Standard-konform arbeiten wollen, müssen Sie das Attribut in der
   }
 
   var infoCount = 0;
-  function computeDivNodeFor(infoStrCB, hoverFlag) {
-    let text = infoStrCB(! hoverFlag, // ? -> show parent info
-                         hoverFlag);  // ? -> show childs info
+  function computeDivNodeFor(infoStrCB, hoverFlag, frozenFlag) {
+    let text = infoStrCB(! hoverFlag || frozenFlag, // ? -> show parent info
+                         hoverFlag || frozenFlag);  // ? -> show childs info
     let html = text2HTML(text);
     let argObj;
     let infoNode;
@@ -1044,12 +1044,12 @@ Wenn Sie XHTML-Standard-konform arbeiten wollen, müssen Sie das Attribut in der
     }
     return infoNode;
   }
-  function computeInfoNode(infoStrCB, hoverFlag) {
+  function computeInfoNode(infoStrCB, hoverFlag, frozenFlag) {
     var maxWidth = ryt.info.develMode || ryt.info.prefs.showElementIDsFlag
       ? 800
       : 600;
 
-    var infoNode = computeDivNodeFor(infoStrCB, hoverFlag);
+    var infoNode = computeDivNodeFor(infoStrCB, hoverFlag, frozenFlag);
     installElementLinkBehavior(infoNode, infoStrCB);
     if (! hoverFlag) {
       infoNode.rerender_info = function () { // brute-force
@@ -1075,17 +1075,19 @@ Wenn Sie XHTML-Standard-konform arbeiten wollen, müssen Sie das Attribut in der
     return infoNode;
   }
 
-  function computeTitle(argObj) {
+  function computeTitle(infoStrCB, frozenFlagOrNil) {
     return (
-      (argObj
-       ? (argObj.elementType === 'task'
+      (infoStrCB
+       ? (infoStrCB.elementType === 'task'
           ? 'Task Element'
-          : (argObj.elementType === 'comment'
+          : (infoStrCB.elementType === 'comment'
              ? 'Comment Element'
-             : (argObj.type === 'marker'
+             : (infoStrCB.type === 'marker'
                 ? 'Marker'
                 : '???')))
-       : '') + ' Info'
+       : '')
+        + ' Info'
+        + (frozenFlagOrNil ? ' (frozen)' : '')
     );
   }
   function showInfo(infoStrCB, argObj) {
@@ -1095,16 +1097,20 @@ Wenn Sie XHTML-Standard-konform arbeiten wollen, müssen Sie das Attribut in der
       : 600;
     var dialogBorderMargin = 26; // extra width for dialog decoration
     var dia = computeInfoNode(infoStrCB,
-                              false); // hoverFlag
+                              false, // hoverFlag
+                              argObj.freezeFlag); // frozenFlag
     // dialog() sets width of dia infoNode to auto
 
-    var mo_InfoDialog = new ryt.MO_InfoDialog(ryt.app, dia,
-                                              infoStrCB.parentId,
-                                              infoStrCB.elementId);
-    ryt.app.wireModelObserver(mo_InfoDialog);
+    var mo_InfoDialog = null;
+    if (! argObj.freezeFlag) {
+      mo_InfoDialog = new ryt.MO_InfoDialog(ryt.app, dia,
+                                            infoStrCB.parentId,
+                                            infoStrCB.elementId);
+      ryt.app.wireModelObserver(mo_InfoDialog);
+    }
 
     var ao = {
-      title: computeTitle(infoStrCB),
+      title: computeTitle(infoStrCB, argObj.freezeFlag),
       autoOpen: true, modal: false, //show: 'scale', hide: 'scale',
       width: argObj.width || dia.width() + dialogBorderMargin, // auto would go to div
       height: argObj.height || 'auto',
@@ -1118,7 +1124,7 @@ Wenn Sie XHTML-Standard-konform arbeiten wollen, müssen Sie das Attribut in der
         if (ao.closeCanvasHook) {
           ao.closeCanvasHook();
         }
-        ryt.app.unwireModelObserver(mo_InfoDialog);
+        mo_InfoDialog && ryt.app.unwireModelObserver(mo_InfoDialog);
         dia.remove();
         ryt.app.unregisterDialog(infoStrCB.elementId, dia);
       },
@@ -1139,7 +1145,9 @@ Wenn Sie XHTML-Standard-konform arbeiten wollen, müssen Sie das Attribut in der
         }
       }
     };
-    ryt.app.extendDialogWithCanvas(ao, dia, infoStrCB.elementId, dia.canvasId);
+    if (! argObj.freezeFlag) {
+      ryt.app.extendDialogWithCanvas(ao, dia, infoStrCB.elementId,dia.canvasId);
+    }
     dia.forcedClose = function () {
       dia.dialog("close");
     };
@@ -1211,8 +1219,8 @@ Wenn Sie XHTML-Standard-konform arbeiten wollen, müssen Sie das Attribut in der
         infoNode.css({left:r1.left(), top:r1.top()});
       }
     }
-    var clickAction = function(e) {
-      e = e || window.event;
+    var dblclickAction = function(e) {
+      e = e || window.event; // needed anymore?
       ++ryt.info.showHoverInfoClickForStayCount;
       var pos = infoNode.position();
       showInfo(
@@ -1226,10 +1234,24 @@ Wenn Sie XHTML-Standard-konform arbeiten wollen, müssen Sie das Attribut in der
       infoNode.timeoutFunc(); // remove faster as per hover timeout
       eg.stopPropagationPreventDefault(e);
     };
-    var click_N_dblclick_funcs = create_click_XOR_dblclick(clickAction, function(e){
-      RYT.info.dblclickTime = +new Date();
+    var clickAction = function (e) {
+      e = e || window.event; // needed anymore?
+      ++ryt.info.showHoverInfoClickForStayCount;
+      var pos = infoNode.position();
+      showInfo(
+        infoStrCB,
+        {
+          pos: eg.Point.xy(pos.left, pos.top),
+          closeOnClick: false,
+          freezeFlag: true
+        }
+      );
+      infoNode.stayFlag = false; // for cleanup in infoHoverFuns
+      infoNode.timeoutFunc(); // remove faster as per hover timeout
       eg.stopPropagationPreventDefault(e);
-    });
+    };
+    var click_N_dblclick_funcs = create_click_XOR_dblclick(clickAction,
+                                                           dblclickAction);
     infoNode
       .click(click_N_dblclick_funcs[0])
       .dblclick(click_N_dblclick_funcs[1]);
