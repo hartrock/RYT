@@ -1000,21 +1000,15 @@ Wenn Sie XHTML-Standard-konform arbeiten wollen, müssen Sie das Attribut in der
     enrichDivNode(infoDivNode, contentStr);
     return infoDivNode;
   }
-  /*
   function computeInfoCanvasDivNode(argObj, contentStr) {
-    let infoDivStr   = infoDivString(argObj, contentStr);
-    let canvasDivStr = ryt.app.canvasDivString(argObj.canvasId);
-    let node         = computeDivNode(argObj, infoDivStr + canvasDivStr);
-    return node;
-  }
-  */
-  // no enrichDivNode() for canvasDivNode or its parent
-  function computeInfoCanvasDivNode(argObj, contentStr) {
-    let infoDivNode   = computeInfoDivNode(argObj, contentStr);
-    let canvasDivStr  = ryt.app.canvasDivString(argObj.canvasId);
-    let canvasDivNode = $(canvasDivStr);
-    let node          = $('<div></div>');//computeDivNode(argObj, '');
-    node.append(infoDivNode, canvasDivNode);
+    let infoDivNode   = computeInfoDivNode(argObj, contentStr);// enriched above
+    let node          = $('<div></div>');
+    node.append(infoDivNode);
+    if (argObj.canvasId) {
+      let canvasDivStr  = ryt.app.canvasDivString(argObj.canvasId);
+      let canvasDivNode = $(canvasDivStr); // no enrichDivNode() for ..
+      node.append(canvasDivNode);          // .. canvasDivNode (or its parent)
+    }
     return node;
   }
 
@@ -1027,15 +1021,16 @@ Wenn Sie XHTML-Standard-konform arbeiten wollen, müssen Sie das Attribut in der
     let infoNode;
     if (! hoverFlag) {
       let infoId   = "info-HTML_" + ++infoCount;
-      let canvasId = "info-canvas_" + infoCount;
       argObj = { hoverFlag: hoverFlag,
                  classString: 'showInfo',
                  infoId: infoId,
-                 canvasId: canvasId
                };
+      if (infoStrCB.elementType === 'task') {
+        argObj.canvasId = "info-canvas_" + infoCount;
+      }
       infoNode = computeInfoCanvasDivNode(argObj, html);
       infoNode.infoId = infoId;
-      infoNode.canvasId = canvasId;
+      infoNode.canvasId = argObj.canvasId || null;
     } else {
       argObj = { hoverFlag: hoverFlag,
                  classString: 'showHoverInfo',
@@ -1145,7 +1140,8 @@ Wenn Sie XHTML-Standard-konform arbeiten wollen, müssen Sie das Attribut in der
         }
       }
     };
-    if (! argObj.freezeFlag) {
+    if (! argObj.freezeFlag
+        && infoStrCB.elementType === 'task') {
       ryt.app.extendDialogWithCanvas(ao, dia, infoStrCB.elementId,dia.canvasId);
     }
     dia.forcedClose = function () {
