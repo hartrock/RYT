@@ -1890,6 +1890,108 @@ Wenn Sie XHTML-Standard-konform arbeiten wollen, müssen Sie das Attribut in der
   openTextareaDialog.diaCount = 0;
 
 
+  function replaceTextDialog(ids, callbackOK, argObjOrNil) {
+    var argObj = argObjOrNil || { };
+    var dialogTitle = 'Replace Text (in ' + ids.length + ' elements)';
+    var searchString = (argObjOrNil && argObjOrNil.searchString) || "";
+    var diaCount = ++this.replaceTextDialog.diaCount;
+    var id = 'replaceText-dia_' + diaCount
+    var $dia = $(
+      '<div id="' + id + '" title="'+dialogTitle+'"'
+        +'style="overflow:hidden;" '
+        +'>'
+
+        //+'<form accept-charset="utf-8">'
+        +'<table>'
+
+        +'<tr>'
+        +'<td>Search:</td>'
+        +'<td>'
+        +'<textarea'
+        +' name="search" id="search"'
+        +' rows="1" cols="100" style="width:100%;">'
+        + ''
+        +'</textarea>'
+        +'</td>'
+        +'</tr>'
+      //
+        +'<tr>'
+        +'<td>Replacement:</td>'
+        +'<td>'
+        +'<textarea'
+        +' name="replacement" id="replacement"'
+        +' rows="1" cols="100" style="width:100%;">'
+        + ''
+        +'</textarea>'
+        +'</td>'
+        +'</tr>'
+      
+        +'</table>'
+        //+'</form>'
+
+        +'</div>'
+    );
+
+    $dia.closeFromOK = false;
+
+    // seems to be not needed here:
+    //  avoid creating new task dialogs with dblclick (is there a better way (probably in document ev handler?)?)
+    //  $dia.dblclick(eg.eatThemEventHandler);
+
+    var self = this;
+    $dia.extractProps = function () {
+      var searchArea = $dia.find("#search");
+      var replacementArea = $dia.find("#replacement");
+      let props = { search:searchArea.val(),
+                    replacement:replacementArea.val() };
+      return props;
+    };
+
+    var helpText = ''
+      +"Replace *search* text by *replacement* text in all text fields of selected flow elements.\n"
+      +"Text fields are\n"
+      +"  - 'name', 'description' of tasks, and\n"
+      +"  - (all) text of comments."
+    ;
+
+    $dia.dialog({
+      position: argObj.pos ? [argObj.pos.x, argObj.pos.y] : 'center',
+      autoOpen: true, modal: false, show: 'scale', hide: 'scale', width: 800,
+      open: function(){
+        //? this.registerDialog(id, $dia);
+        let textArea = $dia.find("#search");
+        setTimeout(function() {
+          textArea.focus();
+        }, 500);
+      },
+      close: function(event, ui) {
+        if ($dia.closeFromOK) {
+          let props = $dia.extractProps();
+          callbackOK && callbackOK(props);
+        } else {
+          self.logger.info("'"+dialogTitle + "' cancelled.");
+        }
+        //? this.unregisterDialog(id, $dia);
+      },
+      buttons: {
+        "OK": function() {
+          $dia.closeFromOK = true;
+          $dia.dialog('close');
+      },
+        "Cancel": function() {
+          $dia.dialog('close');
+        },
+        "?": function() {
+          ryt.helpDialog(dialogTitle, helpText);
+        }
+      }
+    });
+    //$dia.forcedClose = self.createElemDialogForcedCloseFunc($dia);
+    //$dia.parent().keydown(eg.stopPropagation); // avoid flow elem ops (copy/alias/paste)
+  } // replaceTextDialog()
+  replaceTextDialog.diaCount = 0; // func prop
+
+
 /* test:
 var ryt = RYT;
 var t1 = 'foo\neins\nzwei\ndrei\nvier\nfuenf';
@@ -1935,4 +2037,6 @@ ryt.diffDialog(t1, t2)
   ryt.createInfoHoverFuns = createInfoHoverFuns;
   ryt.createSelectHTMLGenerator = createSelectHTMLGenerator;
 
+  //
+  ryt.replaceTextDialog = replaceTextDialog;
 }(EvolGo, RYT));

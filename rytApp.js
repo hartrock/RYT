@@ -282,7 +282,15 @@ protoFEO.handle_import = function (msg) {
   var info = {};
   this.app.model.aliasInto(this.flowId, msg.pos, info, this.toString());
 };
-
+protoFEO.handle_replaceText = function (msg) {
+  let ids = msg.widgets.map(function(w) {
+    return w.data;
+  });
+  ryt.replaceTextDialog(ids, function (props) {
+    //eg.log("props:", props);
+    ryt.app.model.textReplace(ids, props.search, props.replacement, this.toString());
+  });
+};
 
 function MO_ElementDialog() {
   this._proto = MO_ElementDialog.prototype;
@@ -4159,6 +4167,10 @@ protoApp.popupMenuForFlowEditor = function (flowEditor, flowId) {
     //{ /* sep */ },
     { key:"select all (ctrl-a)", val: function() {
       flowEditor.selectAll();
+    } },
+    { /* sep */ },
+    { key:"replace text in selected flow elemeents", val: function() {
+      flowEditor.sendReplaceTextEvent();
     } },
     { /* sep */ },
     { key:"transfer between projects", val: [

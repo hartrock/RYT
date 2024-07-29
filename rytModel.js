@@ -1925,6 +1925,54 @@ var EvolGo = EvolGo || {}, RYT = RYT || {};
     return aliased.length; // something done case
   }; // aliasInto()
 
+  function replaceStringToProps(searchString, replaceString,
+                                obj, key, props) {
+    if (obj[key]) {
+      let newStr = obj[key].replaceAll(searchString, replaceString);
+      if (newStr !== obj[key]) {
+        props[key] = newStr;
+      }
+    }
+  }    
+  proto.textReplace = function (idArr, searchString, replaceString, from) {
+    let selected = this.getSelected();
+    let replaceCount = 0;
+    this.openBatch('textReplace', from);
+    let that = this;
+    eg.forEach(idArr, function(id) {
+      let obj = that.getObject(id);
+      if (! obj) {
+        that.logger.warn("Cannot replace text of missing element " + id + ".");
+        return;
+      }
+      let props = {};
+      let newStr;
+      switch (obj.type) {
+      case 'task':
+        replaceStringToProps(searchString, replaceString,
+                             obj, 'name', props);
+        replaceStringToProps(searchString, replaceString,
+                             obj, 'description', props);
+        break;
+      case 'comment':
+        replaceStringToProps(searchString, replaceString,
+                             obj, 'text', props);
+        break;
+      default:
+        eg.warn("Should not happen.");
+        break;
+      }
+      if (eg.hasProps(props)) {
+        ++replaceCount;
+        that.change(id, props, from);
+      }
+    });
+    this.logger && this.logger.log(replaceCount + " of " + idArr.length
+                                   + " elements changed.");
+    this.closeBatch('textReplace', from);
+  };
+
+
   // &&& semantics could be: no elem added after initing without data
   proto.isEmpty = function () {
     return this.objectStore.isEmpty(); // when should this be (after init)?

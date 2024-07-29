@@ -413,6 +413,11 @@ var EvolGo = EvolGo || {}, RYT = RYT || {};
                       || this.mousePosIfNoLastMoveEvent)
               });
   };
+  protoFE.sendWidgetsEvent = function (name) {
+    this.send({ event: name,
+                widgets: this.state.selected.asArray()
+              });
+  };
   protoFE.sendWidgetsPosEvent = function (name) {
     this.send({ event: name,
                 widgets: this.state.selected.asArray(),
@@ -443,6 +448,10 @@ var EvolGo = EvolGo || {}, RYT = RYT || {};
   protoFE.sendImportEvent = function () {
     this.sendPosEvent('import');
   };
+  protoFE.sendReplaceTextEvent = function () {
+    this.sendWidgetsEvent('replaceText');
+  };
+
   protoFE.canvasMousePos = function (e) {
     e = e || window.event;
     if (! e) {
