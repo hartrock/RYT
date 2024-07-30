@@ -391,6 +391,11 @@ protoMO_ED.handle_deleted = function (msg) {
                    || obj.key_2 === this.elementId)) {
       this.rerenderInfo();
       return;
+    } else if (msg.event === 'changed'
+               && this.model.elemHasParent(msg.id, this.elementId) // child?
+               && 'finished' in msg.newProps) { // 'finished' changed?
+      this.rerenderInfo();
+      return;
     }
     // if not handled here, try super
     this._proto._proto.receiveFrom.call(this, msg, from);
