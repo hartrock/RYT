@@ -1958,7 +1958,7 @@ Wenn Sie XHTML-Standard-konform arbeiten wollen, müssen Sie das Attribut in der
       position: argObj.pos ? [argObj.pos.x, argObj.pos.y] : 'center',
       autoOpen: true, modal: false, show: 'scale', hide: 'scale', width: 800,
       open: function(){
-        //? this.registerDialog(id, $dia);
+        ryt.app.registerDialog(id, $dia);
         let textArea = $dia.find("#search");
         setTimeout(function() {
           textArea.focus();
@@ -1969,9 +1969,10 @@ Wenn Sie XHTML-Standard-konform arbeiten wollen, müssen Sie das Attribut in der
           let props = $dia.extractProps();
           callbackOK && callbackOK(props);
         } else {
-          self.logger.info("'"+dialogTitle + "' cancelled.");
+          ! $dia.forcedCloseFlag
+            && self.logger.info("'"+dialogTitle + "' cancelled.");
         }
-        //? this.unregisterDialog(id, $dia);
+        ryt.app.unregisterDialog(id, $dia);
       },
       buttons: {
         "OK": function() {
@@ -1986,8 +1987,13 @@ Wenn Sie XHTML-Standard-konform arbeiten wollen, müssen Sie das Attribut in der
         }
       }
     });
-    //$dia.forcedClose = self.createElemDialogForcedCloseFunc($dia);
+    $dia.forcedClose = function () {
+      $dia.forcedCloseFlag = true;
+      $dia.dialog('close');
+    };
+
     //$dia.parent().keydown(eg.stopPropagation); // avoid flow elem ops (copy/alias/paste)
+
   } // replaceTextDialog()
   replaceTextDialog.diaCount = 0; // func prop
 

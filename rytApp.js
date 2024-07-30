@@ -1748,6 +1748,20 @@ protoApp.unregisterDiff = function (element) {
   eg.assert(element in this.elem2diffDia);
   delete this.elem2diffDia[element];
 };
+
+protoApp.closeAllDialogs = function () {
+  // asArray() for not interating changing coll
+  this.openDialogs.asArray().forEach(function(od) {
+    od.forcedClose();
+  });
+};
+protoApp.closeAllDiffs = function () {
+  // eg.vals() for not iterating changing coll
+  eg.vals(this.elem2diffDia).forEach(function(dd) {
+    dd.dialog('close');
+  });
+};
+
 protoApp.isBusy = function () {
   return this.flowEditors.some(function(fe) { return fe.localIsBusy(); })
     || this.forcedBusy;
@@ -2509,7 +2523,8 @@ protoApp.openTaskDialog = function (argObjOrNil, callbackOK, parentId,
           callbackOK($dia.props, $dia.closeFromRet);
         }
       } else {
-        self.logger.info("'"+dialogTitle + "' cancelled.");
+        ! $dia.forcedCloseFlag
+          && self.logger.info("'"+dialogTitle + "' cancelled.");
       }
     },
     open: function() {
@@ -2741,7 +2756,9 @@ protoApp.openCommentDialog = function (argObj, callbackOK, parentId, commentIdOr
     close: function(event, ui) {
       self.unwireModelObserver(mo_CommentDialog);
       self.unregisterDialog(commentIdOrNil, $dia);
-      $dia.closeFromOK || self.logger.info("'"+dialogTitle + "' cancelled.");
+      $dia.closeFromOK
+        || (! $dia.forcedCloseFlag
+            && self.logger.info("'"+dialogTitle + "' cancelled."));
       $dia.closeFromOK && callbackOK && callbackOK($dia.props);
     },
     beforeClose: self.createElemDialogBeforeCloseFunc($dia, dialogTitle, commentIdOrNil),
@@ -4090,6 +4107,15 @@ protoApp.createMainButtons = function () {
   saveAsB.click(this.addBlockedCheck(function(e){ self.saveProject(); }));
   this.titleForWidget("save project as", saveAsB);
 
+  var closeWindowsB
+      = r.eg.createTextButtonAt(saveAsB.topRight().add(gap),
+                                "closeWindows");
+  closeWindowsB.click(this.addBlockedCheck(function(){
+    self.closeAllDialogs();
+    self.closeAllDiffs();
+  }));
+  this.titleForWidget("close open dialog windows", closeWindowsB);
+
   this.mainButtons = { /*
              createButton:createButton,
              undoPermanentB:undoPermanentB,
@@ -4104,7 +4130,8 @@ protoApp.createMainButtons = function () {
     newB:newB,
     loadB:loadB,
     saveB:saveB,
-    saveAsB:saveAsB
+    saveAsB:saveAsB,
+    closeWindowsB:closeWindowsB
   };
 }; // protoApp.createMainButtons()
 protoApp.titleForWidget = function (title, widget) {
@@ -4214,7 +4241,7 @@ protoApp.createActionButtons = function () {
   var self = this;
   var r = this.r;
   var gap = eg.Point.xy(20,0);
-  var lastPos = this.mainButtons.saveAsB.topRight();
+  var lastPos = this.mainButtons.closeWindowsB.topRight();
 
   // action buttons
   var condenseButt = r.eg.createTextButtonAt(lastPos.add(gap), "Condense..");
@@ -4922,14 +4949,10 @@ protoApp.deleteModelNFlowEditor = function() {
     eg.assert(! this.flowEditorNObservers && ! this.mo_MilestonesWidget && ! this.mw);
     return;
   }
-  // asArray() for not interating changing coll
-  this.openDialogs.asArray().forEach(function(od) {
-    od.dialog('close');
-  });
-  // eg.vals() for not iterating changing coll
-  eg.vals(this.elem2diffDia).forEach(function(dd) {
-    dd.dialog('close');
-  });
+
+  this.closeAllDialogs();
+  this.closeAllDiffs();
+
   this.unwireModelObserver(this.mo_Visualizer);
   var rootFlowEditor = this.flowEditorNObservers.flowEditor;
   this.unwireModelObserver(this.flowEditorNObservers.mo_flowEditor);
