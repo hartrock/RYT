@@ -1756,15 +1756,21 @@ protoApp.unregisterDiff = function (element) {
 
 protoApp.closeAllDialogs = function () {
   // asArray() for not interating changing coll
+  let count = 0;
   this.openDialogs.asArray().forEach(function(od) {
     od.forcedClose();
+    ++count;
   });
+  return count;
 };
 protoApp.closeAllDiffs = function () {
   // eg.vals() for not iterating changing coll
+  let count = 0;
   eg.vals(this.elem2diffDia).forEach(function(dd) {
     dd.dialog('close');
+    ++count;
   });
+  return count;
 };
 
 protoApp.isBusy = function () {
@@ -4116,8 +4122,10 @@ protoApp.createMainButtons = function () {
       = r.eg.createTextButtonAt(saveAsB.topRight().add(gap),
                                 "closeWindows");
   closeWindowsB.click(this.addBlockedCheck(function(){
-    self.closeAllDialogs();
-    self.closeAllDiffs();
+    let count = 0;
+    count += self.closeAllDialogs();
+    count += self.closeAllDiffs();
+    self.logger.log(count + " windows closed.");
   }));
   this.titleForWidget("close open dialog windows", closeWindowsB);
 
