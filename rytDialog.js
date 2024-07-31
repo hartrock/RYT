@@ -188,7 +188,7 @@ Wenn Sie XHTML-Standard-konform arbeiten wollen, müssen Sie das Attribut in der
     popupMenu(entries, dia);
   }
   function helpDialog(topic, text, widthOrNil) {
-    var topOff = 50;
+    let topOff = ryt.app.c_win_topOff;
     var dia = computeDivNodeForText(
       { id: 'helpDialog_' + ++helpDialog.count,
         classString: 'helpDialog',
@@ -1111,10 +1111,11 @@ Wenn Sie XHTML-Standard-konform arbeiten wollen, müssen Sie das Attribut in der
       height: argObj.height || 'auto',
       minHeight:40, // allow smaller than default
       //minWidth:?, // default is OK
-      position: argObj.pos && [argObj.pos.x, argObj.pos.y]
-        || 'auto',
-      //close: argObj.close || function(event, ui) {
-      //},
+      position: (argObj.pos
+                 ? [argObj.pos.x, argObj.pos.y]
+                 : (argObj.position
+                    ? [argObj.position, ryt.app.c_win_topOff]
+                    : 'auto')),
       close: function(event, ui) {
         if (ao.closeCanvasHook) {
           ao.closeCanvasHook();
@@ -1538,7 +1539,7 @@ Wenn Sie XHTML-Standard-konform arbeiten wollen, müssen Sie das Attribut in der
   } // createDiffHTML()
 
   function diffDialog(text_1, text_2, widthOrNil) {
-    var topOff = 50;
+    let topOff = ryt.app.c_win_topOff;
     var diffHTML = createDiffHTML(text_1, text_2, 'subheader', 'first', 'second');
     var dia = $('<div>'+diffHTML+'</div>');
     dia.dialog({
@@ -1587,7 +1588,7 @@ Wenn Sie XHTML-Standard-konform arbeiten wollen, müssen Sie das Attribut in der
   function showDiff(elementId, elementObj, currentProps, previousProps, diaArgObj) {
     diaArgObj = diaArgObj || {};
     var type = elementObj && elementObj.type;
-    var topOff = 50;
+    let topOff = ryt.app.c_win_topOff;
     var diffId = 'showDiff_' + elementId;
     var html = '';
     html += '<div>';//'<div ' + 'id="' + diffId + '">';

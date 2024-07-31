@@ -1665,10 +1665,16 @@ protoMO_V.triggerWindowsBeforeTransaction = function () {
     dia.dialog( "moveToTop" );
   } else {
     var taskObj = this.model.getObject(nearestFlow);
-    this.app.openElementDialog(nearestFlow,
-                               null,
-                               { pos: ryt.info.undoRedo.openFlowWinPosition,
-                                 position: 'left' });
+/*
+      this.app.openElementDialog(nearestFlow,
+                                 null,
+                                 { pos: ryt.info.undoRedo.openFlowWinPosition,
+                                   position: 'left' });
+*/
+    let cb = this.app.elementObjInfoStrCB(taskObj, null);
+    ryt.showInfo(cb,
+                 { pos: ryt.info.undoRedo.openFlowWinPosition,
+                   position: 'left' });
   }
 }; // triggerWindowsBeforeTransaction()
 protoMO_V.triggerWindowsAfterTransaction = function () {
@@ -1937,12 +1943,12 @@ protoApp.canvasDivString = function (canvasId) {
       +'"></div>'
   );
 };
+protoApp.c_win_topOff = 50;
 protoApp.openTaskDialog = function (argObjOrNil, callbackOK, parentId,
                                     taskIdOrNil,
                                     diaArgObjOrNil) { // dia props
   const newTask_flag = ! argObjOrNil;
   const dialogTitle = newTask_flag && 'Create Task' || 'Edit Task';
-  const topOff = 50;
   const dims = eg.Point.xy(600,200);
   var argObj = (argObjOrNil // shared obj, if task exists (taskIdOrNil non-nil)
                 || {} // new task
@@ -2512,7 +2518,11 @@ protoApp.openTaskDialog = function (argObjOrNil, callbackOK, parentId,
   $dia.updateExtras();
 
   var ao = {
-    position: diaArgObj.pos ? [diaArgObj.pos.x, diaArgObj.pos.y] : diaArgObj.position ? [diaArgObj.position, topOff] : 'center',
+    position: (diaArgObj.pos
+               ? [diaArgObj.pos.x, diaArgObj.pos.y]
+               : (diaArgObj.position
+                  ? [diaArgObj.position, this.c_win_topOff]
+                  : 'center')),
     autoOpen: true, modal: false,
     //show: 'scale',
     //hide: 'scale',
@@ -4127,7 +4137,7 @@ protoApp.createMainButtons = function () {
     count += self.closeAllDiffs();
     self.logger.log(count + " windows closed.");
   }));
-  this.titleForWidget("close open dialog windows", closeWindowsB);
+  this.titleForWidget("close (most) open dialog windows", closeWindowsB);
 
   this.mainButtons = { /*
              createButton:createButton,
