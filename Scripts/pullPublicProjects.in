@@ -1,6 +1,17 @@
 #!/bin/bash
-PROJECTS_DIR=_TMP_DIR_/Projects
-mkdir -p $PROJECTS_DIR
-rm -f $PROJECTS_DIR/*.json
-cp -p _INSTALL_DIR_/_RYT_DATA_DIRNAME_/*.json $PROJECTS_DIR
-ls -l $PROJECTS_DIR/*.json
+SCRIPT_DIR=Scripts; . $SCRIPT_DIR/util.src # source
+
+info "Pull public projects from"
+info "  _INSTALL_DIR_/_RYT_DATA_DIRNAME_/"
+info "."
+
+Projects_DIR=PublicProjects
+PulledProjects_DIR=_TMP_DIR_/Projects
+mkdir -p $PulledProjects_DIR
+rm -f $PulledProjects_DIR/*.json
+cp -p _INSTALL_DIR_/_RYT_DATA_DIRNAME_/*.json $PulledProjects_DIR
+ls -l $PulledProjects_DIR/*.json
+
+yesNo "Update $Projects_DIR?" && {
+    $SCRIPT_DIR/updateProjects_from_to $PulledProjects_DIR $Projects_DIR
+}
