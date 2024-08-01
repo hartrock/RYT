@@ -1906,7 +1906,7 @@ Wenn Sie XHTML-Standard-konform arbeiten wollen, müssen Sie das Attribut in der
         +'<table>'
 
         +'<tr>'
-        +'<td>Search:</td>'
+        +'<td title="String to search for replacement.">Search:</td>'
         +'<td>'
         +'<textarea'
         +' name="search" id="search"'
@@ -1917,7 +1917,7 @@ Wenn Sie XHTML-Standard-konform arbeiten wollen, müssen Sie das Attribut in der
         +'</tr>'
       //
         +'<tr>'
-        +'<td>Replacement:</td>'
+        +'<td title="Replacement of found string.">Replacement:</td>'
         +'<td>'
         +'<textarea'
         +' name="replacement" id="replacement"'
@@ -1927,6 +1927,18 @@ Wenn Sie XHTML-Standard-konform arbeiten wollen, müssen Sie das Attribut in der
         +'</td>'
         +'</tr>'
       
+        +'<tr>'
+        +'<td colspan="2">'
+        +  '<input'
+        +    ' type="checkbox" id="recursivelyCheckbox"'
+        +    ' tabindex="-1"' // skip, if tabbing towards 'OK' button
+        +  '>'
+        + '<span title="Do it recursively in child elements, too.">'
+        +  ' recursively'
+        + '</span>'
+        +'</td>'
+        +'</tr>'
+
         +'</table>'
         //+'</form>'
 
@@ -1943,8 +1955,11 @@ Wenn Sie XHTML-Standard-konform arbeiten wollen, müssen Sie das Attribut in der
     $dia.extractProps = function () {
       var searchArea = $dia.find("#search");
       var replacementArea = $dia.find("#replacement");
+      let recursivelyCheckbox = $dia.find("#recursivelyCheckbox");
       let props = { search:searchArea.val(),
-                    replacement:replacementArea.val() };
+                    replacement:replacementArea.val(),
+                    recursivelyFlag:recursivelyCheckbox.is(':checked')
+                  };
       return props;
     };
 

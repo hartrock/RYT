@@ -1366,7 +1366,7 @@ var EvolGo = EvolGo || {}, RYT = RYT || {};
 
 
   proto.propagateFinishedState = function (startId) {
-    eg.log("propagateFinishedState", startId);
+    //eg.log("propagateFinishedState", startId);
     const myFinishTrigger = this.allowsFinishingTo(startId);
     function actionRetNeighborsFunc(val, id) {
       var obj = this.getObject(id);
@@ -1933,12 +1933,17 @@ var EvolGo = EvolGo || {}, RYT = RYT || {};
         props[key] = newStr;
       }
     }
-  }    
-  proto.textReplace = function (idArr, searchString, replaceString, from) {
-    let selected = this.getSelected();
-    let replaceCount = 0;
-    this.openBatch('textReplace', from);
+  }
+  proto.h_textReplace = function (idArr,
+                                  searchString, replaceString, recursivelyFlag,
+                                  from,
+                                  _resObj) {// not an arg given from outside: ..
+    if (! _resObj) { // .. inited once here, and ..
+      _resObj = { idCount: 0,
+                  replaceCount: 0 };
+    }
     let that = this;
+    _resObj.idCount += idArr.length;
     eg.forEach(idArr, function(id) {
       let obj = that.getObject(id);
       if (! obj) {
@@ -1953,6 +1958,15 @@ var EvolGo = EvolGo || {}, RYT = RYT || {};
                              obj, 'name', props);
         replaceStringToProps(searchString, replaceString,
                              obj, 'description', props);
+        if (recursivelyFlag) {
+          let child2pos = that.parent2Childs[id];
+          let childsArr = eg.keys(child2pos);
+          //eg.log("childsArr:", childsArr);
+          that.h_textReplace(childsArr,
+                             searchString, replaceString, recursivelyFlag,
+                             from,
+                             _resObj); // .. used in recursion, and ..
+        }
         break;
       case 'comment':
         replaceStringToProps(searchString, replaceString,
@@ -1963,12 +1977,30 @@ var EvolGo = EvolGo || {}, RYT = RYT || {};
         break;
       }
       if (eg.hasProps(props)) {
-        ++replaceCount;
         that.change(id, props, from);
+        ++_resObj.replaceCount;
       }
     });
-    this.logger && this.logger.log(replaceCount + " of " + idArr.length
-                                   + " elements changed.");
+    return _resObj; // .. returned as result
+  };
+  proto.textReplace = function (idArr,
+                                searchString, replaceString, recursivelyFlag,
+                                from) {
+    //eg.log("idArr:", idArr);
+    if (! idArr.length) {
+      this.logger && this.logger
+        .warn("No elements selected: so no elements to be changed."
+              , "Replace Text");
+      return;
+    }
+    this.openBatch('textReplace', from);
+    let resObj
+        = this.h_textReplace(idArr,
+                             searchString, replaceString, recursivelyFlag,
+                             from);
+    this.logger && this.logger
+      .log(resObj.replaceCount + " of " + resObj.idCount + " elements changed."
+           , "Replace Text");
     this.closeBatch('textReplace', from);
   };
 

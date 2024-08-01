@@ -288,7 +288,11 @@ protoFEO.handle_replaceText = function (msg) {
   });
   ryt.replaceTextDialog(ids, function (props) {
     //eg.log("props:", props);
-    ryt.app.model.textReplace(ids, props.search, props.replacement, this.toString());
+    ryt.app.model
+      .textReplace(ids,
+                   props.search, props.replacement,
+                   props.recursivelyFlag,
+                   this.toString());
   });
 };
 
