@@ -1928,7 +1928,7 @@ var EvolGo = EvolGo || {}, RYT = RYT || {};
   function replaceStringToProps(searchString, replaceString,
                                 obj, key, props) {
     if (obj[key]) {
-      let newStr = obj[key].replaceAll(searchString, replaceString);
+      var/*let*/ newStr = obj[key].replaceAll(searchString, replaceString);
       if (newStr !== obj[key]) {
         props[key] = newStr;
       }
@@ -1942,16 +1942,16 @@ var EvolGo = EvolGo || {}, RYT = RYT || {};
       _resObj = { idCount: 0,
                   replaceCount: 0 };
     }
-    let that = this;
+    var/*let*/ that = this;
     _resObj.idCount += idArr.length;
     eg.forEach(idArr, function(id) {
-      let obj = that.getObject(id);
+      var/*let*/ obj = that.getObject(id);
       if (! obj) {
         that.logger.warn("Cannot replace text of missing element " + id + ".");
         return;
       }
-      let props = {};
-      let newStr;
+      var/*let*/ props = {};
+      var/*let*/ newStr;
       switch (obj.type) {
       case 'task':
         replaceStringToProps(searchString, replaceString,
@@ -1959,8 +1959,8 @@ var EvolGo = EvolGo || {}, RYT = RYT || {};
         replaceStringToProps(searchString, replaceString,
                              obj, 'description', props);
         if (recursivelyFlag) {
-          let child2pos = that.parent2Childs[id];
-          let childsArr = eg.keys(child2pos);
+          var/*let*/ child2pos = that.parent2Childs[id];
+          var/*let*/ childsArr = eg.keys(child2pos);
           //eg.log("childsArr:", childsArr);
           that.h_textReplace(childsArr,
                              searchString, replaceString, recursivelyFlag,
@@ -1994,7 +1994,7 @@ var EvolGo = EvolGo || {}, RYT = RYT || {};
       return;
     }
     this.openBatch('textReplace', from);
-    let resObj
+    var/*let*/ resObj
         = this.h_textReplace(idArr,
                              searchString, replaceString, recursivelyFlag,
                              from);

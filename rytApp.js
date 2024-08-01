@@ -283,7 +283,7 @@ protoFEO.handle_import = function (msg) {
   this.app.model.aliasInto(this.flowId, msg.pos, info, this.toString());
 };
 protoFEO.handle_replaceText = function (msg) {
-  let ids = msg.widgets.map(function(w) {
+  var/*let*/ ids = msg.widgets.map(function(w) {
     return w.data;
   });
   ryt.replaceTextDialog(ids, function (props) {
@@ -1675,7 +1675,7 @@ protoMO_V.triggerWindowsBeforeTransaction = function () {
                                  { pos: ryt.info.undoRedo.openFlowWinPosition,
                                    position: 'left' });
 */
-    let cb = this.app.elementObjInfoStrCB(taskObj, null);
+    var/*let*/ cb = this.app.elementObjInfoStrCB(taskObj, null);
     ryt.showInfo(cb,
                  { pos: ryt.info.undoRedo.openFlowWinPosition,
                    position: 'left' });
@@ -1766,7 +1766,7 @@ protoApp.unregisterDiff = function (element) {
 
 protoApp.closeAllDialogs = function () {
   // asArray() for not interating changing coll
-  let count = 0;
+  var/*let*/ count = 0;
   this.openDialogs.asArray().forEach(function(od) {
     od.forcedClose();
     ++count;
@@ -1775,7 +1775,7 @@ protoApp.closeAllDialogs = function () {
 };
 protoApp.closeAllDiffs = function () {
   // eg.vals() for not iterating changing coll
-  let count = 0;
+  var/*let*/ count = 0;
   eg.vals(this.elem2diffDia).forEach(function(dd) {
     dd.dialog('close');
     ++count;
@@ -2494,7 +2494,7 @@ protoApp.openTaskDialog = function (argObjOrNil, callbackOK, parentId,
     var moreProps = $dia.sg.getPropsFromForm(form);
     var globalFlagCheckbox = $dia.find("#globalFlag");
     var globalFlag = globalFlagCheckbox[0] && globalFlagCheckbox[0].checked;
-    let props = {
+    var/*let*/ props = {
       name:nameArea.val(),
       description:descriptionArea.val(),
       finished:$dia.finished,
@@ -4136,7 +4136,7 @@ protoApp.createMainButtons = function () {
       = r.eg.createTextButtonAt(saveAsB.topRight().add(gap),
                                 "closeWindows");
   closeWindowsB.click(this.addBlockedCheck(function(){
-    let count = 0;
+    var/*let*/ count = 0;
     count += self.closeAllDialogs();
     count += self.closeAllDiffs();
     self.logger.log(count + " windows closed.");
