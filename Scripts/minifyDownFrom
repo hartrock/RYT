@@ -10,12 +10,20 @@ function minify {
         echo "minifying $file .."
         base=${file%%.js}
         #echo "base: $base"
-        java -jar Tools/yuicompressor-2.4.6.jar -o $base-min.js $file || error "minify $file"
+        # no 'let'...
+        #   java -jar Tools/yuicompressor-2.4.6.jar -o $base-min.js $file || error "minify $file"
+        java -jar Tools/closure-compiler/closure-compiler-v20240317.jar \
+             --js $file --js_output_file $base-min.js \
+             --strict_mode_input=false \
+            || exit $?
+        echo ".. minifying $file."
     done
     for file in $files_css; do
         echo "minifying $file .."
         base=${file%%.css}
-        java -jar Tools/yuicompressor-2.4.6.jar -o $base-min.css $file || error "minify $file"
+        java -jar Tools/yuicompressor-2.4.6.jar \
+             -o $base-min.css $file \
+            || exit $? #error "minify $file"
         echo ".. minifying $file."
     done
 }
