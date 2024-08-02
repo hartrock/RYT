@@ -78,15 +78,10 @@ var EvolGo = EvolGo || { };
     if (! this.touched(id)) { // fresh
       this.id2new[id] = eg.cloneProps(newProps);
       this.id2old[id] = c_delete;
-    } else { // deleted then created: transform into change
+    } else { // deleted then created: NOOP -> remove from transaction
       dbg && assert(this.deleted(id));
-      this.id2new[id] = eg.cloneProps(newProps);
-      // deletion backwards
-      eg.forEach(newProps, function(id, prop) {
-        if (! id in this.id2old) {
-          this.id2old[id] = undefined; // mark for deletion
-        }
-      }, this);
+      delete this.id2old[id];
+      delete this.id2new[id];
     }
   };
   protoT.addChange = function (id, oldProps, newProps) {
@@ -97,12 +92,12 @@ var EvolGo = EvolGo || { };
       this.id2new[id] = eg.cloneProps(newProps);
     } else { // touched
       if (this.changed(id)) {
-        // store old props, but avoid ..
-        eg.copyMissingProps(oldProps, this.id2old[id]);//.. overwriting older ones.
+        // extend old props (undefined), but avoid overwriting ..
+        eg.copyMissingProps(oldProps, this.id2old[id]); //.. existing ones.
         eg.copyProps(newProps, this.id2new[id]); // overwrite or extend new ones
       } else { // created
         dbg && assert(this.created(id));
-        eg.copyProps(newProps, this.id2new[id]); // overwrite or create 'more'
+        eg.copyProps(newProps, this.id2new[id]); // overwrite or extend
         // stays: id2old[id] === c_delete;
       }
     }
@@ -114,8 +109,8 @@ var EvolGo = EvolGo || { };
       this.id2new[id] = c_delete;
       this.id2old[id] = eg.cloneProps(oldProps);
     } else { // touched before
-      if (this.changed(id)) { // store old props, but do not overwrite ..
-        eg.copyMissingProps(oldProps, this.id2old[id]); //.. more older ones.
+      if (this.changed(id)) { // extend old props, but do not overwrite ..
+        eg.copyMissingProps(oldProps, this.id2old[id]);//.. existing older ones.
         this.id2new[id] = c_delete;
       } else { // created then deleted: NOOP -> remove from transaction
         dbg && assert(this.created(id));
