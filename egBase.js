@@ -1542,7 +1542,7 @@ Function.prototype.bindThis = function (obj) {
   function handleQuotedStrings(str, argObj) {
     // do nothing
     return str;
-
+/*
     // replace variant
     return str.replace(quotedString_RE, '$1<span style="background-color:rgba(100, 100, 100, 0.5);">' + '$2' + '</span>');
 
@@ -1561,6 +1561,7 @@ Function.prototype.bindThis = function (obj) {
     }
     res += str.substring(previousIndex);
     return res;
+*/
   } // handleQuotedStrings()
 
   function str2HTML_basic(str, argObj) {

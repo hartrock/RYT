@@ -1803,7 +1803,7 @@ Wenn Sie XHTML-Standard-konform arbeiten wollen, müssen Sie das Attribut in der
         [diaArgObj.position, topOff]
         : 'center',
       open: function () {
-        null;
+        //null;
       },
       close: function(arg) {
         var checked = [];

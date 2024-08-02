@@ -1529,12 +1529,12 @@ protoMO_V._handle_created = function (id, newProps) {
       elems.push(obj.key_1, obj.key_2);
       this.flow2elemsConnNew[parent] = elems;
     }
-  } else if (obj.type === 'task' || obj.type === 'comment') {
-/*
-    this.elemsCreated.push(id);
-    this.elem2newProps[id] = newProps;
-*/
   }
+/* // make GCC happy ..
+  else if (obj.type === 'task' || obj.type === 'comment') {
+    // this.elem2newProps[id] = newProps;//.. out-commenting here not sufficient
+  }
+*/
 };
 protoMO_V._handle_deleted = function (id, oldProps) {
   if (oldProps._relation === 'parentChild') {
