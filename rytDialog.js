@@ -188,7 +188,7 @@ Wenn Sie XHTML-Standard-konform arbeiten wollen, müssen Sie das Attribut in der
     popupMenu(entries, dia);
   }
   function helpDialog(topic, text, widthOrNil) {
-    var/*let*/ topOff = ryt.app.c_win_topOff;
+    let topOff = ryt.app.c_win_topOff;
     var dia = computeDivNodeForText(
       { id: 'helpDialog_' + ++helpDialog.count,
         classString: 'helpDialog',
@@ -932,7 +932,7 @@ Wenn Sie XHTML-Standard-konform arbeiten wollen, müssen Sie das Attribut in der
   }
 
   function divString(argObj, contentStr) {
-    var/*let*/ divBeginStr = ''
+    let divBeginStr = ''
       + '<div'
       + (argObj.title ? ' title="' + argObj.title + '"' : '')
       +' style="'
@@ -954,7 +954,7 @@ Wenn Sie XHTML-Standard-konform arbeiten wollen, müssen Sie das Attribut in der
             + '</div>');
   } // divString()
   function infoDivString(argObj, contentStr) {
-    var/*let*/ divBeginStr = ''
+    let divBeginStr = ''
       + '<div'
       + (argObj.infoId
          ? ' id="' + argObj.infoId + '"'
@@ -971,7 +971,7 @@ Wenn Sie XHTML-Standard-konform arbeiten wollen, müssen Sie das Attribut in der
       +   'font-family:monospace; font-size:9pt; '
       + '"'
       + '>';
-    var/*let*/ hoverHintStr = (ryt.info.inBeginnerMode()
+    let hoverHintStr = (ryt.info.inBeginnerMode()
                         && argObj.hoverFlag && ryt.info.hoverHintCount++ < 3)
         ? '<p style="text-align:center;">[hint] hover for hold, click for window.</p>'
         : '';
@@ -980,7 +980,7 @@ Wenn Sie XHTML-Standard-konform arbeiten wollen, müssen Sie das Attribut in der
 
   function enrichDivNode(divNode, contentStr) {
     divNode.containsPreFlag = contentStr.match(/<pre>/g) !== null;
-    var/*let*/ links = divNode.find("." + linkProps.followLinkClassString);
+    let links = divNode.find("." + linkProps.followLinkClassString);
     links.click(linkProps.followLinkClickFunction);
   }
 
@@ -995,18 +995,18 @@ Wenn Sie XHTML-Standard-konform arbeiten wollen, müssen Sie das Attribut in der
   }
 
   function computeInfoDivNode(argObj, contentStr) {
-    var/*let*/ divStr = infoDivString(argObj, contentStr);
-    var/*let*/ infoDivNode = $(divStr);
+    let divStr = infoDivString(argObj, contentStr);
+    let infoDivNode = $(divStr);
     enrichDivNode(infoDivNode, contentStr);
     return infoDivNode;
   }
   function computeInfoCanvasDivNode(argObj, contentStr) {
-    var/*let*/ infoDivNode   = computeInfoDivNode(argObj, contentStr);// enriched above
-    var/*let*/ node          = $('<div></div>');
+    let infoDivNode   = computeInfoDivNode(argObj, contentStr);// enriched above
+    let node          = $('<div></div>');
     node.append(infoDivNode);
     if (argObj.canvasId) {
-      var/*let*/ canvasDivStr  = ryt.app.canvasDivString(argObj.canvasId);
-      var/*let*/ canvasDivNode = $(canvasDivStr); // no enrichDivNode() for ..
+      let canvasDivStr  = ryt.app.canvasDivString(argObj.canvasId);
+      let canvasDivNode = $(canvasDivStr); // no enrichDivNode() for ..
       node.append(canvasDivNode);          // .. canvasDivNode (or its parent)
     }
     return node;
@@ -1014,13 +1014,13 @@ Wenn Sie XHTML-Standard-konform arbeiten wollen, müssen Sie das Attribut in der
 
   var infoCount = 0;
   function computeDivNodeFor(infoStrCB, hoverFlag, frozenFlag) {
-    var/*let*/ text = infoStrCB(! hoverFlag || frozenFlag, // ? -> show parent info
+    let text = infoStrCB(! hoverFlag || frozenFlag, // ? -> show parent info
                          hoverFlag || frozenFlag);  // ? -> show childs info
-    var/*let*/ html = text2HTML(text);
-    var/*let*/ argObj;
-    var/*let*/ infoNode;
+    let html = text2HTML(text);
+    let argObj;
+    let infoNode;
     if (! hoverFlag) {
-      var/*let*/ infoId   = "info-HTML_" + ++infoCount;
+      let infoId   = "info-HTML_" + ++infoCount;
       argObj = { hoverFlag: hoverFlag,
                  classString: 'showInfo',
                  infoId: infoId,
@@ -1048,11 +1048,11 @@ Wenn Sie XHTML-Standard-konform arbeiten wollen, müssen Sie das Attribut in der
     installElementLinkBehavior(infoNode, infoStrCB);
     if (! hoverFlag) {
       infoNode.rerender_info = function () { // brute-force
-        var/*let*/ oldInfo = this.find('#'+this.infoId);
-        var/*let*/ text = infoStrCB(true, false);
-        var/*let*/ html = text2HTML(text);
-        var/*let*/ argObj = { infoId: this.infoId };
-        var/*let*/ newInfo = computeInfoDivNode(argObj, html);
+        let oldInfo = this.find('#'+this.infoId);
+        let text = infoStrCB(true, false);
+        let html = text2HTML(text);
+        let argObj = { infoId: this.infoId };
+        let newInfo = computeInfoDivNode(argObj, html);
         installElementLinkBehavior(newInfo, infoStrCB);
         $('#'+this.infoId).remove(); //oldInfo);
         this.prepend(newInfo);
@@ -1539,7 +1539,7 @@ Wenn Sie XHTML-Standard-konform arbeiten wollen, müssen Sie das Attribut in der
   } // createDiffHTML()
 
   function diffDialog(text_1, text_2, widthOrNil) {
-    var/*let*/ topOff = ryt.app.c_win_topOff;
+    let topOff = ryt.app.c_win_topOff;
     var diffHTML = createDiffHTML(text_1, text_2, 'subheader', 'first', 'second');
     var dia = $('<div>'+diffHTML+'</div>');
     dia.dialog({
@@ -1588,7 +1588,7 @@ Wenn Sie XHTML-Standard-konform arbeiten wollen, müssen Sie das Attribut in der
   function showDiff(elementId, elementObj, currentProps, previousProps, diaArgObj) {
     diaArgObj = diaArgObj || {};
     var type = elementObj && elementObj.type;
-    var/*let*/ topOff = ryt.app.c_win_topOff;
+    let topOff = ryt.app.c_win_topOff;
     var diffId = 'showDiff_' + elementId;
     var html = '';
     html += '<div>';//'<div ' + 'id="' + diffId + '">';
@@ -1975,14 +1975,14 @@ Wenn Sie XHTML-Standard-konform arbeiten wollen, müssen Sie das Attribut in der
       autoOpen: true, modal: false, show: 'scale', hide: 'scale', width: 800,
       open: function(){
         ryt.app.registerDialog(id, $dia);
-        var/*let*/ textArea = $dia.find("#search");
+        let textArea = $dia.find('#'+id_searchText);
         setTimeout(function() {
           textArea.focus();
         }, 500);
       },
       close: function(event, ui) {
         if ($dia.closeFromOK) {
-          var/*let*/ props = $dia.extractProps();
+          let props = $dia.extractNStoreProps();
           callbackOK && callbackOK(props);
         } else {
           ! $dia.forcedCloseFlag
