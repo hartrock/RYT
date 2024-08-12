@@ -579,7 +579,6 @@ Wenn Sie XHTML-Standard-konform arbeiten wollen, müssen Sie das Attribut in der
     };
   }
   function openPrefsDialog(props, callbackOK) { // props expected
-    var self = this;
     var sg = createSelectHTMLGenerator(props, ryt.info.defaultPrefs);
 
     sg.addSelectionData('userExperience',
@@ -753,7 +752,7 @@ Wenn Sie XHTML-Standard-konform arbeiten wollen, müssen Sie das Attribut in der
       close: function(event, ui) {
         var props = $dia.extractProps();
         $dia.remove();
-        $dia.closeFromOK || self.logger.info("'"+diaTitle + "' cancelled.");
+        $dia.closeFromOK || ryt.logger.info("'"+diaTitle + "' cancelled.");
         $dia.closeFromOK && callbackOK && callbackOK($dia.props);
       },
       buttons: { 
@@ -765,7 +764,7 @@ Wenn Sie XHTML-Standard-konform arbeiten wollen, müssen Sie das Attribut in der
           $dia.dialog('close');
         }, 
         "?": function() {
-	  self.logger.help(diaTitle + ": all changes are visible after project reload.");
+	  ryt.logger.help(diaTitle + ": all changes are visible after project reload.");
         }
       }
     });
@@ -1890,84 +1889,301 @@ Wenn Sie XHTML-Standard-konform arbeiten wollen, müssen Sie das Attribut in der
   } // openTextareaDialog()
   openTextareaDialog.diaCount = 0;
 
-
+  /* //testing helper
+     RYT.deleteLocally('replaceText_history');
+  */
   function replaceTextDialog(ids, callbackOK, argObjOrNil) {
     var argObj = argObjOrNil || { };
     var dialogTitle = 'Replace Text (in ' + ids.length + ' elements)';
-    var searchString = (argObjOrNil && argObjOrNil.searchString) || "";
-    var diaCount = ++this.replaceTextDialog.diaCount;
-    var id = 'replaceText-dia_' + diaCount
-    var $dia = $(
-      '<div id="' + id + '" title="'+dialogTitle+'"'
-        +'style="overflow:hidden;" '
-        +'>'
+    //var searchString = (argObjOrNil && argObjOrNil.searchString) || "";
+    var diaCount = ++this.replaceTextDialog.diaCount; // this is ryt here
+    var id = 'replaceText-dia_' + diaCount;
+    let id_searchText = id + '_searchText';
+    let id_replaceText = id + '_replaceText';
+    let id_searchPrevButton = id + '_searchPrevButton';
+    let id_searchNextButton = id + '_searchNextButton';
+    let id_replacePrevButton = id + '_replacePrevButton';
+    let id_replaceNextButton = id + '_replaceNextButton';
+    let id_syncCheckbox = id + '_syncCheckbox';
+    let id_recursivelyCheckbox = id + '_recursivelyCheckbox';
+    let history = ryt.info.getLocally('replaceText_history',
+                                      { searchStrings: [],
+                                        replaceStrings: [],
+                                        syncFlag: false,
+                                        recursivelyFlag: false
+                                      });
+    let seStrings = history.searchStrings;
+    let seIx = seStrings.length;
+    let reStrings = history.replaceStrings;
+    let reIx = reStrings.length;
+    eg.assert(seIx === reIx);
+    let histLen = seIx;
 
-        //+'<form accept-charset="utf-8">'
+    var $dia = $(
+      ''
+        +'<div'
+        + ' id="' + id + '" title="'+dialogTitle+'"'
+        + ' style="overflow:hidden;" '
+        +'>'
         +'<table>'
 
         +'<tr>'
+
         +'<td title="String to search for replacement.">Search:</td>'
         +'<td>'
+        //+'<form accept-charset="utf-8">'// autocomplete="on">'
         +'<textarea'
-        +' name="search" id="search"'
-        +' rows="1" cols="100" style="width:100%;">'
-        + ''
+        //+' autocomplete="search"'
+        //+' autocomplete="on"'
+        +' name="search" id="'+id_searchText+'"'
+        +' placeholder="search text"'
+        +' rows="1" cols="80" style="width:100%;"'
+        +'>'
         +'</textarea>'
+        //+'</form>'
         +'</td>'
+
+        +'<td valign="top" style="padding-left: 10px;">'
+        //+'<div class="ui-dialog-buttonset">'
+        +'<button'
+        +' id="'+id_searchPrevButton+'" type="button"'
+        +' title="previous search string"'
+        +' tabindex=-1'
+        +' class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only label-nowrap" role="button" aria-disabled="false"'
+        +' style="min-width:70px;"'
+        +'>' // button>
+        +  '<span class="ui-button-text">&lt;</span>'
+        +'</button>'
+        +'</td>'
+        +'<td valign="top">'
+        +'<button'
+        +' id="'+id_searchNextButton+'" type="button"'
+        +' title="next search string"'
+        +' tabindex=-1'
+        +' class="ui-button ui-widget ui-state-default ui-corner-all'
+        +       ' ui-button-text-only'
+        //+       ' label-nowrap'
+        +       '"'
+        +' role="button" aria-disabled="false"'
+        +' style="min-width:70px;"'
+        +'>' // button>
+        +  '<span class="ui-button-text">&gt;</span>'
+        +'</button>'
+        //+'</div>' // class ui-dialog-buttonset
+        +'</td>'
+
         +'</tr>'
-      //
         +'<tr>'
-        +'<td title="Replacement of found string.">Replacement:</td>'
+
+        +'<td title="Replacement of found string.">Replace:</td>'
         +'<td>'
         +'<textarea'
-        +' name="replacement" id="replacement"'
-        +' rows="1" cols="100" style="width:100%;">'
-        + ''
+        +' name="replacement" id="'+id_replaceText+'"'
+        +' placeholder="replacement text"'
+        +' rows="1" cols="80" style="width:100%;"'
+        +'>'
         +'</textarea>'
         +'</td>'
-        +'</tr>'
-      
-        +'<tr>'
-        +'<td colspan="2">'
-        +  '<input'
-        +    ' type="checkbox" id="recursivelyCheckbox"'
-        +    ' tabindex="-1"' // skip, if tabbing towards 'OK' button
-        +  '>'
-        + '<span title="Do it recursively in child elements, too.">'
-        +  ' recursively'
-        + '</span>'
+
+        +'<td valign="top" style="padding-left: 10px;">'
+        +'<button'
+        +' id="'+id_replacePrevButton+'" type="button"'
+        +' title="previous replacement string"'
+        +' tabindex=-1'
+        +' class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" role="button" aria-disabled="false"'
+        +' style="min-width:70px;"'
+        +'>' // button>
+        +  '<span class="ui-button-text">&lt;</span>'
+        +'</button>'
         +'</td>'
+        +'<td valign="top">'
+        +'<button'
+        +' id="'+id_replaceNextButton+'" type="button"'
+        +' title="next replacement string"'
+        +' tabindex=-1'
+        +' class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" role="button" aria-disabled="false"'
+        +' style="min-width:70px;"'
+        +'>' // button>
+        +  '<span class="ui-button-text">&gt;</span>'
+        +'</button>'
+        +'</td>'
+
+        +'</tr>'
+        +'<tr>'
+
+        +'<td colspan=2>'
+        +  '<label'
+        +    ' class="label-nowrap"'
+        +    ' title="Do it recursively in child elements, too."'
+        +  '>'
+        +  '<input type="checkbox"'
+        +    ' id="'+id_recursivelyCheckbox+'"'
+        +    ' tabindex="-1"' // skip, if tabbing towards 'OK' button
+        +  '/>'
+        +  'recursively'
+        +  '</label>'
+        +'</td>'
+
+        +'<td colspan="2"'
+        +   ' style="text-align: center; vertical-align: middle;">'
+
+        +  '<label '
+        +    ' class="label-nowrap"'
+        +    ' title="Synchronize search|replace history navigation."'
+        +  '>'
+        +  '<input'
+        +    ' type="checkbox"'
+        +    ' id="'+id_syncCheckbox+'"'
+        +    ' tabindex="-1"' // skip, if tabbing towards 'OK' button
+        +  '/>'
+        +  'sync'
+        +  '</label>' 
+        +'</td>'
+
         +'</tr>'
 
         +'</table>'
-        //+'</form>'
-
         +'</div>'
     );
 
+    let seText = $dia.find('#'+id_searchText);
+    let sePrevButton = $dia.find('#'+id_searchPrevButton);
+    let seNextButton = $dia.find('#'+id_searchNextButton);
+    let reText = $dia.find('#'+id_replaceText);
+    let rePrevButton = $dia.find('#'+id_replacePrevButton);
+    let reNextButton = $dia.find('#'+id_replaceNextButton);
+    let syncCheckbox = $dia.find('#'+id_syncCheckbox);
+    let recursivelyCheckbox = $dia.find('#'+id_recursivelyCheckbox);
+
+    function setTextarea_rows(ta, text) {
+      let numLines = text.split(/\n/).length;
+      ta.attr('rows', numLines > 2 ? 3 : numLines);
+    }
+    // update rows of textareas after 'Enter' keypress
+    seText.keydown(function (ev) {
+      if (ev.key === 'Enter') { // 'Enter' becoming '\n' in val() later, so ..
+        setTextarea_rows(seText, seText.val() + '\n'); // 'Enter' *not* being ..
+      }
+    });
+    reText.keydown(function (ev) {
+      if (ev.key === 'Enter') { // .. pretend 'Enter' being '\n' in val().
+        setTextarea_rows(reText, reText.val() + '\n'); // .. '\n' in val() here.
+      }
+    });
+
+    function jqeryui_button_attrDisabled(button, flag) {
+      button.attr('disabled', !!flag);
+      if (flag) {
+        button.addClass('ui-state-disabled');
+      } else {
+        button.removeClass('ui-state-disabled');
+      }
+    }
+    function setButtonsState(prevButton, nextButton, ix) {
+      jqeryui_button_attrDisabled(prevButton, ! ix);
+      jqeryui_button_attrDisabled(nextButton, ix >= histLen - 1);
+    }
+
+    function jqueryui_button_text(button, text) {
+      button.find('span').text(text);
+    }
+    function setButtonsLabel(prevBut, nextBut, ix) {
+        jqueryui_button_text(prevBut, '<(' + ix + ')');
+        jqueryui_button_text(nextBut,
+                             '>('
+                             + (histLen - 1 - ix)
+                             + ')');
+    }
+
+    setButtonsState(sePrevButton, seNextButton, histLen);
+    setButtonsState(rePrevButton, reNextButton, histLen);
+    if (false) {
+      setButtonsLabel(sePrevButton, seNextButton, histLen);
+      setButtonsLabel(rePrevButton, reNextButton, histLen);
+    }
+    syncCheckbox.attr('checked', history.syncFlag);
+    recursivelyCheckbox.attr('checked', history.recursivelyFlag);
+
+    function setTextarea_valNrows(ta, text) {
+      ta.val(text);
+      setTextarea_rows(ta, text);
+    }
+    function buttonsAction(textArea, strings, prevButton, nextButton, ix) {
+      setTextarea_valNrows(textArea, strings[ix]);
+      setButtonsLabel(prevButton, nextButton, ix);
+      setButtonsState(prevButton, nextButton, ix);
+    }
+
+    sePrevButton.click(function() {
+      if (seIx) {
+        --seIx;
+        buttonsAction(seText, seStrings, sePrevButton, seNextButton, seIx);
+        if (syncCheckbox.is(':checked')) {
+          reIx = seIx;
+          buttonsAction(reText, reStrings, rePrevButton, reNextButton, reIx);
+        }
+      }
+    });
+    seNextButton.click(function(foo, bar, buz) {
+      if (seIx < histLen - 1) {
+        ++seIx;
+        buttonsAction(seText, seStrings, sePrevButton, seNextButton, seIx);
+        if (syncCheckbox.is(':checked')) {
+          reIx = seIx;
+          buttonsAction(reText, reStrings, rePrevButton, reNextButton, reIx);
+        }
+      }
+    });
+    rePrevButton.click(function() {
+      if (reIx) {
+        --reIx;
+        buttonsAction(reText, reStrings, rePrevButton, reNextButton, reIx);
+        if (syncCheckbox.is(':checked')) {
+          seIx = reIx;
+          buttonsAction(seText, seStrings, sePrevButton, seNextButton, seIx);
+        }
+      }
+    });
+    reNextButton.click(function(foo, bar, buz) {
+      if (reIx < histLen - 1) {
+        ++reIx;
+        buttonsAction(reText, reStrings, rePrevButton, reNextButton, reIx);
+        if (syncCheckbox.is(':checked')) {
+          seIx = reIx;
+          buttonsAction(seText, seStrings, sePrevButton, seNextButton, seIx);
+        }
+      }
+    });
+
     $dia.closeFromOK = false;
 
-    // seems to be not needed here:
-    //  avoid creating new task dialogs with dblclick (is there a better way (probably in document ev handler?)?)
-    //  $dia.dblclick(eg.eatThemEventHandler);
-
-    var self = this;
-    $dia.extractProps = function () {
-      var searchArea = $dia.find("#search");
-      var replacementArea = $dia.find("#replacement");
-      var/*let*/ recursivelyCheckbox = $dia.find("#recursivelyCheckbox");
-      var/*let*/ props = { search:searchArea.val(),
-                    replacement:replacementArea.val(),
-                    recursivelyFlag:recursivelyCheckbox.is(':checked')
+    $dia.extractNStoreProps = function () {
+      let seStr = seText.val();
+      let reStr = reText.val();
+      let recursivelyFlag = recursivelyCheckbox.is(':checked');
+      let props = { search:seStr,
+                    replacement:reStr,
+                    recursivelyFlag:recursivelyFlag
                   };
+      seStrings.push(seStr);
+      reStrings.push(reStr);
+      let syncFlag = syncCheckbox.is(':checked');
+      ryt.info.setLocally('replaceText_history',
+                          { searchStrings: seStrings.slice(-10),
+                            replaceStrings: reStrings.slice(-10),
+                            syncFlag: syncFlag, // just for GUI behavior
+                            recursivelyFlag: recursivelyFlag }
+                         );
       return props;
     };
 
     var helpText = ''
-      +"Replace *search* text by *replacement* text in all text fields of selected flow elements.\n"
-      +"Text fields are\n"
-      +"  - 'name', 'description' of tasks, and\n"
-      +"  - (all) text of comments."
+      +"Replace *search* text by *replace*-ment text in all text fields of selected flow elements.\n"
+      +"Text fields are:\n"
+      +"  - 'name' and 'description' of tasks, and\n"
+      +"  - (all) text of comments.\n"
+      +'\n'
+      +"If *recursively* is checked, do it for child elements of selected ones, too."
     ;
 
     $dia.dialog({
@@ -1986,7 +2202,7 @@ Wenn Sie XHTML-Standard-konform arbeiten wollen, müssen Sie das Attribut in der
           callbackOK && callbackOK(props);
         } else {
           ! $dia.forcedCloseFlag
-            && self.logger.info("'"+dialogTitle + "' cancelled.");
+            && ryt.logger.info("'"+dialogTitle + "' cancelled.");
         }
         ryt.app.unregisterDialog(id, $dia);
       },

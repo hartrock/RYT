@@ -4223,7 +4223,7 @@ protoApp.popupMenuForFlowEditor = function (flowEditor, flowId) {
       flowEditor.selectAll();
     } },
     { /* sep */ },
-    { key:"replace text in selected flow elemeents", val: function() {
+    { key:"replace text in selected flow elements", val: function() {
       flowEditor.sendReplaceTextEvent();
     } },
     { /* sep */ },
@@ -4914,6 +4914,24 @@ protoApp.createActionButtons = function () {
                  { title:"Welcome to RYT!", dims:eg.Point.xy(800,500) });
   });
   lastPos = action.topRight();
+
+/*
+  if (false) {
+    var menuTestButt
+        = r.eg.createTextButtonAt(lastPos.add(gap), "menuTest");
+    var entries = [
+      { key:"copy (ctrl-c)\n..next line...\n<foo>", val: function() {
+        //flowEditor.sendCopyEvent();
+      } },
+      { key:"cut (ctrl-x)", val: function() {
+        //flowEditor.deleteOrCut(true); // cutFlag
+      } },
+    ];
+    this.popupMenuForWidget(entries, "test", menuTestButt);
+
+    lastPos = menuTestButt.topRight();
+  }
+*/
 }; // protoApp.createActionButtons()
 
 protoApp.createFlowEditorNObservers = function (r, flowId) {
