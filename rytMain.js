@@ -195,18 +195,24 @@ function window_onload () {
 
   // default: show only if not seen before
   ryt.showNews = function(forceFlag) {
-    var ident = 'RYTv2.4';
+    var ident = 'RYTv2.6';
     // content
     var topic = ""
-      + "[new] *global* tasks";
+      + "[new] search|replace history in Replace Text dialog";
     var text = ""
       + ident +": " + topic + "\n"
       +"========\n"
-      +"*Global* tasks: always to be copied as aliases."
+      +"" // could be more info here
     //
       +"\n\n"
       +"Older News\n"
       +"==========\n"
+      +"\n"
+      +"RYTv2.5: [new] bulk text replace in selected elements"
+      +"---------\n"
+      +"\n"
+      +"RYTv2.4: [new] *global* tasks"
+      +"---------\n"
       +"\n"
       +"RYTv2.3: [new] transparent tasks\n"
       +"---------\n"
