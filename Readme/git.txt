@@ -1,3 +1,19 @@
+Deleting tags
+=============
+- just locally
+git tag -d v2.6.1 v2.5.3
+
+- list tags at origin
+git ls-remote --tags
+
+- delete at origin
+git push --delete origin  v2.6.1 v2.5.3
+- pull deletions
+git fetch origin --prune --prune-tags
+
+
+Credentials
+===========
 ssh-keygen -t ed25519 -C "sr@evolgo.de"
 ssh-add ~/.ssh/id_ed25519
 git remote set-url origin git@github.com:hartrock/RYT.git
