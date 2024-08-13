@@ -36,13 +36,14 @@ yesNo "git commit?" && {
     git commit -a -m "$0 $VERSION" || error "git commit";
 }
 
+yesNo "Tag with $VERSION in git?" && {
+    git tag $VERSION || error "git tag $VERSION";
+}
+
 yesNo "make upgrade?" && {
     make upgrade || error "make upgrade";
 }
 
-yesNo "Tag with $VERSION in git?" && {
-    git tag $VERSION || error "git tag $VERSION";
-}
 
 yesNo "cleanOldReleases?" && {
     $SCRIPT_DIR/cleanOldReleases || error "cleanOldReleases"
