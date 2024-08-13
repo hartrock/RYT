@@ -2097,10 +2097,10 @@ Wenn Sie XHTML-Standard-konform arbeiten wollen, müssen Sie das Attribut in der
 
     setButtonsState(sePrevButton, seNextButton, histLen);
     setButtonsState(rePrevButton, reNextButton, histLen);
-    if (false) {
+    /*
       setButtonsLabel(sePrevButton, seNextButton, histLen);
       setButtonsLabel(rePrevButton, reNextButton, histLen);
-    }
+    */
     syncCheckbox.attr('checked', history.syncFlag);
     recursivelyCheckbox.attr('checked', history.recursivelyFlag);
 
