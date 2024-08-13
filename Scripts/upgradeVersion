@@ -35,12 +35,13 @@ yesNo "git commit?" && {
 #    darcs rec --patch-name "$0 $VERSION" --interactive || error "darcs rec";
     git commit -a -m "$0 $VERSION" || error "git commit";
 }
-yesNo "Tag with $VERSION in git?" && {
-    git tag $VERSION || error "git tag $VERSION";
-}
 
 yesNo "make upgrade?" && {
     make upgrade || error "make upgrade";
+}
+
+yesNo "Tag with $VERSION in git?" && {
+    git tag $VERSION || error "git tag $VERSION";
 }
 
 yesNo "cleanOldReleases?" && {
