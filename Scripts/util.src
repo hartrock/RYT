@@ -22,15 +22,20 @@ function success {
     echo "--> $SCRIPT_NAME [SUCCESS] $*" >&2
     exit 0
 }
-function yesNo {
-    local question=$1 key val
-    echo -n -e "$question "
+
+function h_yesNo {
+    local question=$1
+    local defaultStr=$2
+    local defaultVal=$3
+    #dbg echo "ttt: $question $defaultStr $defaultVal"
+    local key val
+    echo -n -e "$question $defaultStr"
     while read -n 1 key
     do
         case "$key"
             in
-            '')
-                val=0; break
+            '') # RET default
+                val=$defaultVal; break
                 ;;
             y)
                 val=0; break
@@ -48,6 +53,16 @@ function yesNo {
     done
     echo
     return $val
+}
+function yesNo {
+    local question=$1
+    h_yesNo "$question" '(Yes) ' 0
+    return $?
+}
+function noYes {
+    local question=$1
+    h_yesNo "$question" '(No) ' 1
+    return $?
 }
 
 function input {

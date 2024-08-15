@@ -1,0 +1,7 @@
+#!/bin/bash
+
+# source utils
+. Scripts/util.src
+
+# return in func
+noYes "$1"

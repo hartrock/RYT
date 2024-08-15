@@ -36,7 +36,7 @@ function go_dst_src() {
             echo "  => Ignored."
         fi
     else
-        if [ "$doNotAsk" ] || yesNo "\n$srcFile is different from *** but older! *** than $dstFile:\n  do you really want to overwrite $dstFile?"
+        if [ "$doNotAsk" ] || noYes "\n$srcFile is different from *** but older! *** than $dstFile:\n  do you really want to overwrite $dstFile?"
         then
             cp $srcFile $dstFile && echo "  => $dstFile overwritten."
         else
@@ -61,7 +61,7 @@ function go_dst_no_src() {
     local dstFile srcFile fn
     dstFile=$1; srcFile=$2; fn=$3
     info; info "go_dst_no_src() fn: $fn"
-    if [ "$doNotAsk" ] || yesNo "\nThere is a $dstFile, but no $srcFile:\n  remove $dstFile?"
+    if [ "$doNotAsk" ] || noYes "\nThere is a $dstFile, but no $srcFile:\n  remove $dstFile?"
     then
         rm -v $dstFile && echo "  => $dstFile removed."
     else
