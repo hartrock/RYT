@@ -8,7 +8,7 @@ libapache2-mod-php
 git
 default-jre-headless # for minifying javascript sources
 firefox # for locally testing apache2 install
-
+imagemagick # for 'make webside' (screenshots, etc.)
 
 See subdir Debian_* for needed apache files...
 
