@@ -41,4 +41,5 @@ emacs -nw /etc/apache2/sites-available/ryt-ssl.conf
 a2query -s
 a2ensite ryt-ssl
 
+a2enmod userdir
 a2enmod ssl
