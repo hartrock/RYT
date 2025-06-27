@@ -1,7 +1,22 @@
 Linux (Debian)
---------------
-Files
-  httpd.conf from /etc/apache2/httpd.conf ;
-  php5.conf  from /etc/apache2/mods-available/php5.conf , also having a symbolic link from
-                    /etc/apache2/mods-enabled/php5.conf
-.
+==============
+
+Packages needed
+---------------
+apache2
+libapache2-mod-php
+git
+default-jre-headless # for minifying javascript sources
+firefox # for locally testing apache2 install
+
+
+See subdir Debian_* for needed apache files...
+
+Useful commands
+---------------
+# root
+adduser ryt
+adduser ryt sudo
+
+# ryt
+git clone https://github.com/hartrock/RYT
