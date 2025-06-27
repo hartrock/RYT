@@ -55,17 +55,18 @@ WWW_SERVER_DIR=~/WWW
 WWW_SERVER_URL=http://localhost
 # Probably OK: if this URL does not work, you probably are in trouble.
 
-# How to reach WWW_SERVER_DIR via a server URL: ~sr is *my* HOME dir, because
-# the server is configured to look into HOME/WWW/ for each user (known to RYT by
-# setting WWW_SERVER_DIR above):
-WWW_PATH=~sr
-# You *have* to change this!
-# It's very likely, that you have another user id than me or a totally
-# different config not using user local WWW access.
+# How to reach WWW_SERVER_DIR via a server URL: ~ryt is HOME dir of (special)
+#   newly created ryt user - for git'ing, installing and upgrading RYT -,
+#   because the server is configured to look into HOME/WWW/ for each user
+#   (known to RYT by setting WWW_SERVER_DIR above):
+WWW_PATH=~ryt
+# You *have* to change this, if you want to use another uid!
+# It's possible, that you want to use another user id (e.g. your personal one)
+#   or a totally different config not using user-local WWW access.
 # Testing: after install
 #   WWW_SERVER_URL/WWW_PATH/RYT_DIRNAME/helloWorld.html
 # or - after this example config -
-#   http://localhost/~sr/RYT/helloWorld.html
+#   http://localhost/~ryt/RYT/helloWorld.html
 # should give - the expected - result.
 
 # Which default time to get by php scripts: admin|user may be located elsewhere,
